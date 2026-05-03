@@ -6,6 +6,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -40,6 +41,23 @@ public class User implements UserDetails, UserCredentials {
     @Column(nullable = false)
     private String role;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "user_interests", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "interest")
+    private List<Interest> interests = new ArrayList<>();
+
+    @Column
+    private Integer budget;
+
+    @Enumerated(EnumType.STRING)
+    private TravelType travelType;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_languages", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "language")
+    private List<String> languages = new ArrayList<>();
+
     public User(String name, String password, String gender, String email, String lastname, String photo, String role,
             LocalDate birthDate) {
         this.name = name;
@@ -50,6 +68,15 @@ public class User implements UserDetails, UserCredentials {
         this.password = password;
         this.gender = gender;
         this.role = role;
+    }
+
+    public User(String name, String password, String gender, String email, String lastname, String photo, String role,
+            LocalDate birthDate, List<Interest> interests, Integer budget, TravelType travelType, List<String> languages) {
+        this(name, password, gender, email, lastname, photo, role, birthDate);
+        setInterests(interests);
+        this.budget = budget;
+        this.travelType = travelType;
+        setLanguages(languages);
     }
 
     public User() {
@@ -121,6 +148,38 @@ public class User implements UserDetails, UserCredentials {
 
     public Long getId() {
         return id;
+    }
+
+    public List<Interest> getInterests() {
+        return interests;
+    }
+
+    public void setInterests(List<Interest> interests) {
+        this.interests = interests == null ? new ArrayList<>() : new ArrayList<>(interests);
+    }
+
+    public Integer getBudget() {
+        return budget;
+    }
+
+    public void setBudget(Integer budget) {
+        this.budget = budget;
+    }
+
+    public TravelType getTravelType() {
+        return travelType;
+    }
+
+    public void setTravelType(TravelType travelType) {
+        this.travelType = travelType;
+    }
+
+    public List<String> getLanguages() {
+        return languages;
+    }
+
+    public void setLanguages(List<String> languages) {
+        this.languages = languages == null ? new ArrayList<>() : new ArrayList<>(languages);
     }
 
     public String getRole() {

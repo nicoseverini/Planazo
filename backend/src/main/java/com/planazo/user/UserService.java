@@ -6,6 +6,7 @@ import com.planazo.user.dto.*;
 import com.planazo.user.refresh_token.RefreshToken;
 import com.planazo.user.refresh_token.RefreshTokenService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,8 +55,12 @@ public class UserService implements UserDetailsService {
             return Optional.empty();
         } else {
             var user = data.asUser(passwordEncoder::encode);
-            userRepository.save(user);
-            return Optional.of(generateTokens(user));
+            try {
+                userRepository.save(user);
+                return Optional.of(generateTokens(user));
+            } catch (DataIntegrityViolationException ex) {
+                return Optional.empty();
+            }
         }
     }
 
@@ -81,7 +86,27 @@ public class UserService implements UserDetailsService {
                         user.getLastname(),
                         user.getPhoto(),
                         user.getGender(),
-                        user.getBirthDate()));
+                        user.getBirthDate(),
+                        user.getInterests(),
+                        user.getBudget(),
+                        user.getTravelType(),
+                        user.getLanguages()));
+    }
+
+    Optional<UserProfileDTO> getUserProfileByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(user -> new UserProfileDTO(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getName(),
+                        user.getLastname(),
+                        user.getPhoto(),
+                        user.getGender(),
+                        user.getBirthDate(),
+                        user.getInterests(),
+                        user.getBudget(),
+                        user.getTravelType(),
+                        user.getLanguages()));
     }
 
     Optional<User> deleteUser(Long id) {
@@ -128,6 +153,18 @@ public class UserService implements UserDetailsService {
                     if (userDTO.birthDate() != null) {
                         findedUser.setBirthDate(userDTO.birthDate());
                     }
+                    if (userDTO.interests() != null) {
+                        findedUser.setInterests(userDTO.interests());
+                    }
+                    if (userDTO.budget() != null) {
+                        findedUser.setBudget(userDTO.budget());
+                    }
+                    if (userDTO.travelType() != null) {
+                        findedUser.setTravelType(userDTO.travelType());
+                    }
+                    if (userDTO.languages() != null) {
+                        findedUser.setLanguages(userDTO.languages());
+                    }
                     if (userDTO.password() != null) {
                         findedUser.setPassword(userDTO.password());
                     }
@@ -154,6 +191,18 @@ public class UserService implements UserDetailsService {
                     }
                     if (userDTO.birthDate() != null) {
                         findedUser.setBirthDate(userDTO.birthDate());
+                    }
+                    if (userDTO.interests() != null) {
+                        findedUser.setInterests(userDTO.interests());
+                    }
+                    if (userDTO.budget() != null) {
+                        findedUser.setBudget(userDTO.budget());
+                    }
+                    if (userDTO.travelType() != null) {
+                        findedUser.setTravelType(userDTO.travelType());
+                    }
+                    if (userDTO.languages() != null) {
+                        findedUser.setLanguages(userDTO.languages());
                     }
                     if (userDTO.password() != null) {
                         findedUser.setPassword(userDTO.password());

@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 
 import { BASE_API_URL } from "@/config/app-query-client";
 import { LoginRequest, LoginResponseSchema } from "@/models/Login";
+import { SignupRequest } from "@/models/Signup";
 import { useToken } from "@/services/TokenContext";
 
 export function useLogin() {
@@ -19,14 +20,16 @@ export function useSignup() {
   const [, setToken] = useToken();
 
   return useMutation({
-    mutationFn: async (req: LoginRequest) => {
+    mutationFn: async (req: SignupRequest) => {
       const tokenData = await auth("/api/v1/auth/signup", req);
       setToken({ state: "LOGGED_IN", ...tokenData });
     },
   });
 }
 
-async function auth(endpoint: string, data: LoginRequest) {
+type AuthRequest = LoginRequest | SignupRequest;
+
+async function auth(endpoint: string, data: AuthRequest) {
   const response = await fetch(BASE_API_URL + endpoint, {
     method: "POST",
     headers: {
