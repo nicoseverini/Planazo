@@ -4,6 +4,8 @@ import com.planazo.user.dto.RefreshDTO;
 import com.planazo.user.dto.TokenDTO;
 import com.planazo.user.dto.UserCreateDTO;
 import com.planazo.user.dto.UserLoginDTO;
+import com.planazo.user.dto.ChangePasswordDTO;
+import com.planazo.user.dto.ForgotPasswordDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -76,6 +78,25 @@ class SessionRestController {
                 .refresh(data)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token"));
     }
+
+	@PreAuthorize("permitAll()")
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request a password reset email")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordDTO data) {
+        userService.requestPasswordReset(data.email());
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("permitAll()")
+    @PostMapping("/change-password")
+    @Operation(summary = "Change password using a reset token")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordDTO data) {
+        if (userService.changePassword(data.token(), data.newPassword())) {
+            return ResponseEntity.ok().build();
+        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired token");
+    }
+
     @PreAuthorize("permitAll()")
     @PatchMapping("/verify_user")
     @Operation(summary = "Verify user account via email token")
