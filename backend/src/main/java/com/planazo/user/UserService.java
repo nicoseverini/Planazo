@@ -9,6 +9,7 @@ import com.planazo.user.verification.VerificationTokenService;
 import com.planazo.user.verification.VerificationToken;
 import com.planazo.user.change_password.ChangePasswordToken;
 import com.planazo.user.change_password.ChangePasswordTokenService;
+import com.planazo.user.email_service.EmailService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,6 +34,7 @@ public class UserService implements UserDetailsService {
     private final RefreshTokenService refreshTokenService;
     private final VerificationTokenService verificationTokenService;
     private final ChangePasswordTokenService changePasswordTokenService;
+    private final EmailService emailService;
 
     @Autowired
     UserService(
@@ -41,13 +43,15 @@ public class UserService implements UserDetailsService {
             UserRepository userRepository,
             RefreshTokenService refreshTokenService, 
             VerificationTokenService verificationTokenService, 
-            ChangePasswordTokenService changePasswordTokenService) {
+            ChangePasswordTokenService changePasswordTokenService,
+            EmailService emailService) {
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.refreshTokenService = refreshTokenService;
         this.verificationTokenService = verificationTokenService;
-        this.changePasswordTokenService = changePasswordTokenService; 
+        this.changePasswordTokenService = changePasswordTokenService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -68,9 +72,7 @@ public class UserService implements UserDetailsService {
             userRepository.save(user);
 
             VerificationToken vToken = verificationTokenService.createFor(user);
-
-            // emailService.enviarMailVerificacion(user.getEmail(), vToken.getToken());
-
+            emailService.sendVerificationEmail(user.getEmail(), vToken.getToken());
             return Optional.of(generateTokens(user));
         }
     }
@@ -198,7 +200,7 @@ public class UserService implements UserDetailsService {
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             ChangePasswordToken token = changePasswordTokenService.createFor(user);
-            // emailService.sendPasswordResetEmail(user.getEmail(), resetToken.getToken());
+            emailService.sendPasswordResetEmail(user.getEmail(), token.getToken());
             return true;
         }
         return false;

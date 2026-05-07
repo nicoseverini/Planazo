@@ -18,6 +18,8 @@ services:
     # image: ghcr.io/YOUR_GITHUB_USERNAME/todo-template-backend:latest
     depends_on:
       - "db"
+    env_file:
+      - "./backend/.env"
     restart: on-failure
     environment:
       SPRING_DATASOURCE_USERNAME: "${DB_USERNAME:-postgres}"
