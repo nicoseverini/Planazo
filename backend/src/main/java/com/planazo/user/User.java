@@ -40,6 +40,9 @@ public class User implements UserDetails, UserCredentials {
     @Column(nullable = false)
     private String role;
 
+    @Column(nullable = false)
+    private Boolean verified;
+
     public User(String name, String password, String gender, String email, String lastname, String photo, String role,
             LocalDate birthDate) {
         this.name = name;
@@ -50,6 +53,7 @@ public class User implements UserDetails, UserCredentials {
         this.password = password;
         this.gender = gender;
         this.role = role;
+        this.verified = false;
     }
 
     public User() {
@@ -121,6 +125,14 @@ public class User implements UserDetails, UserCredentials {
 
     public Long getId() {
         return id;
+    }
+
+    public Boolean isVerified() {
+        return verified;
+    }
+
+    public void setVerified(Boolean verified) {
+        this.verified = verified;
     }
 
     public String getRole() {

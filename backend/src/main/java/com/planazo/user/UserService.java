@@ -5,6 +5,8 @@ import com.planazo.config.security.JwtUserDetails;
 import com.planazo.user.dto.*;
 import com.planazo.user.refresh_token.RefreshToken;
 import com.planazo.user.refresh_token.RefreshTokenService;
+import com.planazo.user.verification.VerificationTokenService;
+import com.planazo.user.verification.VerificationToken;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,17 +28,20 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final RefreshTokenService refreshTokenService;
+    private final VerificationTokenService verificationTokenService;
 
     @Autowired
     UserService(
             JwtService jwtService,
             PasswordEncoder passwordEncoder,
             UserRepository userRepository,
-            RefreshTokenService refreshTokenService) {
+            RefreshTokenService refreshTokenService, 
+            VerificationTokenService verificationTokenService) {
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.refreshTokenService = refreshTokenService;
+        this.verificationTokenService = verificationTokenService;
     }
 
     @Override
@@ -51,10 +56,15 @@ public class UserService implements UserDetailsService {
 
     Optional<TokenDTO> createUser(UserCreateDTO data) {
         if (userRepository.findByEmail(data.email()).isPresent()) {
-            return Optional.empty();
+        return Optional.empty();
         } else {
             var user = data.asUser(passwordEncoder::encode);
             userRepository.save(user);
+
+            VerificationToken vToken = verificationTokenService.createFor(user);
+
+            // emailService.enviarMailVerificacion(user.getEmail(), vToken.getToken());
+
             return Optional.of(generateTokens(user));
         }
     }
@@ -162,5 +172,19 @@ public class UserService implements UserDetailsService {
                     userRepository.save(findedUser);
                     return ResponseEntity.status(HttpStatus.OK).body(new StatusResponseDTO("success", "User updated"));
                 });
+    }
+
+    public boolean verifyUserAccount(String tokenValue) {
+        Optional<VerificationToken> vTokenOpt = verificationTokenService.findByVerifiedToken(tokenValue);
+
+        if (vTokenOpt.isPresent()) {
+            VerificationToken vToken = vTokenOpt.get();
+            User user = vToken.getUser();
+            user.setVerified(true);
+            userRepository.save(user);
+            verificationTokenService.deleteToken(vToken);    
+            return true;
+        }
+        return false;
     }
 }
