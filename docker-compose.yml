@@ -38,7 +38,11 @@ services:
     environment:
       BACKEND_EXTERNAL_URL: "${BACKEND_EXTERNAL_URL:-http://localhost:8080}"
     ports:
-      - "${FRONTEND_EXTERNAL_PORT:-3000}:80"
+      - "${FRONTEND_EXTERNAL_PORT:-8082}:8081"
+      - "19000:19000"
+      - "19001:19001"
+    stdin_open: true
+    tty: true
 
   adminer:
     image: "adminer:5.0.4"

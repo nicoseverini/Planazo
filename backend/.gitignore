@@ -1,3 +1,15 @@
+*.log
+*.class
+/.mvn/
+.mvn/
+.settings/
+.project
+.classpath
+.vscode/
+.idea/
+*.iml
+.env
+
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
