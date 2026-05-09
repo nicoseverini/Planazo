@@ -12,9 +12,7 @@ Stack local con Docker Compose:
 Desde la raiz del repo (donde esta el archivo `docker-compose.yml`):
 
 ```bash
-docker compose config
-docker compose up --build -d
-docker compose ps
+sudo ./scripts/up-dev.sh
 ```
 
 Ver logs si algo falla:

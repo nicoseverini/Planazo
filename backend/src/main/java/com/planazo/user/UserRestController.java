@@ -26,6 +26,19 @@ class UserRestController {
         }
 
         @PreAuthorize("isAuthenticated()")
+        @GetMapping(value = "/profile/me", produces = "application/json")
+        @Operation(summary = "View your profile")
+        @ResponseStatus(HttpStatus.OK)
+        @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
+        @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+        ResponseEntity<UserProfileDTO> viewMyProfile(
+                        @AuthenticationPrincipal(expression = "username") String email) {
+                return userService.getUserProfileByEmail(email)
+                                .map(ResponseEntity::ok)
+                                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        }
+
+        @PreAuthorize("isAuthenticated()")
         @GetMapping(value = "/profile/{id}", produces = "application/json")
         @Operation(summary = "View a user's profile by ID")
         @ResponseStatus(HttpStatus.OK)

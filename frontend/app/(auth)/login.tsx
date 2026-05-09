@@ -1,33 +1,61 @@
-import { StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Alert, Pressable, View } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
+import { AuthButton, AuthCard, AuthInput } from '@/components/auth/auth-form';
+import { authStyles } from '@/components/auth/auth-styles';
 import { AppScreen } from '@/components/ui/app-screen';
-import { Layout } from '@/constants/theme';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { ThemedText } from '@/components/themed-text';
+import { validateLoginForm } from '@/models/auth';
+import { loginUser } from '@/services/auth';
 
 export default function Login() {
-  const surface = useThemeColor({}, 'surface');
-  const border = useThemeColor({}, 'border');
-  const tint = useThemeColor({}, 'tint');
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLogin = async () => {
+    const validationError = validateLoginForm({ email, password });
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await loginUser({ email: email.trim(), password });
+      Alert.alert('Sesión iniciada', 'Tus credenciales fueron aceptadas.');
+      router.replace('/');
+    } catch (requestError) {
+      const message = requestError instanceof Error ? requestError.message : 'No se pudo iniciar sesión';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <AppScreen centered scrollable>
-      <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}>
-        <ThemedText type="kicker" lightColor={tint} darkColor={tint}>Acceso</ThemedText>
-        <ThemedText type="title">Iniciar sesión</ThemedText>
-        <ThemedText type="body">
-          Acá podés montar tu formulario de acceso con la misma base visual del resto.
-        </ThemedText>
+      <View style={styles.shell}>
+        <AuthCard kicker="Acceso" title="Iniciar sesión" body="Ingresá con tu correo y contraseña para continuar.">
+          <AuthInput label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
+          <AuthInput label="Contraseña" value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" autoComplete="password" />
+          <AuthButton label={loading ? 'Ingresando...' : 'Entrar'} onPress={handleLogin} disabled={loading} />
+          <Pressable onPress={() => router.push('/forgot-password')} style={styles.forgotPasswordLink}>
+            <ThemedText lightColor="#000000" darkColor="#ffffff" style={styles.forgotPasswordText}>
+              Me olvidé la contraseña
+            </ThemedText>
+          </Pressable>
+
+          {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
+        </AuthCard>
       </View>
     </AppScreen>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: Layout.cardRadius,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 20,
-    gap: 10,
-  },
-});
+const styles = authStyles;

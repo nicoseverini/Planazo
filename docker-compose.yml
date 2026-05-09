@@ -36,7 +36,7 @@ services:
       - "backend"
     restart: on-failure
     environment:
-      BACKEND_EXTERNAL_URL: "${BACKEND_EXTERNAL_URL:-http://localhost:8080}"
+          EXPO_PUBLIC_BACKEND_EXTERNAL_URL: "${EXPO_PUBLIC_BACKEND_EXTERNAL_URL}"
     ports:
       - "${FRONTEND_EXTERNAL_PORT:-8082}:8081"
       - "19000:19000"
