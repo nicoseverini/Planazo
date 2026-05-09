@@ -58,6 +58,9 @@ public class User implements UserDetails, UserCredentials {
     @Column(name = "language")
     private List<String> languages = new ArrayList<>();
 
+    @Column(nullable = false)
+    private Boolean verified;
+
     public User(String name, String password, String gender, String email, String lastname, String photo, String role,
             LocalDate birthDate) {
         this.name = name;
@@ -68,6 +71,7 @@ public class User implements UserDetails, UserCredentials {
         this.password = password;
         this.gender = gender;
         this.role = role;
+        this.verified = false;
     }
 
     public User(String name, String password, String gender, String email, String lastname, String photo, String role,
@@ -77,6 +81,7 @@ public class User implements UserDetails, UserCredentials {
         this.budget = budget;
         this.travelType = travelType;
         setLanguages(languages);
+        this.verified = false;
     }
 
     public User() {
@@ -180,6 +185,14 @@ public class User implements UserDetails, UserCredentials {
 
     public void setLanguages(List<String> languages) {
         this.languages = languages == null ? new ArrayList<>() : new ArrayList<>(languages);
+    }
+
+    public Boolean isVerified() {
+        return verified;
+    }
+
+    public void setVerified(Boolean verified) {
+        this.verified = verified;
     }
 
     public String getRole() {

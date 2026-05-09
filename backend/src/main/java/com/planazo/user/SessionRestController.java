@@ -4,6 +4,8 @@ import com.planazo.user.dto.RefreshDTO;
 import com.planazo.user.dto.TokenDTO;
 import com.planazo.user.dto.UserCreateDTO;
 import com.planazo.user.dto.UserLoginDTO;
+import com.planazo.user.dto.ChangePasswordDTO;
+import com.planazo.user.dto.ForgotPasswordDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -21,6 +23,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import com.planazo.user.verification.VerificationTokenService;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PatchMapping;
+
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -28,10 +34,10 @@ import org.springframework.web.server.ResponseStatusException;
 class SessionRestController {
 
     private final UserService userService;
-
+    
     @Autowired
     SessionRestController(UserService userService) {
-        this.userService = userService;
+                this.userService = userService;
     }
 
     @PreAuthorize("permitAll()")
@@ -72,4 +78,33 @@ class SessionRestController {
                 .refresh(data)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token"));
     }
+
+	@PreAuthorize("permitAll()")
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request a password reset email")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordDTO data) {
+        userService.requestPasswordReset(data.email());
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("permitAll()")
+    @PostMapping("/change-password")
+    @Operation(summary = "Change password using a reset token")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordDTO data) {
+        if (userService.changePassword(data.token(), data.newPassword())) {
+            return ResponseEntity.ok().build();
+        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired token");
+    }
+
+    @PreAuthorize("permitAll()")
+    @PatchMapping("/verify_user")
+    @Operation(summary = "Verify user account via email token")
+    @ApiResponse(responseCode = "400", description = "Invalid or expired token", content = @Content)
+    @ResponseStatus(HttpStatus.OK)
+    public void verifyUser(@RequestParam("token") String token) {
+        if (!userService.verifyUserAccount(token)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired token");
+        }
+}
 }

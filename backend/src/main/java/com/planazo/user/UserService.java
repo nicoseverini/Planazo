@@ -5,6 +5,11 @@ import com.planazo.config.security.JwtUserDetails;
 import com.planazo.user.dto.*;
 import com.planazo.user.refresh_token.RefreshToken;
 import com.planazo.user.refresh_token.RefreshTokenService;
+import com.planazo.user.verification.VerificationTokenService;
+import com.planazo.user.verification.VerificationToken;
+import com.planazo.user.change_password.ChangePasswordToken;
+import com.planazo.user.change_password.ChangePasswordTokenService;
+import com.planazo.user.email_service.EmailService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.util.Optional;
 
 @Service
@@ -27,17 +33,26 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final RefreshTokenService refreshTokenService;
+    private final VerificationTokenService verificationTokenService;
+    private final ChangePasswordTokenService changePasswordTokenService;
+    private final EmailService emailService;
 
     @Autowired
     UserService(
             JwtService jwtService,
             PasswordEncoder passwordEncoder,
             UserRepository userRepository,
-            RefreshTokenService refreshTokenService) {
+            RefreshTokenService refreshTokenService, 
+            VerificationTokenService verificationTokenService, 
+            ChangePasswordTokenService changePasswordTokenService,
+            EmailService emailService) {
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.refreshTokenService = refreshTokenService;
+        this.verificationTokenService = verificationTokenService;
+        this.changePasswordTokenService = changePasswordTokenService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -57,6 +72,8 @@ public class UserService implements UserDetailsService {
             var user = data.asUser(passwordEncoder::encode);
             try {
                 userRepository.save(user);
+                VerificationToken vToken = verificationTokenService.createFor(user);
+                emailService.sendVerificationEmail(user.getEmail(), vToken.getToken());
                 return Optional.of(generateTokens(user));
             } catch (DataIntegrityViolationException ex) {
                 return Optional.empty();
@@ -211,5 +228,42 @@ public class UserService implements UserDetailsService {
                     userRepository.save(findedUser);
                     return ResponseEntity.status(HttpStatus.OK).body(new StatusResponseDTO("success", "User updated"));
                 });
+    }
+
+    public boolean verifyUserAccount(String tokenValue) {
+        Optional<VerificationToken> vTokenOpt = verificationTokenService.findByVerifiedToken(tokenValue);
+
+        if (vTokenOpt.isPresent()) {
+            VerificationToken vToken = vTokenOpt.get();
+            User user = vToken.getUser();
+            user.setVerified(true);
+            userRepository.save(user);
+            verificationTokenService.deleteToken(vToken);    
+            return true;
+        }
+        return false;
+    }
+    public boolean requestPasswordReset(String email) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            ChangePasswordToken token = changePasswordTokenService.createFor(user);
+            emailService.sendPasswordResetEmail(user.getEmail(), token.getToken());
+            return true;
+        }
+        return false;
+    }
+    public boolean changePassword(String tokenValue, String newPassword) {
+        Optional<ChangePasswordToken> vTokenOpt = changePasswordTokenService.findByVerifiedToken(tokenValue);
+
+        if (vTokenOpt.isPresent()) {
+            ChangePasswordToken vToken = vTokenOpt.get();
+            User user = vToken.getUser();
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            changePasswordTokenService.deleteToken(vToken);    
+            return true;
+        }
+        return false;
     }
 }
