@@ -1,8 +1,10 @@
 import { ReactNode } from 'react';
 import {
+  KeyboardAvoidingView,
     ScrollView,
     StyleSheet,
     View,
+  Platform,
     type StyleProp,
     type ViewStyle,
 } from 'react-native';
@@ -31,16 +33,23 @@ export function AppScreen({
   if (scrollable) {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor }, style]}>
-        <ScrollView
-          contentContainerStyle={[
-            styles.content,
-            centered && styles.centeredContent,
-            contentStyle,
-          ]}
-          showsVerticalScrollIndicator={false}
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          {children}
-        </ScrollView>
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            contentContainerStyle={[
+              styles.scrollContainer,
+              centered && styles.centeredContent,
+              contentStyle,
+            ]}
+            showsVerticalScrollIndicator={false}
+          >
+            {children}
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     );
   }
@@ -55,6 +64,9 @@ export function AppScreen({
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   safeArea: {
     flex: 1,
   },
@@ -65,6 +77,17 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: Layout.contentWidth,
     alignSelf: 'center',
+  },
+  scrollContent: {
+    paddingBottom: 32,
+  },
+  scrollContainer: {
+    paddingHorizontal: Layout.pagePadding,
+    paddingVertical: 20,
+    width: '100%',
+    maxWidth: Layout.contentWidth,
+    alignSelf: 'center',
+    flexGrow: 1,
   },
   centeredContent: {
     justifyContent: 'center',

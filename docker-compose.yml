@@ -26,6 +26,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: "${DB_PASSWORD:-postgres}"
       SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/${DB_NAME:-planazo}"
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
+      WEB_AUTH_URL: "${WEB_AUTH_URL}"
     ports:
       - "${BACKEND_EXTERNAL_PORT:-8080}:8080"
 
@@ -45,6 +46,16 @@ services:
       - "19001:19001"
     stdin_open: true
     tty: true
+
+  web-auth:
+    build: "./web-auth"
+    depends_on:
+      - "backend"
+    restart: on-failure
+    environment:
+      VITE_BACKEND_URL: "${EXPO_PUBLIC_BACKEND_EXTERNAL_URL}"
+    ports:
+      - "${WEB_AUTH_EXTERNAL_PORT:-5173}:5173"
 
   adminer:
     image: "adminer:5.0.4"

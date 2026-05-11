@@ -6,6 +6,7 @@ import { AuthButton, AuthCard, AuthInput } from '@/components/auth/auth-form';
 import { authStyles } from '@/components/auth/auth-styles';
 import { AppScreen } from '@/components/ui/app-screen';
 import { ThemedText } from '@/components/themed-text';
+import { forgotPassword } from '@/services/auth';
 
 export default function ForgotPassword() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function ForgotPassword() {
     setError(null);
 
     try {
-      // await recoverPassword({ email: email.trim() });
+      await forgotPassword({ email: email.trim() });
       
       Alert.alert('Email enviado', 'Revisa tu correo para recuperar tu contraseña.');
       setSuccess(true);

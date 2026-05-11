@@ -26,7 +26,8 @@ public class VerificationTokenService {
         return tokenRepository.findByToken(value)
                 .filter(token -> !token.isExpired());
     }
-    public void deleteToken(VerificationToken token) {
-        tokenRepository.delete(token);
+    
+    public void deleteToken(String token) {
+        tokenRepository.deleteByToken(token);
     }
 }

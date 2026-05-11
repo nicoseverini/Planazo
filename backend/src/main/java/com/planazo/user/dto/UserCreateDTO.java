@@ -28,6 +28,7 @@ public record UserCreateDTO(
         @Min(value = 0, message = "Budget must be zero or greater") Integer budget,
         TravelType travelType,
         List<String> languages,
+        boolean receiveConfirmationEmail,
         String role)
         implements UserCredentials {
     public User asUser(Function<String, String> encryptPassword) {

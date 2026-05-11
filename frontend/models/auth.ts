@@ -19,7 +19,8 @@ export type SignupFormState = {
   interests: InterestValue[];
   budget: string;
   travelType: TravelTypeValue | '';
-  languages: string;
+  language: string;
+  receiveConfirmationEmail: boolean;
 };
 
 export type SignupRequest = {
@@ -33,6 +34,7 @@ export type SignupRequest = {
   budget?: number;
   travelType?: TravelTypeValue;
   languages?: string[];
+  receiveConfirmationEmail: boolean;
 };
 
 export const interestOptions = interestValues;
@@ -93,10 +95,6 @@ export function validateSignupForm(values: SignupFormState) {
 export function buildSignupRequest(values: SignupFormState): SignupRequest {
   const budget = values.budget.trim();
   const parsedBudget = budget.length > 0 && !Number.isNaN(Number(budget)) ? Number(budget) : undefined;
-  const languages = values.languages
-    .split(',')
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
 
   return {
     email: values.email.trim(),
@@ -108,6 +106,7 @@ export function buildSignupRequest(values: SignupFormState): SignupRequest {
     interests: values.interests.length > 0 ? values.interests : undefined,
     budget: parsedBudget,
     travelType: values.travelType || undefined,
-    languages: languages.length > 0 ? languages : undefined,
+    languages: values.language ? [values.language] : undefined,
+    receiveConfirmationEmail: values.receiveConfirmationEmail,
   };
 }

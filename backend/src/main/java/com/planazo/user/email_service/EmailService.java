@@ -6,6 +6,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,14 +17,19 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final ResourceLoader resourceLoader;
+    private final String webAuthUrl;
 
-    public EmailService(JavaMailSender mailSender, ResourceLoader resourceLoader) {
+    public EmailService(
+            JavaMailSender mailSender, 
+            ResourceLoader resourceLoader,
+            @Value("${app.web-auth-url}") String webAuthUrl) {
         this.mailSender = mailSender;
         this.resourceLoader = resourceLoader;
+        this.webAuthUrl = webAuthUrl;
     }
 
     public void sendVerificationEmail(String to, String token) {
-        String url = "http://localhost:3000/verify_user?token=" + token; // frontend URL
+        String url = webAuthUrl + "/verify-email?token=" + token;
         String html = loadHtmlTemplate("classpath:templates/mail/verification.html");
         html = html.replace("${verificationUrl}", url);
         
@@ -31,11 +37,11 @@ public class EmailService {
     }
 
     public void sendPasswordResetEmail(String to, String token) {
-        String url = "http://localhost:3000/reset-password?token=" + token; // frontend URL
+        String url = webAuthUrl + "/reset-password?token=" + token;
         String html = loadHtmlTemplate("classpath:templates/mail/change_password.html");
         html = html.replace("${resetUrl}", url);
         
-        send(to, "Recuperar contraseña - Planazo", html);
+        send(to, "Recuperar contraseña de Planazo", html);
     }
 
     private void send(String to, String subject, String content) {
@@ -50,7 +56,7 @@ public class EmailService {
             
             mailSender.send(mimeMessage);
         } catch (MessagingException e) {
-            throw new IllegalStateException("Error al enviar el email a " + to, e);
+            throw new IllegalStateException("Error sending email to: " + to, e);
         }
     }
     private String loadHtmlTemplate(String path) {
@@ -60,7 +66,7 @@ public class EmailService {
                 return scanner.useDelimiter("\\A").next();
             }
         } catch (IOException e) {
-            throw new RuntimeException("No se pudo cargar la plantilla de mail: " + path, e);
+            throw new RuntimeException("Err with reading template: " + path, e);
         }
     }
 }

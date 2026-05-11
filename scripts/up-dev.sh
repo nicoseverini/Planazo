@@ -1,32 +1,45 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# EXPO_PUBLIC_BACKEND_EXTERNAL_URL needs your host IP so the 
-# Expo app can connect to the backend running in Docker.
-# - If EXPO_PUBLIC_BACKEND_EXTERNAL_URL is already set, use it
+# EXPO_PUBLIC_BACKEND_EXTERNAL_URL and WEB_AUTH_URL need a reachable host
+# so Expo and email links work from devices outside Docker.
+# - If variables are already set, keep them
 # - On Linux, default to the first non-loopback address
-# - On macOS/Windows, use host.docker.internal
-
-if [ -n "${EXPO_PUBLIC_BACKEND_EXTERNAL_URL:-}" ]; then
-  echo "Using EXPO_PUBLIC_BACKEND_EXTERNAL_URL from environment: $EXPO_PUBLIC_BACKEND_EXTERNAL_URL"
-  docker compose up --build
-  exit 0
-fi
+# - On macOS/Windows, default to host.docker.internal
 
 OS_NAME=$(uname -s)
 if [ "$OS_NAME" = "Linux" ]; then
-  # pick the first non-loopback address
+
   HOST_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
   if [ -z "$HOST_IP" ]; then
-    echo "Failed to detect host IP. Please set EXPO_PUBLIC_BACKEND_EXTERNAL_URL manually." >&2
-    echo "Example: EXPO_PUBLIC_BACKEND_EXTERNAL_URL=\"http://192.168.x.x:8080\" ./scripts/up-dev.sh" >&2
+    echo "Failed to detect host IP. Please set EXPO_PUBLIC_BACKEND_EXTERNAL_URL and WEB_AUTH_URL manually." >&2
+    echo "Example: EXPO_PUBLIC_BACKEND_EXTERNAL_URL=\"http://192.168.x.x:8080\" WEB_AUTH_URL=\"http://192.168.x.x:5173\" ./scripts/up-dev.sh" >&2
     exit 1
   fi
-  EXPO_PUBLIC_BACKEND_EXTERNAL_URL="http://$HOST_IP:8080"
+  DEFAULT_BACKEND_URL="http://$HOST_IP:8080"
+  DEFAULT_WEB_AUTH_URL="http://$HOST_IP:${WEB_AUTH_EXTERNAL_PORT:-5173}"
 else
-  EXPO_PUBLIC_BACKEND_EXTERNAL_URL="http://host.docker.internal:8080"
+  DEFAULT_BACKEND_URL="http://host.docker.internal:8080"
+  DEFAULT_WEB_AUTH_URL="http://host.docker.internal:${WEB_AUTH_EXTERNAL_PORT:-5173}"
+fi
+
+if [ -z "${EXPO_PUBLIC_BACKEND_EXTERNAL_URL:-}" ]; then
+  EXPO_PUBLIC_BACKEND_EXTERNAL_URL="$DEFAULT_BACKEND_URL"
+  echo "Computed EXPO_PUBLIC_BACKEND_EXTERNAL_URL=$EXPO_PUBLIC_BACKEND_EXTERNAL_URL"
+else
+  echo "Using EXPO_PUBLIC_BACKEND_EXTERNAL_URL from environment: $EXPO_PUBLIC_BACKEND_EXTERNAL_URL"
+fi
+
+if [ -z "${WEB_AUTH_URL:-}" ]; then
+  WEB_AUTH_URL="$DEFAULT_WEB_AUTH_URL"
+  echo "Computed WEB_AUTH_URL=$WEB_AUTH_URL"
+else
+  echo "Using WEB_AUTH_URL from environment: $WEB_AUTH_URL"
 fi
 
 export EXPO_PUBLIC_BACKEND_EXTERNAL_URL
+export WEB_AUTH_URL
+
 echo "Starting with EXPO_PUBLIC_BACKEND_EXTERNAL_URL=$EXPO_PUBLIC_BACKEND_EXTERNAL_URL"
+echo "Starting with WEB_AUTH_URL=$WEB_AUTH_URL"
 docker compose up --build

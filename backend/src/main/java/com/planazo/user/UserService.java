@@ -72,8 +72,10 @@ public class UserService implements UserDetailsService {
             var user = data.asUser(passwordEncoder::encode);
             try {
                 userRepository.save(user);
-                VerificationToken vToken = verificationTokenService.createFor(user);
-                emailService.sendVerificationEmail(user.getEmail(), vToken.getToken());
+                if (data.receiveConfirmationEmail()) {
+                    VerificationToken vToken = verificationTokenService.createFor(user);
+                    emailService.sendVerificationEmail(user.getEmail(), vToken.getToken());
+                }
                 return Optional.of(generateTokens(user));
             } catch (DataIntegrityViolationException ex) {
                 return Optional.empty();
@@ -236,13 +238,17 @@ public class UserService implements UserDetailsService {
         if (vTokenOpt.isPresent()) {
             VerificationToken vToken = vTokenOpt.get();
             User user = vToken.getUser();
+
             user.setVerified(true);
             userRepository.save(user);
-            verificationTokenService.deleteToken(vToken);    
+
+            verificationTokenService.deleteToken(tokenValue);
+            
             return true;
         }
         return false;
     }
+
     public boolean requestPasswordReset(String email) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isPresent()) {
@@ -253,15 +259,19 @@ public class UserService implements UserDetailsService {
         }
         return false;
     }
+
     public boolean changePassword(String tokenValue, String newPassword) {
         Optional<ChangePasswordToken> vTokenOpt = changePasswordTokenService.findByVerifiedToken(tokenValue);
 
         if (vTokenOpt.isPresent()) {
             ChangePasswordToken vToken = vTokenOpt.get();
             User user = vToken.getUser();
+            
+            changePasswordTokenService.deleteToken(vToken);
+            
             user.setPassword(passwordEncoder.encode(newPassword));
             userRepository.save(user);
-            changePasswordTokenService.deleteToken(vToken);    
+            
             return true;
         }
         return false;

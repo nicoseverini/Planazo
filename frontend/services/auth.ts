@@ -25,7 +25,17 @@ export async function signupUser(payload: SignupRequest) {
   return postAuth<AuthTokenResponse>('/api/v1/auth/signup', payload);
 }
 
-async function postAuth<TResponse>(endpoint: string, payload: LoginRequest | SignupRequest) {
+
+export async function forgotPassword(payload: { email: string }) {
+  return postAuth<void>('/api/v1/auth/forgot-password', payload, false);
+}
+
+
+async function postAuth<TResponse>(
+  endpoint: string,
+  payload: LoginRequest | SignupRequest | { email: string },
+  expectsJson = true,
+): Promise<TResponse> {
   const url = `${getBackendUrl()}${endpoint}`;
   console.log('[AUTH] Attempting POST to:', url);
   console.log('[AUTH] Payload:', JSON.stringify(payload));
@@ -48,7 +58,18 @@ async function postAuth<TResponse>(endpoint: string, payload: LoginRequest | Sig
       throw new Error(message || `Request failed with status ${response.status}`);
     }
 
-    const data = await response.json() as TResponse;
+    if (!expectsJson) {
+      console.log('[AUTH] Success with empty body');
+      return undefined as TResponse;
+    }
+
+    const responseText = await response.text();
+    if (!responseText.trim()) {
+      console.log('[AUTH] Success with empty JSON body');
+      return undefined as TResponse;
+    }
+
+    const data = JSON.parse(responseText) as TResponse;
     console.log('[AUTH] Success, got data:', !!data);
     return data;
   } catch (error) {
