@@ -17,6 +17,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async () => {
+    router.replace('/home');
     const validationError = validateLoginForm({ email, password });
     if (validationError) {
       setError(validationError);
@@ -29,7 +30,7 @@ export default function Login() {
     try {
       await loginUser({ email: email.trim(), password });
       Alert.alert('Sesión iniciada', 'Tus credenciales fueron aceptadas.');
-      router.replace('/');
+      router.replace('/home');
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : 'No se pudo iniciar sesión';
       setError(message);

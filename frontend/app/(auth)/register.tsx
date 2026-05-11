@@ -207,7 +207,7 @@ export default function Register() {
     try {
       await signupUser(buildSignupRequest(values));
       Alert.alert('Cuenta creada', 'Tu usuario fue registrado correctamente.');
-      router.replace('/');
+      router.replace('/home');
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : 'No se pudo crear la cuenta';
       setError(message);
