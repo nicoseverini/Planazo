@@ -29,10 +29,12 @@ docker compose logs -f frontend
 docker compose down
 ```
 
-Si tambien queres borrar volumenes de datos locales:
+Si tambien queres borrar volumenes de datos locales y dropear la base de datos:
 
 ```bash
 docker compose down -v
+sudo rm -rf "$(git rev-parse --show-toplevel)/.docker/data/postgres"
+sudo ./scripts/up-dev.sh
 ```
 
 ## Git hooks
