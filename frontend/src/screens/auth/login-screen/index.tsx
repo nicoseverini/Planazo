@@ -18,7 +18,6 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async () => {
-    router.replace('/home');
     const validationError = validateLoginForm({ email, password });
     if (validationError) {
       setError(validationError);
