@@ -9,6 +9,9 @@ export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
+  screen: {
+    flex: 1,
+  },
   content: {
     flex: 1,
     paddingHorizontal: Layout.pagePadding,
@@ -28,8 +31,10 @@ export const styles = StyleSheet.create({
     alignSelf: 'center',
     flexGrow: 1,
   },
+  withNavPadding: {
+    paddingBottom: 88,
+  },
   centeredContent: {
     justifyContent: 'center',
   },
 });
-

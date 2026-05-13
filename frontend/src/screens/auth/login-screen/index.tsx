@@ -5,6 +5,7 @@ import { Alert, Pressable, View } from 'react-native';
 import { AuthButton, AuthCard, AuthInput } from '@/components/auth';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
+import { useToken, decodeJwt } from '@/context/token-context';
 import { validateLoginForm } from '@/models/auth';
 import { loginUser } from '@/services/auth';
 
@@ -12,6 +13,7 @@ import { styles } from './styles';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { setTokenData } = useToken();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +30,14 @@ export default function LoginScreen() {
     setError(null);
 
     try {
-      await loginUser({ email: email.trim(), password });
+      const response = await loginUser({ email: email.trim(), password });
+      const { role } = decodeJwt(response.accessToken);
+      setTokenData({
+        state: 'LOGGED_IN',
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+        role,
+      });
       Alert.alert('Sesión iniciada', 'Tus credenciales fueron aceptadas.');
       router.replace('/home');
     } catch (requestError) {
@@ -58,4 +67,3 @@ export default function LoginScreen() {
     </AppScreen>
   );
 }
-

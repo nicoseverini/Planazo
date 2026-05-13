@@ -7,26 +7,23 @@ import { AuthButton, AuthCard, AuthInput, ChoiceGroup, MultiChoiceGroup } from '
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import {
+  GENDER_LABELS,
+  GENDER_OPTIONS,
+  INTEREST_LABELS,
+  INTEREST_OPTIONS,
+  LANGUAGE_OPTIONS,
+  TRAVEL_TYPE_LABELS,
+  TRAVEL_TYPE_OPTIONS,
+} from '@/constants/profile-options';
+import {
   buildSignupRequest,
-  interestOptions,
   validateSignupForm,
-  travelTypeOptions,
   type SignupFormState,
 } from '@/models/auth';
 import { signupUser } from '@/services/auth';
+import { useToken, decodeJwt } from '@/context/token-context';
 
 import { styles } from './styles';
-
-const genderOptions = [
-  { label: 'Masculino', value: 'Masculino' },
-  { label: 'Femenino', value: 'Femenino' },
-  { label: 'Otro', value: 'Otro' },
-];
-
-const languageOptions = [
-  { label: 'Español', value: 'Español' },
-  { label: 'Inglés', value: 'Inglés' },
-];
 
 function toIsoDate(date: Date) {
   const year = date.getFullYear();
@@ -175,6 +172,7 @@ function CheckboxField({
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { setTokenData } = useToken();
   const [values, setValues] = useState<SignupFormState>({
     email: '',
     password: '',
@@ -206,7 +204,14 @@ export default function RegisterScreen() {
     setError(null);
 
     try {
-      await signupUser(buildSignupRequest(values));
+      const response = await signupUser(buildSignupRequest(values));
+      const { role } = decodeJwt(response.accessToken);
+      setTokenData({
+        state: 'LOGGED_IN',
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+        role,
+      });
       Alert.alert('Cuenta creada', 'Tu usuario fue registrado correctamente.');
       router.replace('/home');
     } catch (requestError) {
@@ -224,12 +229,20 @@ export default function RegisterScreen() {
         <AuthInput label="Contraseña" value={values.password} onChangeText={(value) => update('password', value)} secureTextEntry autoCapitalize="none" autoComplete="password" />
         <AuthInput label="Nombre" value={values.name} onChangeText={(value) => update('name', value)} autoCapitalize="words" />
         <AuthInput label="Apellido" value={values.lastname} onChangeText={(value) => update('lastname', value)} autoCapitalize="words" />
-        <ChoiceGroup label="Género" options={genderOptions} value={values.gender} onChange={(value) => update('gender', value)} />
+        <ChoiceGroup
+          label="Género"
+          options={GENDER_OPTIONS.map((value) => ({
+            label: GENDER_LABELS[value] ?? value,
+            value,
+          }))}
+          value={values.gender}
+          onChange={(value) => update('gender', value)}
+        />
         <BirthDateField value={values.birthDate} onChange={(value) => update('birthDate', value)} />
         <MultiChoiceGroup
           label="Intereses (opcional)"
-          options={interestOptions.map((value) => ({
-            label: value === 'FOOD' ? 'Comida' : value === 'CULTURE' ? 'Cultura' : 'Naturaleza',
+          options={INTEREST_OPTIONS.map((value) => ({
+            label: INTEREST_LABELS[value] ?? value,
             value,
           }))}
           value={values.interests}
@@ -238,8 +251,8 @@ export default function RegisterScreen() {
         <AuthInput label="Presupuesto (opcional)" value={values.budget} onChangeText={(value) => update('budget', value)} keyboardType="numeric" />
         <ChoiceGroup
           label="Tipo de viaje (opcional)"
-          options={travelTypeOptions.map((value) => ({
-            label: value === 'SOLO' ? 'Solo' : value === 'PAREJA' ? 'Pareja' : 'Amigos',
+          options={TRAVEL_TYPE_OPTIONS.map((value) => ({
+            label: TRAVEL_TYPE_LABELS[value] ?? value,
             value,
           }))}
           value={values.travelType}
@@ -249,7 +262,7 @@ export default function RegisterScreen() {
           label="Idioma"
           placeholder="Seleccioná un idioma"
           value={values.language}
-          options={languageOptions}
+          options={LANGUAGE_OPTIONS.map((value) => ({ label: value, value }))}
           onChange={(value) => update('language', value)}
         />
         <CheckboxField

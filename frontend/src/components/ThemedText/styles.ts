@@ -47,5 +47,11 @@ export const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1.2,
   },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+    color: '#6B7280',
+  },
 });
 

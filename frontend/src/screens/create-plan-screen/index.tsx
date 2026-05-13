@@ -5,16 +5,16 @@ import { AppScreen } from '@/components/ui';
 
 import { styles } from './styles';
 
-export default function HomeScreen() {
-
+export default function CreatePlanScreen() {
   return (
     <AppScreen centered>
       <View style={styles.center}>
-        <ThemedText type="heading">¡Bienvenido!</ThemedText>
+        <ThemedText type="heading">Crear Plan</ThemedText>
         <ThemedText type="body" style={styles.subtitle}>
-          Estás dentro de la app. (aca va el mapa)
+          Pantalla vacia.
         </ThemedText>
       </View>
     </AppScreen>
   );
 }
+

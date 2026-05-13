@@ -1,5 +1,15 @@
-const interestValues = ['FOOD', 'CULTURE', 'NATURE'] as const;
-const travelTypeValues = ['SOLO', 'PAREJA', 'AMIGOS'] as const;
+const interestValues = [
+  'FOOD',
+  'CULTURE',
+  'NATURE',
+  'BEACH',
+  'ADVENTURE',
+  'NIGHTLIFE',
+  'SHOPPING',
+  'HISTORY',
+  'MOUNTAINS',
+] as const;
+const travelTypeValues = ['SOLO', 'COUPLE', 'FRIENDS'] as const;
 
 export type InterestValue = (typeof interestValues)[number];
 export type TravelTypeValue = (typeof travelTypeValues)[number];
