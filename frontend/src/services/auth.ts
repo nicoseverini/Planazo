@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 
 // Get backend URL based on environment
 export function getBackendUrl(): string {
-  const envUrl = process.env.EXPO_PUBLIC_BACKEND_EXTERNAL_URL || Constants.expoConfig?.extra?.backendUrl;
+  const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL || Constants.expoConfig?.extra?.backendUrl;
   if (envUrl) {
     return envUrl;
   }
