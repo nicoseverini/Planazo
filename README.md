@@ -147,10 +147,14 @@ Forwarding    https://tu-dominio.ngrok-free.app -> http://localhost:8080
 
 ### Paso 2 — Actualizá la URL del backend en el frontend
 
-Si **no usás dominio estático**, copiá la URL `https://...ngrok-free.app` que aparece en la consola de ngrok y actualizá `frontend/.env`:
+Si **no usás dominio estático**, copiá la URL `https://...ngrok-free.app` que aparece en la consola de ngrok y actualizá `frontend/.env` y `web-auth/.env`:
 
 ```dotenv
 EXPO_PUBLIC_BACKEND_URL=https://abcd-1234.ngrok-free.app
+```
+
+```dotenv
+VITE_BACKEND_URL=https://abcd-1234.ngrok-free.app
 ```
 
 Si **usás dominio estático**, este paso solo es necesario la primera vez.
