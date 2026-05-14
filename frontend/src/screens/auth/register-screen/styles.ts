@@ -52,7 +52,7 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.45)',
   },
   modalShell: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#0f0f0f',
     borderRadius: 20,
     gap: 10,
     left: '50%',

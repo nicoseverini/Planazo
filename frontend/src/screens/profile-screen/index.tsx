@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     Image,
     Pressable,
     TextInput,
@@ -108,7 +109,7 @@ function MenuItem({ icon, label, onPress, danger = false }: MenuItemProps) {
 export default function ProfileScreen() {
     const router = useRouter();
     const { tokenData, logout } = useToken();
-    const { fetchProfile, fetchPicture, updateProfile } = useProfile();
+    const { fetchProfile, fetchPicture, updateProfile, deleteAccount } = useProfile();
 
     const tint = useThemeColor({}, 'tint');
     const tintText = useThemeColor({}, 'tintText');
@@ -126,6 +127,7 @@ export default function ProfileScreen() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loggingOut, setLoggingOut] = useState(false);
+    const [deletingAccount, setDeletingAccount] = useState(false);
 
     const displayUser = useMemo(() => normalizeProfile(user), [user]);
 
@@ -230,8 +232,34 @@ export default function ProfileScreen() {
         router.replace('/');
     }
 
+    async function handleDeleteAccount() {
+        Alert.alert(
+            'Eliminar cuenta',
+            '¿Estás seguro? Esta acción es irreversible y borrará todos tus datos.',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Eliminar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        setDeletingAccount(true);
+                        try {
+                            await deleteAccount();
+                            await logout();
+                            router.replace('/');
+                        } catch (err) {
+                            console.error('[ProfileScreen] Error deleting account:', err);
+                            setError('No se pudo eliminar la cuenta. Intentá de nuevo.');
+                            setDeletingAccount(false);
+                        }
+                    },
+                },
+            ]
+        );
+    }
+
     // Loading state
-    if (loggingOut || loading || tokenData.state === 'LOADING') {
+    if (loggingOut || deletingAccount || loading || tokenData.state === 'LOADING') {
         return (
             <AppScreen>
                 <View style={styles.loadingContainer}>
@@ -398,6 +426,12 @@ export default function ProfileScreen() {
                                 icon="log-out-outline"
                                 label="Cerrar sesion"
                                 onPress={handleLogout}
+                                danger
+                            />
+                            <MenuItem
+                                icon="trash-outline"
+                                label="Eliminar cuenta"
+                                onPress={handleDeleteAccount}
                                 danger
                             />
                         </View>

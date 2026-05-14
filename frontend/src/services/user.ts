@@ -219,6 +219,24 @@ export async function updateProfilePicture(
   }
 }
 
+export async function deleteMyAccount(accessToken: string): Promise<void> {
+  const url = `${getBackendUrl()}/api/v1/users/delete/me`;
+  console.log('[UserService] Deleting account:', url);
+
+  const response = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to delete account: ${errorText}`);
+  }
+}
+
 // ============================================
 // Hooks (usando el TokenContext)
 // ============================================
@@ -293,5 +311,11 @@ export function useProfile() {
     return updateProfilePicture(token, photo);
   };
 
-  return { fetchProfile, fetchPicture, updateProfile, updatePicture };
+  const deleteAccount = async () => {
+    const token = getAccessToken();
+    if (!token) throw new Error('No access token');
+    return deleteMyAccount(token);
+  };
+
+  return { fetchProfile, fetchPicture, updateProfile, updatePicture, deleteAccount };
 }
