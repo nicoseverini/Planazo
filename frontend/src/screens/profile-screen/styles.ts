@@ -166,4 +166,23 @@ export const styles = StyleSheet.create({
         justifyContent: 'center',
         borderWidth: 1,
     },
+    photoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    photoInput: {
+        flexGrow: 1,
+        flexShrink: 1,
+        minWidth: 0,
+    },
+    photoButton: {
+        minWidth: 110,
+        paddingVertical: 12,
+        paddingHorizontal: 12,
+        borderRadius: Layout.buttonRadius,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
 });

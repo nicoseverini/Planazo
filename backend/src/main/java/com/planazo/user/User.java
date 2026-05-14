@@ -26,7 +26,8 @@ public class User implements UserDetails, UserCredentials {
     @Column(nullable = false)
     private String lastname;
 
-    @Column(nullable = false)
+    @Lob
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String photo;
 
     @Column(nullable = false)

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -67,6 +68,30 @@ function normalizeProfile(profile: UserProfile | null) {
     };
 }
 
+function normalizePhotoValue(value?: string | null) {
+    const trimmed = value?.trim();
+    if (!trimmed || trimmed === 'null' || trimmed === 'undefined') {
+        return null;
+    }
+    const lower = trimmed.toLowerCase();
+    const isDataUri = lower.startsWith('data:image/');
+    const isHttp = lower.startsWith('http://') || lower.startsWith('https://');
+    const isFile = lower.startsWith('file://');
+    return isDataUri || isHttp || isFile ? trimmed : null;
+}
+
+function resolveInitial(name?: string, fallback?: string) {
+    const normalizedName = name?.trim();
+    if (normalizedName) {
+        return normalizedName.charAt(0).toUpperCase();
+    }
+    const normalizedFallback = fallback?.trim();
+    if (normalizedFallback && normalizedFallback.length === 1) {
+        return normalizedFallback.toUpperCase();
+    }
+    return '?';
+}
+
 type MenuItemProps = {
     icon: keyof typeof Ionicons.glyphMap;
     label: string;
@@ -109,7 +134,7 @@ function MenuItem({ icon, label, onPress, danger = false }: MenuItemProps) {
 export default function ProfileScreen() {
     const router = useRouter();
     const { tokenData, logout } = useToken();
-    const { fetchProfile, fetchPicture, updateProfile, deleteAccount } = useProfile();
+    const { fetchProfile, updateProfile, deleteAccount } = useProfile();
 
     const tint = useThemeColor({}, 'tint');
     const tintText = useThemeColor({}, 'tintText');
@@ -138,21 +163,18 @@ export default function ProfileScreen() {
         }
 
         try {
-            const [profileData, pictureData] = await Promise.all([
-                fetchProfile(),
-                fetchPicture(),
-            ]);
+            const profileData = await fetchProfile();
             const normalized = normalizeProfile(profileData);
             setUser(normalized);
             setFormData(normalized);
-            setPhotoUrl(pictureData ?? normalized.photo ?? null);
+            setPhotoUrl(normalizePhotoValue(normalized.photo));
         } catch (err) {
             console.error('[ProfileScreen] Error loading profile:', err);
             setError('Error al cargar el perfil');
         } finally {
             setLoading(false);
         }
-    }, [tokenData.state, fetchProfile, fetchPicture]);
+    }, [tokenData.state, fetchProfile]);
 
     useEffect(() => {
         if (tokenData.state === 'LOGGED_IN') {
@@ -204,9 +226,8 @@ export default function ProfileScreen() {
             });
             setUser(merged);
             setFormData(merged);
-            if (merged.photo) {
-                setPhotoUrl(merged.photo);
-            }
+            const resolvedPhoto = normalizePhotoValue(merged.photo);
+            setPhotoUrl(resolvedPhoto);
             setEditing(false);
         } catch (err) {
             console.error('[ProfileScreen] Error saving profile:', err);
@@ -218,18 +239,68 @@ export default function ProfileScreen() {
 
     const handleCancel = () => {
         setFormData(displayUser);
+        setPhotoUrl(normalizePhotoValue(displayUser.photo));
         setEditing(false);
         setError(null);
     };
 
-    function handleChangePhoto() {
+    async function handleChangePhoto() {
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (permission.status !== 'granted') {
+            Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galeria para elegir una foto.');
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            quality: 0.8,
+            base64: true,
+        });
+
+        if (result.canceled || !result.assets?.length) {
+            return;
+        }
+
+        const asset = result.assets[0];
+        if (!asset.base64) {
+            setError('No se pudo leer la imagen seleccionada.');
+            return;
+        }
+
+        const mimeType = asset.mimeType ?? 'image/jpeg';
+        const dataUrl = `data:${mimeType};base64,${asset.base64}`;
+        setPhotoUrl(dataUrl);
+        if (formData) {
+            setFormData({ ...formData, photo: dataUrl });
+        }
         setEditing(true);
     }
 
+    function handleClearPhoto() {
+        setPhotoUrl(null);
+        if (formData) {
+            setFormData({ ...formData, photo: '' });
+        }
+    }
+
     async function handleLogout() {
-        setLoggingOut(true);
-        await logout();
-        router.replace('/');
+        Alert.alert(
+            'Cerrar sesion',
+            '¿Seguro que queres cerrar sesion?',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Cerrar sesion',
+                    style: 'destructive',
+                    onPress: async () => {
+                        setLoggingOut(true);
+                        await logout();
+                        router.replace('/');
+                    },
+                },
+            ]
+        );
     }
 
     async function handleDeleteAccount() {
@@ -295,6 +366,7 @@ export default function ProfileScreen() {
     }
 
     const fullName = `${displayUser.name || 'Usuario'} ${displayUser.lastname || ''}`.trim();
+    const avatarInitial = resolveInitial(displayUser.name, displayUser.photo);
 
     return (
         <AppScreen scrollable>
@@ -311,14 +383,15 @@ export default function ProfileScreen() {
                     {photoUrl ? (
                         <Image source={{ uri: photoUrl }} style={styles.avatar} />
                     ) : (
-                        <View style={[styles.avatarPlaceholder, { backgroundColor: tint }]}>
+                        <View style={[styles.avatarPlaceholder, { backgroundColor: tint }]}
+                            >
                             <ThemedText
                                 type="heading"
                                 lightColor={tintText}
                                 darkColor={tintText}
                                 style={styles.avatarInitial}
                             >
-                                {displayUser.name?.charAt(0).toUpperCase() || '?'}
+                                {avatarInitial}
                             </ThemedText>
                         </View>
                     )}
@@ -479,15 +552,37 @@ export default function ProfileScreen() {
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Foto (URL)</ThemedText>
-                        <TextInput
-                            style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
-                            value={formData?.photo || ''}
-                            onChangeText={(value) => onChange('photo', value)}
-                            placeholder="https://..."
-                            placeholderTextColor={mutedText}
-                            autoCapitalize="none"
-                        />
+                        <ThemedText type="label" style={{ color: mutedText }}>Foto</ThemedText>
+                        <View style={styles.photoRow}>
+                            <TextInput
+                                style={[
+                                    styles.input,
+                                    styles.photoInput,
+                                    { backgroundColor: surface, borderColor: border, color: text },
+                                ]}
+                                value={formData?.photo || ''}
+                                onChangeText={(value) => onChange('photo', value)}
+                                placeholder="https://..."
+                                placeholderTextColor={mutedText}
+                                autoCapitalize="none"
+                            />
+                            <Pressable
+                                onPress={handleChangePhoto}
+                                style={[styles.photoButton, { borderColor: border }]}
+                            >
+                                <ThemedText type="label" style={{ color: text }}>
+                                    Seleccionar
+                                </ThemedText>
+                            </Pressable>
+                            <Pressable
+                                onPress={handleClearPhoto}
+                                style={[styles.photoButton, { borderColor: border }]}
+                            >
+                                <ThemedText type="label" style={{ color: text }}>
+                                    Borrar
+                                </ThemedText>
+                            </Pressable>
+                        </View>
                     </View>
 
                     <View style={styles.inputGroup}>
