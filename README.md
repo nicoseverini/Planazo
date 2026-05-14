@@ -155,7 +155,17 @@ EXPO_PUBLIC_BACKEND_URL=https://abcd-1234.ngrok-free.app
 
 Si **usás dominio estático**, este paso solo es necesario la primera vez.
 
-### Paso 3 — Levantá todos los servicios con Docker Compose
+### Paso 3 — Configurá el secreto JWT del backend
+
+Abrí `backend/.env` y definí `JWT_ACCESS_SECRET` con un valor base64 de al menos 32 bytes. Ejemplo:
+
+```dotenv
+JWT_ACCESS_SECRET=z4+HANbXJmq3HqLAmEWBBVWeSAZ8jXES3eCbXtMiHOY=}
+```
+
+Si no usas `.env` local (por ejemplo, al ejecutar el backend fuera de Docker), tambien podes definirlo en `backend/src/main/resources/application.properties` con `jwt.access.secret`
+
+### Paso 4 — Levantá todos los servicios con Docker Compose
 
 En otra terminal, desde la raíz del repositorio:
 
@@ -167,7 +177,7 @@ Esto construye y levanta todos los contenedores: `db`, `backend`, `frontend`, `w
 
 Una vez que el contenedor del frontend esté listo, la consola de Metro mostrará un código QR.
 
-### Paso 4 — Conectá el dispositivo móvil
+### Paso 5 — Conectá el dispositivo móvil
 
 Escaneá el código QR con la cámara de tu iPhone o desde la app Expo Go. La aplicación se abrirá automáticamente en Expo Go.
 

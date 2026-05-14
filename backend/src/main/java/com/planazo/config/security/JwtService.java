@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Optional;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class JwtService {
@@ -59,7 +60,23 @@ public class JwtService {
     }
 
     private SecretKey getSigningKey() {
-        byte[] bytes = Decoders.BASE64.decode(secret);
-        return Keys.hmacShaKeyFor(bytes);
+        try {
+            byte[] bytes = Decoders.BASE64.decode(secret);
+            ensureKeyLength(bytes);
+            return Keys.hmacShaKeyFor(bytes);
+        } catch (RuntimeException ex) {
+            // Fallback for raw (non-base64) secrets.
+            byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
+            ensureKeyLength(bytes);
+            return Keys.hmacShaKeyFor(bytes);
+        }
+    }
+
+    private void ensureKeyLength(byte[] bytes) {
+        if (bytes.length < 32) {
+            throw new IllegalStateException(
+                    "JWT secret demasiado corto. Usa al menos 32 bytes (256 bits) para HS256."
+            );
+        }
     }
 }
