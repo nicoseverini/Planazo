@@ -1,4 +1,4 @@
-package com.planazo.user;
+package com.planazo.common.constants;
 
 public enum TravelType {
     SOLO,

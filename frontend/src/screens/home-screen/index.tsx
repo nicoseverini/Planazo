@@ -12,7 +12,7 @@ export default function HomeScreen() {
       <View style={styles.center}>
         <ThemedText type="heading">¡Bienvenido!</ThemedText>
         <ThemedText type="body" style={styles.subtitle}>
-          Estás dentro de la app. (aca va el mapa)
+          Estás dentro de la app.
         </ThemedText>
       </View>
     </AppScreen>

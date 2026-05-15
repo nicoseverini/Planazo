@@ -1,5 +1,7 @@
 package com.planazo.user;
 
+import com.planazo.common.constants.Interest;
+import com.planazo.common.constants.TravelType;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

@@ -1,4 +1,4 @@
-import CreatePlanScreen from "@/screens/create-plan-screen";
+import CreatePlanScreen from '@/screens/create-plan-screen';
 
 export default CreatePlanScreen;
 

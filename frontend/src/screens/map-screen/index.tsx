@@ -5,16 +5,16 @@ import { AppScreen } from '@/components/ui';
 
 import { styles } from './styles';
 
-export default function SearchScreen() {
+export default function MapScreen() {
+
   return (
     <AppScreen centered>
       <View style={styles.center}>
-        <ThemedText type="heading">Buscar</ThemedText>
+        <ThemedText type="heading">MAP</ThemedText>
         <ThemedText type="body" style={styles.subtitle}>
-          Pantalla vacia.
+          (THIS IS A PLACEHOLDER).
         </ThemedText>
       </View>
     </AppScreen>
   );
 }
-

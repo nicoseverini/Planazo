@@ -16,27 +16,33 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
     {
-        icon: 'map-outline',
-        iconFocused: 'map',
-        label: 'Inicio',
+        icon: 'home-outline',
+        iconFocused: 'home',
+        label: 'Home',
         route: '/home',
     },
     {
-        icon: 'search-outline',
-        iconFocused: 'search',
-        label: 'Buscar',
-        route: '/search',
+        icon: 'map-outline',
+        iconFocused: 'map',
+        label: 'Map',
+        route: '/map',
     },
     {
-        icon: 'add-circle-outline',
-        iconFocused: 'add-circle',
-        label: 'Crear',
-        route: '/create',
+        icon: 'calendar-outline',
+        iconFocused: 'calendar',
+        label: 'Planes',
+        route: '/search-plans',
+    },
+    {
+        icon: 'bookmark-outline',
+        iconFocused: 'bookmark',
+        label: 'Mis Planes',
+        route: '/my-plans',
     },
     {
         icon: 'person-outline',
         iconFocused: 'person',
-        label: 'Perfil',
+        label: 'User',
         route: '/profile',
     },
 ];
@@ -50,28 +56,6 @@ type NavItemButtonProps = {
 };
 
 function NavItemButton({ item, isActive, tint, mutedText, onPress }: NavItemButtonProps) {
-    const isCreateButton = item.route === '/create';
-
-    if (isCreateButton) {
-        return (
-            <Pressable
-                onPress={onPress}
-                style={({ pressed }) => [
-                    styles.navItem,
-                    pressed && styles.pressed,
-                ]}
-            >
-                <View style={[styles.createButton, { backgroundColor: tint }]}>
-                    <Ionicons
-                        name="add"
-                        size={24}
-                        color="#ffffff"
-                    />
-                </View>
-            </Pressable>
-        );
-    }
-
     return (
         <Pressable
             onPress={onPress}
@@ -82,7 +66,7 @@ function NavItemButton({ item, isActive, tint, mutedText, onPress }: NavItemButt
         >
             <Ionicons
                 name={isActive ? item.iconFocused : item.icon}
-                size={24}
+                size={22}
                 color={isActive ? tint : mutedText}
             />
             <ThemedText

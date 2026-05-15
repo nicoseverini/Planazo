@@ -1,7 +1,7 @@
 package com.planazo.user.dto;
 
-import com.planazo.user.Interest;
-import com.planazo.user.TravelType;
+import com.planazo.common.constants.Interest;
+import com.planazo.common.constants.TravelType;
 import com.planazo.user.User;
 import com.planazo.user.UserCredentials;
 import jakarta.validation.constraints.*;
