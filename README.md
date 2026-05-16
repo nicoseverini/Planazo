@@ -96,7 +96,9 @@ cp backend/.env.example backend/.env
 | Variable            | Descripción                                                         |
 |---------------------|---------------------------------------------------------------------|
 | `JWT_ACCESS_SECRET` | Secreto para firmar los JWT. Usá un valor aleatorio y seguro        |
-| `RESEND_API_KEY`    | API key de [Resend](https://resend.com) para el envío de emails     |
+| `SMTP_USERNAME`    | Correo de emails     |
+| `SMTP_PASSWORD`    | "App password" que provee gmail     |
+
 | `WEB_AUTH_URL`      | URL pública del servicio web-auth (ej: `http://TU_IP_LOCAL:5173`)  |
 
 ### 3. Variables del frontend

@@ -18,14 +18,17 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final ResourceLoader resourceLoader;
     private final String webAuthUrl;
+    private final String mailFrom;
 
     public EmailService(
             JavaMailSender mailSender, 
             ResourceLoader resourceLoader,
-            @Value("${app.web-auth-url}") String webAuthUrl) {
+            @Value("${app.web-auth-url}") String webAuthUrl,
+            @Value("${app.mail.from}") String mailFrom) {
         this.mailSender = mailSender;
         this.resourceLoader = resourceLoader;
         this.webAuthUrl = webAuthUrl;
+        this.mailFrom = mailFrom;
     }
 
     public void sendVerificationEmail(String to, String token) {
@@ -52,7 +55,7 @@ public class EmailService {
             helper.setText(content, true); 
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setFrom("onboarding@resend.dev");
+            helper.setFrom(mailFrom);
             
             mailSender.send(mimeMessage);
         } catch (MessagingException e) {

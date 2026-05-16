@@ -5,6 +5,10 @@ import { Platform } from 'react-native';
 export function getBackendUrl(): string {
   const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL || Constants.expoConfig?.extra?.backendUrl;
   if (envUrl) {
+    // Ensure URL has a protocol!
+    if (!/^https?:\/\//.test(envUrl)) {
+      return `https://${envUrl}`;
+    }
     return envUrl;
   }
 
@@ -41,6 +45,10 @@ export type SignupRequest = {
   password: string;
   gender?: string;
   birthDate?: string;
+};
+
+export type ForgotPasswordRequest = {
+  email: string;
 };
 
 // Basic auth functions (low-level)
@@ -82,4 +90,22 @@ export async function signupUser(req: SignupRequest): Promise<AuthTokenResponse>
   }
 
   return response.json();
+}
+
+export async function forgotPassword(req: ForgotPasswordRequest): Promise<void> {
+  const url = `${getBackendUrl()}/api/v1/auth/forgot-password`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(req),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Forgot password failed: ${errorText}`);
+  }
 }
