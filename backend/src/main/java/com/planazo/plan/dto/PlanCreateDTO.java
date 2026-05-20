@@ -23,6 +23,8 @@ public record PlanCreateDTO(
         Interest interest,
         TravelType travelType,
         String location,
+        Double latitude,
+        Double longitude,
         List<String> images
 
 ) {
@@ -40,6 +42,8 @@ public record PlanCreateDTO(
                 interest,
                 travelType,
                 location,
+                latitude,
+                longitude,
                 images,
                 creator
         );

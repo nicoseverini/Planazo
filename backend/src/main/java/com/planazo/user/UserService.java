@@ -140,7 +140,9 @@ public class UserService implements UserDetailsService {
     private TokenDTO generateTokens(User user) {
         String accessToken = jwtService.createToken(new JwtUserDetails(
                 user.getUsername(),
-                user.getRole()));
+                user.getRole(),
+                user.getId()
+        ));
         RefreshToken refreshToken = refreshTokenService.createFor(user);
         return new TokenDTO(accessToken, refreshToken.value());
     }

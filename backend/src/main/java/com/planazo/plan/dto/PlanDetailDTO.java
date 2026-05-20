@@ -33,6 +33,10 @@ public record PlanDetailDTO(
 
         String location,
 
+        Double latitude,
+
+        Double longitude,
+
         List<String> images,
 
         Long creatorId,

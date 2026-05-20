@@ -17,6 +17,10 @@ public record PlanSummaryDTO(
 
         String location,
 
+        Double latitude,
+
+        Double longitude,
+
         Interest interest,
 
         TravelType travelType,

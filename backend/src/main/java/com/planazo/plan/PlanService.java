@@ -45,6 +45,8 @@ public class PlanService {
                 data.interest(),
                 data.travelType(),
                 data.location(),
+                data.latitude(),
+                data.longitude(),
                 data.images(),
                 creator
         );
@@ -89,6 +91,14 @@ public class PlanService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<PlanSummaryDTO> getNearbyPublicPlans(double lat, double lng, double radiusKm) {
+        return planRepository.findNearbyPublicActivePlans(lat, lng, radiusKm)
+                .stream()
+                .map(this::toSummaryDTO)
+                .toList();
+    }
+
     // ── Update ───────────────────────────────────────────────────────────────
 
     public Optional<PlanDetailDTO> updatePlan(Long id, PlanUpdateDTO data, String requesterEmail) {
@@ -107,6 +117,8 @@ public class PlanService {
                     if (data.interest() != null)        plan.setInterest(data.interest());
                     if (data.travelType() != null)      plan.setTravelType(data.travelType());
                     if (data.location() != null)        plan.setLocation(data.location());
+                    if (data.latitude() != null)        plan.setLatitude(data.latitude());
+                    if (data.longitude() != null)       plan.setLongitude(data.longitude());
                     if (data.images() != null)          plan.setImages(data.images());
                     return toDetailDTO(planRepository.save(plan));
                 });
@@ -192,6 +204,8 @@ public class PlanService {
                 plan.getInterest(),
                 plan.getTravelType(),
                 plan.getLocation(),
+                plan.getLatitude(),
+                plan.getLongitude(),
                 List.copyOf(plan.getImages()),
                 plan.getCreator().getId(),
                 plan.getCreator().getName(),
@@ -206,6 +220,8 @@ public class PlanService {
                 plan.getTitle(),
                 plan.getDateTime(),
                 plan.getLocation(),
+                plan.getLatitude(),
+                plan.getLongitude(),
                 plan.getInterest(),
                 plan.getTravelType(),
                 plan.getVisibility(),

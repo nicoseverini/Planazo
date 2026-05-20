@@ -22,6 +22,15 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
     const mutedText = useThemeColor({}, 'mutedText');
     const tintText = useThemeColor({}, 'tintText');
 
+    const CATEGORY_BY_INTEREST: Record<string, string> = {
+        'ADVENTURE': 'Viajes / Deportes',
+        'FOOD': 'Gastronomía',
+        'CULTURE': 'Cultura',
+        'NIGHTLIFE': 'Música / Social',
+        'NATURE': 'Naturaleza',
+        'HISTORY': 'Otro',
+    };
+
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('es-ES', {
@@ -53,7 +62,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
                         {plan.title}
                     </ThemedText>
                     <ThemedText type="label" style={[styles.planDescription, { color: tint }]}>
-                        {plan.interest}
+                        {CATEGORY_BY_INTEREST[plan.interest] || plan.interest}
                     </ThemedText>
                     <View style={styles.planMeta}>
                         <View style={styles.metaRow}>

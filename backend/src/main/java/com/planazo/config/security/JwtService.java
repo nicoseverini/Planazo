@@ -38,6 +38,7 @@ public class JwtService {
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .claim("role", role)
+                .claim("id", claims.id())
                 .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
     }
@@ -51,7 +52,8 @@ public class JwtService {
                     .getPayload();
 
             if (claims.getSubject() != null && claims.get("role") instanceof String role) {
-                return Optional.of(new JwtUserDetails(claims.getSubject(), role));
+                Long id = claims.get("id", Long.class);
+                return Optional.of(new JwtUserDetails(claims.getSubject(), role, id));
             }
         } catch (Exception e) {
             // TODO: Tenemos que handlear el error

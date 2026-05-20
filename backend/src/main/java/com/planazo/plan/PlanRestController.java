@@ -52,6 +52,17 @@ class PlanRestController {
         return planService.getPublicPlans();
     }
 
+    @PreAuthorize("permitAll()")
+    @GetMapping(value = "/nearby", produces = "application/json")
+    @Operation(summary = "List nearby public plans based on coordinates")
+    List<PlanSummaryDTO> getNearbyPlans(
+            @RequestParam double lat,
+            @RequestParam double lng,
+            @RequestParam(defaultValue = "50.0") double radius
+    ) {
+        return planService.getNearbyPublicPlans(lat, lng, radius);
+    }
+
     // ── Read: single plan ────────────────────────────────────────────────────
 
     @PreAuthorize("isAuthenticated()")

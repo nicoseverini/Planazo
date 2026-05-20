@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
@@ -9,7 +9,10 @@ import {
     Pressable,
     ScrollView,
     View,
+    StyleSheet,
 } from 'react-native';
+import { useToken, decodeJwt } from '@/context/token-context';
+import MapView, { Marker } from 'react-native-maps';
 
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
@@ -68,7 +71,8 @@ const formatDateTime = (value: string) => {
 export default function PlanDetailScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
-    const { fetchPlanDetail, subscribe, unsubscribe } = usePlans();
+    const { fetchPlanDetail, subscribe, unsubscribe, remove } = usePlans();
+    const { getAccessToken } = useToken();
 
     const tint = useThemeColor({}, 'tint');
     const tintText = useThemeColor({}, 'tintText');
@@ -83,6 +87,15 @@ export default function PlanDetailScreen() {
     const [activeTab, setActiveTab] = useState<TabType>('description');
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isSubscribed, setIsSubscribed] = useState(false);
+
+    const CATEGORY_BY_INTEREST: Record<string, string> = {
+        'ADVENTURE': 'Viajes / Deportes',
+        'FOOD': 'Gastronomía',
+        'CULTURE': 'Cultura',
+        'NIGHTLIFE': 'Música / Social',
+        'NATURE': 'Naturaleza',
+        'HISTORY': 'Otro',
+    };
 
     const loadPlan = useCallback(async () => {
         const planId = parsePlanId(id);
@@ -103,9 +116,11 @@ export default function PlanDetailScreen() {
         }
     }, [id, fetchPlanDetail]);
 
-    useEffect(() => {
-        loadPlan();
-    }, [loadPlan]);
+    useFocusEffect(
+        useCallback(() => {
+            loadPlan();
+        }, [loadPlan])
+    );
 
     const handleSubscribe = async () => {
         if (!plan) return;
@@ -175,12 +190,47 @@ export default function PlanDetailScreen() {
         );
     }
 
-    const images = plan.images?.length ? plan.images : ['https://via.placeholder.com/400x200'];
+    const images = plan.images || [];
     const reviewCount = 0;
     const averageRating = 0;
     const { dateLabel, timeLabel } = formatDateTime(plan.dateTime);
     const isPublic = plan.visibility === 'PUBLIC';
     const canSubscribe = !plan.isFull || isSubscribed;
+
+    let isCreator = false;
+    const token = getAccessToken();
+
+    if(token && plan ){
+        const decoded = decodeJwt(token) as any;
+        isCreator = Number(decoded.id) === Number(plan.creatorId);
+    }
+
+    const handleDelete = () => {
+        Alert.alert(
+            'Eliminar Plan',
+            '¿Estás seguro de que deseas eliminar este plan? Esta acción no se puede deshacer.',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Eliminar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            setLoading(true);
+                            await remove(plan.id);
+                            Alert.alert('Éxito', 'El plan ha sido eliminado correctamente.', [
+                                { text: 'OK', onPress: () => router.back() }
+                            ]);
+                        } catch (err) {
+                            console.error('[PlanDetailScreen] Error eliminando plan:', err);
+                            Alert.alert('Error', 'No se pudo eliminar el plan. Verifica tu conexión.');
+                            setLoading(false);
+                        }
+                    }
+                }
+            ]
+        );
+    };
 
     return (
         <AppScreen scrollable>
@@ -247,45 +297,74 @@ export default function PlanDetailScreen() {
                 </View>
             </View>
 
-            <View style={[styles.locationCard, { backgroundColor: surface, borderColor: border }]}>
-                <Ionicons name="location-outline" size={20} color={tint} />
-                <ThemedText type="body" style={{ flex: 1, marginLeft: 8 }}>
-                    {plan.location}
-                </ThemedText>
+            <View style={[styles.locationCard, { backgroundColor: surface, borderColor: border, flexDirection: 'column', alignItems: 'stretch', padding: 0, overflow: 'hidden' }]}>
+                {/* Cabecera con la dirección de texto */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12 }}>
+                    <Ionicons name="location-outline" size={20} color={tint} />
+                    <ThemedText type="body" style={{ flex: 1, marginLeft: 8, fontWeight: '500' }}>
+                        {plan.location}
+                    </ThemedText>
+                </View>
+
+                {/* El Mini-Mapa que se dibuja solo si el objeto plan contiene coordenadas válidas */}
+                {plan.latitude && plan.longitude ? (
+                    <View style={{ height: 160, width: '100%', borderTopWidth: 1, borderColor: border }}>
+                        <MapView
+                            style={{ ...StyleSheet.absoluteFillObject }}
+                            initialRegion={{
+                                latitude: plan.latitude,
+                                longitude: plan.longitude,
+                                latitudeDelta: 0.012,
+                                longitudeDelta: 0.012,
+                            }}
+                            scrollEnabled={false}
+                            zoomEnabled={false}
+                            pitchEnabled={false}
+                            rotateEnabled={false}
+                        >
+                            <Marker
+                                coordinate={{ latitude: plan.latitude, longitude: plan.longitude }}
+                                pinColor={tint}
+                            />
+                        </MapView>
+                    </View>
+                ) : null}
             </View>
 
-            {/* Carrusel de imagenes */}
-            <View style={styles.imageSection}>
-                <ScrollView
-                    horizontal
-                    pagingEnabled
-                    showsHorizontalScrollIndicator={false}
-                    onScroll={handleImageScroll}
-                    scrollEventThrottle={16}
-                >
-                    {images.map((img, index) => (
-                        <Image
-                            key={index}
-                            source={{ uri: img }}
-                            style={[styles.planImage, { width: SCREEN_WIDTH - 32 }]}
-                            resizeMode="cover"
-                        />
-                    ))}
-                </ScrollView>
-                {images.length > 1 && (
-                    <View style={styles.imageIndicators}>
-                        {images.map((_, index) => (
-                            <View
+            {/* Carrusel de imagenes condicional */}
+            {images.length > 0 && (
+                <View style={styles.imageSection}>
+                    <ScrollView
+                        horizontal
+                        pagingEnabled
+                        showsHorizontalScrollIndicator={false}
+                        onScroll={handleImageScroll}
+                        scrollEventThrottle={16}
+                    >
+                        {images.map((img, index) => (
+                            <Image
                                 key={index}
-                                style={[
-                                    styles.indicator,
-                                    { backgroundColor: index === currentImageIndex ? tint : border },
-                                ]}
+                                source={{ uri: img }}
+                                style={[styles.planImage, { width: SCREEN_WIDTH - 32 }]}
+                                resizeMode="cover"
                             />
                         ))}
-                    </View>
-                )}
-            </View>
+                    </ScrollView>
+                    {images.length > 1 && (
+                        <View style={styles.imageIndicators}>
+                            {images.map((_, index) => (
+                                <View
+                                    key={index}
+                                    style={[
+                                        styles.indicator,
+                                        { backgroundColor: index === currentImageIndex ? tint : border },
+                                    ]}
+                                />
+                            ))}
+                        </View>
+                    )}
+                </View>
+            )}
 
             {/* Tabs */}
             <View style={[styles.tabContainer, { borderColor: border }]}>
@@ -356,11 +435,7 @@ export default function PlanDetailScreen() {
                         <View style={styles.infoList}>
                             <View style={styles.infoListItem}>
                                 <View style={[styles.infoDot, { backgroundColor: tint }]} />
-                                <ThemedText type="body">Interes: {plan.interest}</ThemedText>
-                            </View>
-                            <View style={styles.infoListItem}>
-                                <View style={[styles.infoDot, { backgroundColor: tint }]} />
-                                <ThemedText type="body">Tipo de viaje: {plan.travelType}</ThemedText>
+                                <ThemedText type="body">Interes: {CATEGORY_BY_INTEREST[plan.interest] || plan.interest}</ThemedText>
                             </View>
                             <View style={styles.infoListItem}>
                                 <View style={[styles.infoDot, { backgroundColor: tint }]} />
@@ -414,26 +489,58 @@ export default function PlanDetailScreen() {
                 </View>
             )}
 
-            {/* Boton de subscribe fijo */}
+            {/* Boton inferior dinamico */}
             <View style={styles.subscribeButtonContainer}>
-                <Pressable
-                    onPress={handleSubscribe}
-                    disabled={subscribing || !canSubscribe}
-                    style={({ pressed }) => [
-                        styles.subscribeButton,
-                        { backgroundColor: isSubscribed ? '#ef4444' : tint },
-                        pressed && styles.pressed,
-                        (subscribing || !canSubscribe) && styles.disabled,
-                    ]}
-                >
-                    {subscribing ? (
-                        <ActivityIndicator size="small" color={tintText} />
-                    ) : (
-                        <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                            {isSubscribed ? 'CANCELAR SUSCRIPCION' : (plan.isFull ? 'PLAN COMPLETO' : 'SUSCRIBIRSE')}
-                        </ThemedText>
-                    )}
-                </Pressable>
+                {isCreator ? (
+                    <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+                        {/* Botón Editar */}
+                        <Pressable
+                            onPress={() => router.push(`/plan/edit/${plan.id}`)}
+                            style={({ pressed }) => [
+                                styles.subscribeButton,
+                                { flex: 1, backgroundColor: surface, borderColor: tint, borderWidth: 1 },
+                                pressed && styles.pressed,
+                            ]}
+                        >
+                            <ThemedText type="body" style={{ color: tint, fontWeight: '600' }}>
+                                EDITAR
+                            </ThemedText>
+                        </Pressable>
+
+                        {/* Botón Eliminar */}
+                        <Pressable
+                            onPress={handleDelete}
+                            style={({ pressed }) => [
+                                styles.subscribeButton,
+                                { flex: 1, backgroundColor: '#ef4444' }, // Rojo destructivo
+                                pressed && styles.pressed,
+                            ]}
+                        >
+                            <ThemedText type="body" style={{ color: '#ffffff', fontWeight: '600' }}>
+                                ELIMINAR
+                            </ThemedText>
+                        </Pressable>
+                    </View>
+                ) : (
+                    <Pressable
+                        onPress={handleSubscribe}
+                        disabled={subscribing || !canSubscribe}
+                        style={({ pressed }) => [
+                            styles.subscribeButton,
+                            { backgroundColor: isSubscribed ? '#ef4444' : tint },
+                            pressed && styles.pressed,
+                            (subscribing || !canSubscribe) && styles.disabled,
+                        ]}
+                    >
+                        {subscribing ? (
+                            <ActivityIndicator size="small" color={tintText} />
+                        ) : (
+                            <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
+                                {isSubscribed ? 'CANCELAR SUSCRIPCION' : (plan.isFull ? 'PLAN COMPLETO' : 'SUSCRIBIRSE')}
+                            </ThemedText>
+                        )}
+                    </Pressable>
+                )}
             </View>
         </AppScreen>
     );

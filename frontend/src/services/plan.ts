@@ -9,6 +9,8 @@ export type PlanSummary = {
     title: string;
     dateTime: string;
     location: string;
+    latitude: number;
+    longitude: number;
     interest: string;
     travelType: string;
     visibility: PlanVisibility;
@@ -33,6 +35,8 @@ export type PlanDetail = {
     interest: string;
     travelType: string;
     location: string;
+    latitude: number;
+    longitude: number;
     images: string[];
     creatorId: number;
     creatorName: string;
@@ -52,6 +56,8 @@ export type PlanCreateRequest = {
     interest: string;
     travelType: string;
     location: string;
+    latitude: number;
+    longitude: number;
     images?: string[];
 };
 
@@ -264,6 +270,27 @@ export async function unsubscribeFromPlan(planId: number, accessToken: string): 
     }
 }
 
+// Get nearby public plans
+export async function getNearbyPlans(lat: number, lng: number, radius: number = 50): Promise<PlanSummary[]> {
+    const url = `${getBackendUrl()}/api/v1/plans/nearby?lat=${lat}&lng=${lng}&radius=${radius}`;
+    console.log('[PlanService] Fetching nearby plans:', url);
+
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch nearby plans: ${errorText}`);
+    }
+
+    return response.json();
+}
+
 // ============================================
 // Hooks (using TokenContext)
 // ============================================
@@ -326,6 +353,21 @@ export function usePlans() {
             return await getPlanById(id, token);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [getAccessToken]);
+
+    const fetchNearbyPlans = useCallback(async (lat: number, lng: number, radius?: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('No access token');
+        setLoading(true);
+        setError(null);
+        try {
+            return await getNearbyPlans(lat, lng, radius);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'failed to fetch nearby plans');
             throw err;
         } finally {
             setLoading(false);
@@ -414,6 +456,7 @@ export function usePlans() {
         fetchMyCreatedPlans,
         fetchMyJoinedPlans,
         fetchPlanDetail,
+        fetchNearbyPlans,
         subscribe,
         unsubscribe,
         create,

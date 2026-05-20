@@ -30,6 +30,10 @@ public record PlanUpdateDTO(
 
         String location,
 
+        Double latitude,
+
+        Double longitude,
+
         List<String> images
 
 ) {}

@@ -32,4 +32,17 @@ public interface PlanRepository extends JpaRepository<Plan, Long> {
     // Filter by travelType
     @EntityGraph(attributePaths = "images")
     List<Plan> findByVisibilityAndTravelTypeAndActiveTrue(PlanVisibility visibility, TravelType travelType);
+
+    @Query(value = "SELECT p.* FROM plans p " +
+            "WHERE p.visibility = 'PUBLIC' AND p.active = true AND " +
+            "(6371 * acos(cos(radians(:userLat)) * cos(radians(p.latitude)) " +
+            "* cos(radians(p.longitude) - radians(:userLng)) + sin(radians(:userLat)) " +
+            "* sin(radians(p.latitude)))) <= :radiusKm " +
+            "ORDER BY (6371 * acos(cos(radians(:userLat)) * cos(radians(p.latitude)) " +
+            "* cos(radians(p.longitude) - radians(:userLng)) + sin(radians(:userLat)) " +
+            "* sin(radians(p.latitude)))) ASC",
+            nativeQuery = true)
+    List<Plan> findNearbyPublicActivePlans(@Param("userLat") double userLat,
+                                           @Param("userLng") double userLng,
+                                           @Param("radiusKm") double radiusKm);
 }

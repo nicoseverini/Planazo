@@ -53,6 +53,10 @@ public class Plan {
     @Column
     private String location;
 
+    private Double latitude;
+
+    private Double longitude;
+
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "plan_images", joinColumns = @JoinColumn(name = "plan_id"))
     @Column(name = "image_url", columnDefinition = "TEXT")
@@ -77,7 +81,7 @@ public class Plan {
 
     public Plan(String title, String description, LocalDateTime dateTime, Integer durationMinutes,
                 PlanVisibility visibility, Integer maxSubscribers, Integer minAge, Integer maxAge,
-                Interest interest, TravelType travelType, String location, List<String> images, User creator) {
+                Interest interest, TravelType travelType, String location,Double latitude, Double longitude, List<String> images, User creator) {
         this.title = title;
         this.description = description;
         this.dateTime = dateTime;
@@ -89,6 +93,8 @@ public class Plan {
         this.interest = interest;
         this.travelType = travelType;
         this.location = location;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.images = images == null ? new ArrayList<>() : new ArrayList<>(images);
         this.creator = creator;
         this.active = true;
@@ -117,6 +123,10 @@ public class Plan {
     public void setTravelType(TravelType travelType) { this.travelType = travelType; }
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
+    public Double getLatitude() { return latitude; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
+    public Double getLongitude() { return longitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
     public List<String> getImages() { return images; }
     public void setImages(List<String> images) { this.images = images == null ? new ArrayList<>() : new ArrayList<>(images); }
     public User getCreator() { return creator; }
