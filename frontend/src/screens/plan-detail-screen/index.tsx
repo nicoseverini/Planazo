@@ -89,12 +89,16 @@ export default function PlanDetailScreen() {
     const [isSubscribed, setIsSubscribed] = useState(false);
 
     const CATEGORY_BY_INTEREST: Record<string, string> = {
-        'ADVENTURE': 'Viajes / Deportes',
-        'FOOD': 'Gastronomía',
-        'CULTURE': 'Cultura',
-        'NIGHTLIFE': 'Música / Social',
-        'NATURE': 'Naturaleza',
-        'HISTORY': 'Otro',
+        FOOD:      'Gastronomia',
+        CULTURE:   'Cultura',
+        NATURE:    'Naturaleza',
+        BEACH:     'Playa',
+        ADVENTURE: 'Aventura',
+        NIGHTLIFE: 'Fiesta',
+        SHOPPING:  'Shopping',
+        HISTORY:   'Historia',
+        MOUNTAINS: 'Montañas',
+        OTHER:     'Otro',
     };
 
     const loadPlan = useCallback(async () => {

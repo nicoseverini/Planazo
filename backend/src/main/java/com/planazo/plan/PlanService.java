@@ -10,6 +10,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.planazo.common.constants.Interest;
+import java.time.LocalDateTime;
 
 import java.util.List;
 import java.util.Optional;
@@ -232,5 +234,21 @@ public class PlanService {
                 plan.getCreator().getId(),
                 List.copyOf(plan.getImages())
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<PlanSummaryDTO> getFilteredPlans(
+            Interest interest,
+            LocalDateTime dateFrom,
+            LocalDateTime dateTo,
+            String location
+    ) {
+        var spec = PlanSpecification.withFilters(
+                interest, dateFrom, dateTo, location, null, null, null, null
+        );
+        return planRepository.findAll(spec)
+                .stream()
+                .map(this::toSummaryDTO)
+                .toList();
     }
 }

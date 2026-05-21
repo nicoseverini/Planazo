@@ -24,25 +24,29 @@ import { PlanUpdateRequest, usePlans } from '@/services/plan';
 import { styles } from './styles';
 
 const CATEGORY_OPTIONS = [
-    'Viajes',
-    'Deportes',
     'Gastronomia',
     'Cultura',
-    'Musica',
     'Naturaleza',
-    'Social',
+    'Playa',
+    'Aventura',
+    'Fiesta',
+    'Shopping',
+    'Historia',
+    'Montañas',
     'Otro',
 ];
 
 const INTEREST_BY_CATEGORY: Record<string, string> = {
-    Viajes: 'ADVENTURE',
-    Deportes: 'ADVENTURE',
-    Gastronomia: 'FOOD',
-    Cultura: 'CULTURE',
-    Musica: 'NIGHTLIFE',
-    Naturaleza: 'NATURE',
-    Social: 'NIGHTLIFE',
-    Otro: 'HISTORY',
+    Gastronomia:      'FOOD',
+    Cultura:   'CULTURE',
+    Naturaleza:    'NATURE',
+    Playa:     'BEACH',
+    Aventura: 'ADVENTURE',
+    Fiesta: 'NIGHTLIFE',
+    Shopping:  'SHOPPING',
+    Historia:   'HISTORY',
+    Montañas: 'MOUNTAINS',
+    Otro:     'OTHER',
 };
 
 const DEFAULT_INTEREST = 'ADVENTURE';

@@ -291,6 +291,28 @@ export async function getNearbyPlans(lat: number, lng: number, radius: number = 
     return response.json();
 }
 
+export type PlanFilters = {
+    interest?: string;
+    dateFrom?: string;   // ISO string
+    dateTo?: string;
+    location?: string;
+};
+
+export async function getFilteredPlans(filters: PlanFilters): Promise<PlanSummary[]> {
+    const params = new URLSearchParams();
+    if (filters.interest)  params.append('interest', filters.interest);
+    if (filters.dateFrom)  params.append('dateFrom', filters.dateFrom);
+    if (filters.dateTo)    params.append('dateTo', filters.dateTo);
+    if (filters.location)  params.append('location', filters.location);
+
+    const url = `${getBackendUrl()}/api/v1/plans/filter?${params.toString()}`;
+    const response = await fetch(url, {
+        headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return response.json();
+}
+
 // ============================================
 // Hooks (using TokenContext)
 // ============================================
@@ -373,6 +395,19 @@ export function usePlans() {
             setLoading(false);
         }
     }, [getAccessToken]);
+
+    const fetchFilteredPlans = useCallback(async (filters: PlanFilters) => {
+        setLoading(true);
+        setError(null);
+        try {
+            return await getFilteredPlans(filters);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unknown error');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     const subscribe = useCallback(async (planId: number) => {
         const token = getAccessToken();
@@ -457,6 +492,7 @@ export function usePlans() {
         fetchMyJoinedPlans,
         fetchPlanDetail,
         fetchNearbyPlans,
+        fetchFilteredPlans,
         subscribe,
         unsubscribe,
         create,

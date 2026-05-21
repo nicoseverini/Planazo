@@ -56,7 +56,7 @@ public class SecurityConfig {
                                 "/api-docs/**",
                                 "/error")
                         .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/plans").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/plans", "/api/v1/plans/filter", "/api/v1/plans/nearby").permitAll()
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
                         .anyRequest().authenticated())

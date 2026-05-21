@@ -23,12 +23,16 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
     const tintText = useThemeColor({}, 'tintText');
 
     const CATEGORY_BY_INTEREST: Record<string, string> = {
-        'ADVENTURE': 'Viajes / Deportes',
-        'FOOD': 'Gastronomía',
-        'CULTURE': 'Cultura',
-        'NIGHTLIFE': 'Música / Social',
-        'NATURE': 'Naturaleza',
-        'HISTORY': 'Otro',
+        FOOD:      'Gastronomia',
+        CULTURE:   'Cultura',
+        NATURE:    'Naturaleza',
+        BEACH:     'Playa',
+        ADVENTURE: 'Aventura',
+        NIGHTLIFE: 'Fiesta',
+        SHOPPING:  'Shopping',
+        HISTORY:   'Historia',
+        MOUNTAINS: 'Montañas',
+        OTHER:     'Otro',
     };
 
     const formatDate = (dateString: string) => {

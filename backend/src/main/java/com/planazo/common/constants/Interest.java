@@ -9,5 +9,6 @@ public enum Interest {
     NIGHTLIFE,
     SHOPPING,
     HISTORY,
-    MOUNTAINS
+    MOUNTAINS,
+    OTHER
 }

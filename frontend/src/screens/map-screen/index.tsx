@@ -13,13 +13,17 @@ import { styles } from './styles';
 import {AppScreen} from "@/components/ui";
 
 const CATEGORY_MAP: Record<string, string> = {
-    'Todos': 'ALL',
-    'Viajes / Deportes': 'ADVENTURE',
-    'Gastronomía': 'FOOD',
-    'Cultura': 'CULTURE',
-    'Música / Social': 'NIGHTLIFE',
-    'Naturaleza': 'NATURE',
-    'Otro': 'HISTORY',
+    'Todos':         'ALL',
+    'Gastronomia':   'FOOD',
+    'Cultura':       'CULTURE',
+    'Naturaleza':    'NATURE',
+    'Playa':         'BEACH',
+    'Aventura':      'ADVENTURE',
+    'Fiesta': 'NIGHTLIFE',
+    'Shopping':      'SHOPPING',
+    'Historia':      'HISTORY',
+    'Montañas':      'MOUNTAINS',
+    'Otro':          'OTHER',
 };
 
 export default function MapScreen() {

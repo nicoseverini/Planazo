@@ -1,5 +1,6 @@
 package com.planazo.plan;
 
+import com.planazo.common.constants.Interest;
 import com.planazo.plan.dto.PlanCreateDTO;
 import com.planazo.plan.dto.PlanDetailDTO;
 import com.planazo.plan.dto.PlanSummaryDTO;
@@ -10,12 +11,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -175,5 +179,19 @@ class PlanRestController {
             case NOT_FOUND      -> ResponseEntity.notFound().build();
             case NOT_SUBSCRIBED -> ResponseEntity.status(HttpStatus.CONFLICT).build();
         };
+    }
+
+    @PreAuthorize("permitAll()")
+    @GetMapping(value = "/filter", produces = "application/json")
+    @Operation(summary = "Filter public plans by category, date, location")
+    List<PlanSummaryDTO> filterPlans(
+            @RequestParam(required = false) Interest interest,
+            @RequestParam(required = false) 
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateFrom,
+            @RequestParam(required = false) 
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTo,
+            @RequestParam(required = false) String location
+    ) {
+        return planService.getFilteredPlans(interest, dateFrom, dateTo, location);
     }
 }

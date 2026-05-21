@@ -24,25 +24,29 @@ import { PlanCreateRequest, usePlans } from '@/services/plan';
 import { styles } from './styles';
 
 const CATEGORY_OPTIONS = [
-    'Viajes',
-    'Deportes',
     'Gastronomia',
     'Cultura',
-    'Musica',
     'Naturaleza',
-    'Social',
+    'Playa',
+    'Aventura',
+    'Fiesta',
+    'Shopping',
+    'Historia',
+    'Montañas',
     'Otro',
-];
+] as const;
 
 const INTEREST_BY_CATEGORY: Record<string, string> = {
-    Viajes: 'ADVENTURE',
-    Deportes: 'ADVENTURE',
-    Gastronomia: 'FOOD',
-    Cultura: 'CULTURE',
-    Musica: 'NIGHTLIFE',
-    Naturaleza: 'NATURE',
-    Social: 'NIGHTLIFE',
-    Otro: 'HISTORY',
+    Gastronomia:      'FOOD',
+    Cultura:   'CULTURE',
+    Naturaleza:    'NATURE',
+    Playa:     'BEACH',
+    Aventura: 'ADVENTURE',
+    Fiesta: 'NIGHTLIFE',
+    Shopping:  'SHOPPING',
+    Historia:   'HISTORY',
+    Montañas: 'MOUNTAINS',
+    Otro:     'OTHER',
 };
 
 const DEFAULT_INTEREST = 'ADVENTURE';
@@ -111,7 +115,7 @@ export default function CreatePlanScreen() {
     const [pinLocation, setPinLocation] = useState<{latitude: number, longitude: number} | null>(null);
     const [minAge, setMinAge] = useState('18');
     const [maxParticipants, setMaxParticipants] = useState('10');
-    const [category, setCategory] = useState('');
+    const [category, setCategory] = useState<typeof INTEREST_OPTIONS[number]>('FOOD');
     const [budget, setBudget] = useState('');
     const [images, setImages] = useState<string[]>([]);
 
