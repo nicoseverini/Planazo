@@ -79,9 +79,9 @@ export async function loginUser(req: LoginRequest): Promise<LoginResponse> {
 }
 
 export async function signupUser(
-    req: SignupRequest,
-    photo?: { uri: string; type: string; name: string }
-): Promise<LoginResponse> {
+  req: SignupRequest,
+  photo?: { uri: string; type: string; name: string }
+): Promise<{ status: string; message: string }> {
   const url = `${getBackendUrl()}/api/v1/sessions/signup/user`;
   console.log('[UserService] Signup attempt:', url);
 
@@ -262,23 +262,11 @@ export function useLogin() {
 }
 
 export function useSignup() {
-  const { setTokenData } = useToken();
-
   const signup = async (
       req: SignupRequest,
       photo?: { uri: string; type: string; name: string }
   ) => {
-    const tokenData = await signupUser(req, photo);
-    const decoded = decodeJwt(tokenData.accessToken);
-
-    setTokenData({
-      state: 'LOGGED_IN',
-      accessToken: tokenData.accessToken,
-      refreshToken: tokenData.refreshToken,
-      role: decoded.role,
-    });
-
-    return tokenData;
+    return await signupUser(req, photo);
   };
 
   return { signup };

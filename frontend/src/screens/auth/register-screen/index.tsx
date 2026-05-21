@@ -21,7 +21,6 @@ import {
   type SignupFormState,
 } from '@/models/auth';
 import { signupUser } from '@/services/auth';
-import { useToken, decodeJwt } from '@/context/token-context';
 
 import { styles } from './styles';
 
@@ -172,7 +171,7 @@ function CheckboxField({
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const { setTokenData } = useToken();
+  
   const [values, setValues] = useState<SignupFormState>({
     email: '',
     password: '',
@@ -184,7 +183,6 @@ export default function RegisterScreen() {
     budget: '',
     travelType: '',
     language: '',
-    receiveConfirmationEmail: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -205,15 +203,8 @@ export default function RegisterScreen() {
 
     try {
       const response = await signupUser(buildSignupRequest(values));
-      const { role } = decodeJwt(response.accessToken);
-      setTokenData({
-        state: 'LOGGED_IN',
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-        role,
-      });
-      Alert.alert('Cuenta creada', 'Tu usuario fue registrado correctamente.');
-      router.replace('/home');
+      Alert.alert('Cuenta creada', response.message || 'Revisá tu email para verificar la cuenta.');
+      router.replace('/login');
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : 'No se pudo crear la cuenta';
       setError(message);
@@ -264,11 +255,6 @@ export default function RegisterScreen() {
           value={values.language}
           options={LANGUAGE_OPTIONS.map((value) => ({ label: value, value }))}
           onChange={(value) => update('language', value)}
-        />
-        <CheckboxField
-          label="Quiero recibir mail de confirmación."
-          value={values.receiveConfirmationEmail}
-          onChange={(value) => update('receiveConfirmationEmail', value)}
         />
         <AuthButton label={loading ? 'Registrando...' : 'Crear cuenta'} onPress={handleSignup} disabled={loading} />
         {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}

@@ -30,7 +30,6 @@ export type SignupFormState = {
   budget: string;
   travelType: TravelTypeValue | '';
   language: string;
-  receiveConfirmationEmail: boolean;
 };
 
 export type SignupRequest = {
@@ -44,7 +43,6 @@ export type SignupRequest = {
   budget?: number;
   travelType?: TravelTypeValue;
   languages?: string[];
-  receiveConfirmationEmail: boolean;
 };
 
 export const interestOptions = interestValues;
@@ -117,6 +115,5 @@ export function buildSignupRequest(values: SignupFormState): SignupRequest {
     budget: parsedBudget,
     travelType: values.travelType || undefined,
     languages: values.language ? [values.language] : undefined,
-    receiveConfirmationEmail: values.receiveConfirmationEmail,
   };
 }

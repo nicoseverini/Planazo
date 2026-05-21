@@ -84,12 +84,12 @@ class UserRestController {
         @ResponseStatus(HttpStatus.OK)
         @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
         @ApiResponse(responseCode = "409", description = "Email already register", content = @Content)
-        ResponseEntity<TokenDTO> createAdmin(
-                        @PathVariable Long id,
+        ResponseEntity<StatusResponseDTO> createAdmin(
                         @RequestBody UserCreateDTO userDTO) {
                 return userService.createUser(userDTO)
-                                .map(tk -> ResponseEntity.status(HttpStatus.CREATED).body(tk))
-                                .orElse(ResponseEntity.status(HttpStatus.CONFLICT).build());
+                                .map(status -> ResponseEntity.status(HttpStatus.CREATED).body(status))
+                                .orElse(ResponseEntity.status(HttpStatus.CONFLICT)
+                                                .body(new StatusResponseDTO("error", "Email already in use")));
         }
 
         @PreAuthorize("isAuthenticated()")

@@ -3,6 +3,7 @@ package com.planazo.user;
 import com.planazo.user.dto.RefreshDTO;
 import com.planazo.user.dto.TokenDTO;
 import com.planazo.user.dto.UserCreateDTO;
+import com.planazo.user.dto.StatusResponseDTO;
 import com.planazo.user.dto.UserLoginDTO;
 import com.planazo.user.dto.ChangePasswordDTO;
 import com.planazo.user.dto.ForgotPasswordDTO;
@@ -43,15 +44,16 @@ class SessionRestController {
     @PreAuthorize("permitAll()")
     @PostMapping(value = "/signup", produces = "application/json")
     @Operation(summary = "Create a new user")
-    @ResponseStatus(HttpStatus.CREATED)
-    @ApiResponse(responseCode = "409", description = "Email already used", content = @Content)
-    ResponseEntity<TokenDTO> signUp(
+        @ResponseStatus(HttpStatus.CREATED)
+        @ApiResponse(responseCode = "409", description = "Email already used", content = @Content)
+        public ResponseEntity<StatusResponseDTO> signUp(
             @Valid @NonNull @RequestBody UserCreateDTO data
-    ) throws MethodArgumentNotValidException {
+        ) throws MethodArgumentNotValidException {
         return userService.createUser(data)
-                .map(tk -> ResponseEntity.status(HttpStatus.CREATED).body(tk))
-                .orElse(ResponseEntity.status(HttpStatus.CONFLICT).build());
-    }
+            .map(status -> ResponseEntity.status(HttpStatus.CREATED).body(status))
+            .orElse(ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new StatusResponseDTO("error", "Email already in use")));
+        }
 
     @PreAuthorize("permitAll()")
     @PostMapping(value = "/token", produces = "application/json")

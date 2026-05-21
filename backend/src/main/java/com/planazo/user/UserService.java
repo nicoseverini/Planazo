@@ -65,27 +65,28 @@ public class UserService implements UserDetailsService {
                 });
     }
 
-    Optional<TokenDTO> createUser(UserCreateDTO data) {
+    Optional<StatusResponseDTO> createUser(UserCreateDTO data) {
         if (userRepository.findByEmail(data.email()).isPresent()) {
             return Optional.empty();
-        } else {
-            var user = data.asUser(passwordEncoder::encode);
-            try {
-                userRepository.save(user);
-                if (data.receiveConfirmationEmail()) {
-                    VerificationToken vToken = verificationTokenService.createFor(user);
-                    emailService.sendVerificationEmail(user.getEmail(), vToken.getToken());
-                }
-                return Optional.of(generateTokens(user));
-            } catch (DataIntegrityViolationException ex) {
-                return Optional.empty();
-            }
+        }
+
+        var user = data.asUser(passwordEncoder::encode);
+        try {
+            userRepository.save(user);
+            VerificationToken vToken = verificationTokenService.createFor(user);
+            emailService.sendVerificationEmail(user.getEmail(), vToken.getToken());
+            return Optional.of(new StatusResponseDTO("success", "User created. Check your email to verify your account."));
+        } catch (DataIntegrityViolationException dive) {
+            return Optional.empty();
+        } catch (Exception ex) {
+            throw new RuntimeException("Error occurred while creating user: " + ex.getMessage());
         }
     }
 
     Optional<TokenDTO> loginUser(UserCredentials data) {
         Optional<User> maybeUser = userRepository.findByEmail(data.email());
         return maybeUser
+                .filter(user -> Boolean.TRUE.equals(user.isVerified()))
                 .filter(user -> passwordEncoder.matches(data.password(), user.getPassword()))
                 .map(this::generateTokens);
     }

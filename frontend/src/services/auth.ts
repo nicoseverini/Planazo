@@ -33,6 +33,11 @@ export type AuthTokenResponse = {
   refreshToken: string | null;
 };
 
+export type SignupResponse = {
+  status: string;
+  message: string;
+};
+
 export type LoginRequest = {
   email: string;
   password: string;
@@ -65,6 +70,9 @@ export async function loginUser(req: LoginRequest): Promise<AuthTokenResponse> {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Verificá tu email para activar la cuenta');
+    }
     const errorText = await response.text();
     throw new Error(`Login failed: ${errorText}`);
   }
@@ -72,7 +80,7 @@ export async function loginUser(req: LoginRequest): Promise<AuthTokenResponse> {
   return response.json();
 }
 
-export async function signupUser(req: SignupRequest): Promise<AuthTokenResponse> {
+export async function signupUser(req: SignupRequest): Promise<SignupResponse> {
   const url = `${getBackendUrl()}/api/v1/auth/signup`;
 
   const response = await fetch(url, {
