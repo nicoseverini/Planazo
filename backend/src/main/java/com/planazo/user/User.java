@@ -128,6 +128,10 @@ public class User implements UserDetails, UserCredentials {
         return email;
     }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     @Override
     public String getUsername() {
         return email;
@@ -200,6 +204,10 @@ public class User implements UserDetails, UserCredentials {
 
     public String getRole() {
         return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     @Override

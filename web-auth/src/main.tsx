@@ -3,9 +3,24 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { VerifyEmailPage } from './verify-email'
 import { ResetPasswordPage } from './reset-password'
+import { LoginPage } from './login'
+import { PlansPage } from './plans.tsx'
+import { CreatePlanPage } from './create-plan'
 
 function resolveRoute(pathname: string) {
   const normalizedPath = pathname.replace(/\/+$/, '') || '/'
+
+  if (normalizedPath === '/' || normalizedPath === '/login' || normalizedPath === '/signup') {
+    return <LoginPage />
+  }
+
+  if (normalizedPath === '/plans') {
+    return <PlansPage />
+  }
+
+  if (normalizedPath === '/create-plan') {
+    return <CreatePlanPage />
+  }
 
   if (normalizedPath === '/verify-email') {
     return <VerifyEmailPage />
@@ -18,8 +33,16 @@ function resolveRoute(pathname: string) {
   return (
     <main className="auth-card">
       <h1>web-auth</h1>
-      <p>Usa una de estas rutas para flujos de autenticacion:</p>
       <ul className="route-list">
+        <li>
+          <a href="/login">/login</a>
+        </li>
+        <li>
+          <a href="/plans">/plans</a>
+        </li>
+        <li>
+          <a href="/create-plan">/create-plan</a>
+        </li>
         <li>
           <a href="/verify-email?token=tu-token">/verify-email?token=tu-token</a>
         </li>

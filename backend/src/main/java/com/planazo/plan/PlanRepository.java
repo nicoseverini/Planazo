@@ -1,6 +1,8 @@
 package com.planazo.plan;
 
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -20,6 +22,10 @@ public interface PlanRepository extends JpaRepository<Plan, Long>, JpaSpecificat
     // Plans created by a user
     @EntityGraph(attributePaths = "images")
     List<Plan> findByCreatorIdAndActiveTrue(Long creatorId);
+
+    // All active plans, regardless of visibility
+    @EntityGraph(attributePaths = "images")
+    Page<Plan> findByActiveTrue(Pageable pageable);
 
     // Plans where a user is subscribed
     @EntityGraph(attributePaths = "images")

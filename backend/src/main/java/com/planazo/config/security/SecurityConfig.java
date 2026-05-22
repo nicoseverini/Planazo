@@ -23,11 +23,13 @@ import java.util.List;
 public class SecurityConfig {
 
     public static final String[] PUBLIC_ENDPOINTS = {
-            "/api/v1/auth/**"
+            "/api/v1/auth/**",
+            "/api/v1/plans",
     };
 
     public static final String[] ADMIN_ENDPOINTS = {
-            "/api/v1/users/admin/**"
+            "/api/v1/users/admin/**",
+            "/api/v1/plans/admin/**"
     };
 
     private final JwtAuthFilter authFilter;

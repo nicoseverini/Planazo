@@ -12,6 +12,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,6 +24,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.planazo.config.security.JwtUserDetails;
 
 @RestController
 @RequestMapping("/api/v1/plans")
@@ -54,6 +59,16 @@ class PlanRestController {
     @Operation(summary = "List all public plans")
     List<PlanSummaryDTO> getPublicPlans() {
         return planService.getPublicPlans();
+    }
+    // TO DO: should we show all plans to users ?
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(value = "/admin", produces = "application/json")
+    @Operation(summary = "List all plans")
+    Page<PlanSummaryDTO> getAllPlans(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return planService.getAllPlans(PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "title")));
     }
 
     @PreAuthorize("permitAll()")

@@ -98,8 +98,14 @@ cp backend/.env.example backend/.env
 | `JWT_ACCESS_SECRET` | Secreto para firmar los JWT. Usá un valor aleatorio y seguro        |
 | `SMTP_USERNAME`    | Correo de emails     |
 | `SMTP_PASSWORD`    | "App password" que provee gmail     |
-
 | `WEB_AUTH_URL`      | URL pública del servicio web-auth (ej: `http://TU_IP_LOCAL:5173`)  |
+| `ADMIN_EMAIL`      | Email fijo de la cuenta administradora                               |
+| `ADMIN_PASSWORD`   | Contraseña fija de la cuenta administradora                          |
+| `ADMIN_NAME`       | Nombre visible del admin                                             |
+| `ADMIN_LASTNAME`   | Apellido visible del admin                                           |
+| `ADMIN_GENDER`     | Género del admin                                                     |
+| `ADMIN_PHOTO`      | Foto o avatar del admin                                              |
+| `ADMIN_BIRTH_DATE` | Fecha de nacimiento del admin en formato `YYYY-MM-DD`               |
 
 ### 3. Variables del frontend
 
@@ -171,7 +177,11 @@ JWT_ACCESS_SECRET=z4+HANbXJmq3HqLAmEWBBVWeSAZ8jXES3eCbXtMiHOY=}
 
 Si no usas `.env` local (por ejemplo, al ejecutar el backend fuera de Docker), tambien podes definirlo en `backend/src/main/resources/application.properties` con `jwt.access.secret`
 
-### Paso 4 — Levantá todos los servicios con Docker Compose
+### Paso 4 — Configurá la cuenta admin inicial
+
+Definí las variables `ADMIN_*` en `backend/.env`. Al arrancar el backend, esa cuenta se crea o actualiza automáticamente con rol `ADMIN` y estado verificado, así queda lista para iniciar sesión desde el primer arranque.
+
+### Paso 5 — Levantá todos los servicios con Docker Compose
 
 En otra terminal, desde la raíz del repositorio:
 
@@ -183,7 +193,7 @@ Esto construye y levanta todos los contenedores: `db`, `backend`, `frontend`, `w
 
 Una vez que el contenedor del frontend esté listo, la consola de Metro mostrará un código QR.
 
-### Paso 5 — Conectá el dispositivo móvil
+### Paso 6 — Conectá el dispositivo móvil
 
 Escaneá el código QR con la cámara de tu iPhone o desde la app Expo Go. La aplicación se abrirá automáticamente en Expo Go.
 

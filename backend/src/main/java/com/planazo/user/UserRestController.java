@@ -1,6 +1,7 @@
 package com.planazo.user;
 
 import com.planazo.user.dto.*;
+import com.planazo.config.security.JwtUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

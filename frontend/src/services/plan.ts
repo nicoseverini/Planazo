@@ -87,7 +87,6 @@ export async function getPublicPlans(): Promise<PlanSummary[]> {
 
     return response.json();
 }
-
 // Get plan by ID
 export async function getPlanById(id: number, accessToken: string): Promise<PlanDetail> {
     const url = `${getBackendUrl()}/api/v1/plans/${id}`;
@@ -335,7 +334,6 @@ export function usePlans() {
             setLoading(false);
         }
     }, []);
-
     const fetchMyCreatedPlans = useCallback(async () => {
         const token = getAccessToken();
         if (!token) throw new Error('No access token');
@@ -459,8 +457,7 @@ export function usePlans() {
         if (!token) throw new Error('No access token');
         setLoading(true);
         setError(null);
-        try {
-            return await updatePlan(id, data, token);
+        try {            return await updatePlan(id, data, token);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
             throw err;

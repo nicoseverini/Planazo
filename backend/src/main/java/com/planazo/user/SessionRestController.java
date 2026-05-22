@@ -69,6 +69,19 @@ class SessionRestController {
     }
 
     @PreAuthorize("permitAll()")
+    @PostMapping(value = "/token-admin", produces = "application/json")
+    @Operation(summary = "Log in as admin, creating a new session")
+    @ResponseStatus(HttpStatus.OK)
+    @ApiResponse(responseCode = "401", description = "Invalid email or password supplied", content = @Content)
+    public TokenDTO loginAdmin(
+            @Valid @NonNull @RequestBody UserLoginDTO data
+    ) throws MethodArgumentNotValidException {
+        return userService
+                .loginUserAdmin(data)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+    }
+
+    @PreAuthorize("permitAll()")
     @PostMapping(value = "/refresh", produces = "application/json")
     @Operation(summary = "Refresh a session")
     @ResponseStatus(HttpStatus.OK)

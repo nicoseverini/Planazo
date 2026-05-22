@@ -8,6 +8,8 @@ import com.planazo.user.User;
 import com.planazo.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.planazo.common.constants.Interest;
@@ -74,6 +76,12 @@ public class PlanService {
     }
 
     @Transactional(readOnly = true)
+    public Page<PlanSummaryDTO> getAllPlans(Pageable pageable) {
+        return planRepository.findByActiveTrue(pageable)
+                .map(this::toSummaryDTO);
+    }
+
+    @Transactional(readOnly = true)
     public List<PlanSummaryDTO> getMyPlans(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
@@ -107,23 +115,13 @@ public class PlanService {
         return planRepository.findById(id)
                 .filter(Plan::isActive)
                 .filter(plan -> plan.getCreator().getUsername().equals(requesterEmail))
-                .map(plan -> {
-                    if (data.title() != null)           plan.setTitle(data.title());
-                    if (data.description() != null)     plan.setDescription(data.description());
-                    if (data.dateTime() != null)        plan.setDateTime(data.dateTime());
-                    if (data.durationMinutes() != null) plan.setDurationMinutes(data.durationMinutes());
-                    if (data.visibility() != null)      plan.setVisibility(data.visibility());
-                    if (data.maxSubscribers() != null)  plan.setMaxSubscribers(data.maxSubscribers());
-                    if (data.minAge() != null)          plan.setMinAge(data.minAge());
-                    if (data.maxAge() != null)          plan.setMaxAge(data.maxAge());
-                    if (data.interest() != null)        plan.setInterest(data.interest());
-                    if (data.travelType() != null)      plan.setTravelType(data.travelType());
-                    if (data.location() != null)        plan.setLocation(data.location());
-                    if (data.latitude() != null)        plan.setLatitude(data.latitude());
-                    if (data.longitude() != null)       plan.setLongitude(data.longitude());
-                    if (data.images() != null)          plan.setImages(data.images());
-                    return toDetailDTO(planRepository.save(plan));
-                });
+                .map(plan -> toDetailDTO(saveUpdatedPlan(plan, data)));
+    }
+
+    public Optional<PlanDetailDTO> updatePlanAsAdmin(Long id, PlanUpdateDTO data) {
+        return planRepository.findById(id)
+                .filter(Plan::isActive)
+                .map(plan -> toDetailDTO(saveUpdatedPlan(plan, data)));
     }
 
     // ── Delete (soft) ────────────────────────────────────────────────────────
@@ -145,6 +143,24 @@ public class PlanService {
         if (!planRepository.existsById(id)) return false;
         planRepository.deleteById(id);
         return true;
+    }
+
+    private Plan saveUpdatedPlan(Plan plan, PlanUpdateDTO data) {
+        if (data.title() != null)           plan.setTitle(data.title());
+        if (data.description() != null)     plan.setDescription(data.description());
+        if (data.dateTime() != null)        plan.setDateTime(data.dateTime());
+        if (data.durationMinutes() != null) plan.setDurationMinutes(data.durationMinutes());
+        if (data.visibility() != null)      plan.setVisibility(data.visibility());
+        if (data.maxSubscribers() != null)  plan.setMaxSubscribers(data.maxSubscribers());
+        if (data.minAge() != null)          plan.setMinAge(data.minAge());
+        if (data.maxAge() != null)          plan.setMaxAge(data.maxAge());
+        if (data.interest() != null)        plan.setInterest(data.interest());
+        if (data.travelType() != null)      plan.setTravelType(data.travelType());
+        if (data.location() != null)        plan.setLocation(data.location());
+        if (data.latitude() != null)        plan.setLatitude(data.latitude());
+        if (data.longitude() != null)       plan.setLongitude(data.longitude());
+        if (data.images() != null)          plan.setImages(data.images());
+        return planRepository.save(plan);
     }
 
     // ── Subscribe / Unsubscribe ──────────────────────────────────────────────

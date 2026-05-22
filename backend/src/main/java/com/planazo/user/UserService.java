@@ -91,6 +91,14 @@ public class UserService implements UserDetailsService {
                 .map(this::generateTokens);
     }
 
+    Optional<TokenDTO> loginUserAdmin(UserCredentials data) {
+        Optional<User> maybeUser = userRepository.findByEmail(data.email());
+        return maybeUser
+                .filter(user -> "ADMIN".equals(user.getRole()))
+                .filter(user -> passwordEncoder.matches(data.password(), user.getPassword()))
+                .map(this::generateTokens);
+    }
+
     Optional<TokenDTO> refresh(RefreshDTO data) {
         return refreshTokenService.findByValue(data.refreshToken())
                 .map(RefreshToken::user)
