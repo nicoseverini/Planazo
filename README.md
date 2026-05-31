@@ -4,7 +4,7 @@ Planazo es una aplicación mobile construida con Expo (React Native) y un backen
 
 ## Arquitectura
 
-Todos los servicios corren en contenedores Docker. El dispositivo móvil se conecta al backend a través de un túnel HTTPS provisto por **ngrok**, ya que iOS bloquea conexiones HTTP no seguras por defecto (App Transport Security).
+Todos los servicios corren en contenedores Docker. El dispositivo móvil se conecta al backend a través de un túnel HTTPS provisto por **ngrok**, ya que iOS bloquea conexiones HTTP no seguras por defecto (App Transport Security). El servicio `web-auth` también se expone mediante un segundo túnel ngrok independiente, necesario para que el backend pueda redirigir al usuario a la pantalla de autenticación desde cualquier dispositivo.
 
 > TODO: insertar un grafico de la arquitectura
 
@@ -27,7 +27,7 @@ Todos los servicios corren en contenedores Docker. El dispositivo móvil se cone
 Asegurate de tener instalado lo siguiente antes de continuar:
 
 - [Docker](https://docs.docker.com/get-docker/) y Docker Compose
-- [ngrok](https://ngrok.com/) (ver [Instalación de ngrok](#instalación-de-ngrok))
+- [ngrok](https://ngrok.com/) con **dos cuentas** configuradas (ver [Instalación de ngrok](#instalación-de-ngrok))
 - [Expo Go](https://expo.dev/go) instalado en el dispositivo móvil
 
 ---
@@ -54,15 +54,24 @@ sudo apt update && sudo apt install ngrok
 ngrok version
 ```
 
-**3.** Creá una cuenta gratuita en [dashboard.ngrok.com/signup](https://dashboard.ngrok.com/signup).
+**3.** Este proyecto requiere **dos túneles con dominios estáticos simultáneos**: uno para el backend y otro para el servicio `web-auth`. El plan gratuito de ngrok incluye un único dominio estático por cuenta, por lo que es necesario crear **dos cuentas** distintas.
 
-**4.** Copiá tu authtoken desde [dashboard.ngrok.com/get-started/your-authtoken](https://dashboard.ngrok.com/get-started/your-authtoken) y registralo en tu máquina:
+   - Cuenta A → dominio estático para el **backend** (`puerto 8080`)
+   - Cuenta B → dominio estático para **web-auth** (`puerto 5173`)
+
+   Creá ambas cuentas en [dashboard.ngrok.com/signup](https://dashboard.ngrok.com/signup).
+
+**4.** Registrá los authtokens de ambas cuentas. ngrok permite configurar múltiples authtokens mediante perfiles:
 
 ```bash
-ngrok config add-authtoken TU_AUTHTOKEN_AQUI
+# Perfil para el backend (Cuenta A)
+ngrok config add-authtoken TU_AUTHTOKEN_CUENTA_A --config ~/.config/ngrok/backend.yml
+
+# Perfil para web-auth (Cuenta B)
+ngrok config add-authtoken TU_AUTHTOKEN_CUENTA_B --config ~/.config/ngrok/web-auth.yml
 ```
 
-**5.** *(Opcional pero recomendado)* Creá un dominio estático gratuito en [dashboard.ngrok.com/domains](https://dashboard.ngrok.com/domains). El plan gratuito incluye 1 dominio estático, lo que evita tener que actualizar el `.env` del frontend cada vez que se reinicia ngrok.
+**5.** Creá un dominio estático gratuito en cada cuenta desde [dashboard.ngrok.com/domains](https://dashboard.ngrok.com/domains). Esto evita tener que actualizar los archivos `.env` cada vez que se reinician los túneles.
 
 ---
 
@@ -96,16 +105,16 @@ cp backend/.env.example backend/.env
 | Variable            | Descripción                                                         |
 |---------------------|---------------------------------------------------------------------|
 | `JWT_ACCESS_SECRET` | Secreto para firmar los JWT. Usá un valor aleatorio y seguro        |
-| `SMTP_USERNAME`    | Correo de emails     |
-| `SMTP_PASSWORD`    | "App password" que provee gmail     |
-| `WEB_AUTH_URL`      | URL pública del servicio web-auth (ej: `http://TU_IP_LOCAL:5173`)  |
-| `ADMIN_EMAIL`      | Email fijo de la cuenta administradora                               |
-| `ADMIN_PASSWORD`   | Contraseña fija de la cuenta administradora                          |
-| `ADMIN_NAME`       | Nombre visible del admin                                             |
-| `ADMIN_LASTNAME`   | Apellido visible del admin                                           |
-| `ADMIN_GENDER`     | Género del admin                                                     |
-| `ADMIN_PHOTO`      | Foto o avatar del admin                                              |
-| `ADMIN_BIRTH_DATE` | Fecha de nacimiento del admin en formato `YYYY-MM-DD`               |
+| `SMTP_USERNAME`     | Correo de emails                                                    |
+| `SMTP_PASSWORD`     | "App password" que provee Gmail                                     |
+| `WEB_AUTH_URL`      | URL pública de `web-auth` provista por el túnel ngrok de la Cuenta B (ej: `https://tu-dominio-webauth.ngrok-free.app`) |
+| `ADMIN_EMAIL`       | Email fijo de la cuenta administradora                              |
+| `ADMIN_PASSWORD`    | Contraseña fija de la cuenta administradora                         |
+| `ADMIN_NAME`        | Nombre visible del admin                                            |
+| `ADMIN_LASTNAME`    | Apellido visible del admin                                          |
+| `ADMIN_GENDER`      | Género del admin                                                    |
+| `ADMIN_PHOTO`       | Foto o avatar del admin                                             |
+| `ADMIN_BIRTH_DATE`  | Fecha de nacimiento del admin en formato `YYYY-MM-DD`              |
 
 ### 3. Variables del frontend
 
@@ -115,9 +124,9 @@ cp frontend/.env.example frontend/.env
 
 | Variable                  | Descripción                                                                  |
 |---------------------------|------------------------------------------------------------------------------|
-| `EXPO_PUBLIC_BACKEND_URL` | URL pública del backend accesible desde el dispositivo móvil (túnel ngrok)  |
+| `EXPO_PUBLIC_BACKEND_URL` | URL pública del backend provista por el túnel ngrok de la Cuenta A (ej: `https://tu-dominio-backend.ngrok-free.app`) |
 
-> **Importante:** esta URL debe ser la proporcionada por ngrok (`https://...ngrok-free.app`), no `localhost`. El dispositivo móvil no puede resolver el `localhost` de la máquina de desarrollo.
+> **Importante:** esta URL debe ser la proporcionada por ngrok, no `localhost`. El dispositivo móvil no puede resolver el `localhost` de la máquina de desarrollo.
 
 ### 4. Variables de web-auth
 
@@ -127,7 +136,7 @@ cp web-auth/.env.example web-auth/.env
 
 | Variable           | Descripción                                   |
 |--------------------|-----------------------------------------------|
-| `VITE_BACKEND_URL` | URL del backend accesible desde el navegador  |
+| `VITE_BACKEND_URL` | URL del backend accesible desde el navegador. Puede ser `http://localhost:8080` si accedés desde la misma máquina, o la URL ngrok de la Cuenta A si accedés desde otro dispositivo. |
 
 ---
 
@@ -135,47 +144,53 @@ cp web-auth/.env.example web-auth/.env
 
 Seguí estos pasos en orden cada vez que quieras iniciar el entorno.
 
-### Paso 1 — Iniciá el túnel ngrok
+### Paso 1 — Iniciá los túneles ngrok
 
-En una terminal, levantá ngrok apuntando al puerto del backend:
+Este proyecto requiere dos túneles simultáneos, uno por cuenta. Abrí **dos terminales separadas** y ejecutá cada comando en una:
 
 ```bash
-# Con dominio estático (recomendado):
-ngrok http --domain=tu-dominio.ngrok-free.app 8080
+# Terminal 1 — Cuenta A: expone el backend (puerto 8080)
+ngrok http --domain=tu-dominio-backend.ngrok-free.app 8080 --config ~/.config/ngrok/backend.yml
 
-# Sin dominio estático (la URL cambia en cada reinicio):
-ngrok http 8080
+# Terminal 2 — Cuenta B: expone web-auth (puerto 5173)
+ngrok http --domain=tu-dominio-webauth.ngrok-free.app 5173 --config ~/.config/ngrok/web-auth.yml
 ```
 
-Ngrok mostrará en consola algo similar a esto:
+Cada instancia mostrará en consola la URL pública activa:
 
 ```
-Forwarding    https://tu-dominio.ngrok-free.app -> http://localhost:8080
+Forwarding    https://tu-dominio-backend.ngrok-free.app -> http://localhost:8080
+Forwarding    https://tu-dominio-webauth.ngrok-free.app -> http://localhost:5173
 ```
 
-### Paso 2 — Actualizá la URL del backend en el frontend
+### Paso 2 — Actualizá las URLs en los archivos `.env`
 
-Si **no usás dominio estático**, copiá la URL `https://...ngrok-free.app` que aparece en la consola de ngrok y actualizá `frontend/.env` y `web-auth/.env`:
+Si **usás dominios estáticos**, este paso solo es necesario la primera vez. Si **no usás dominios estáticos**, copiá las URLs que aparecen en consola y actualizá los archivos correspondientes:
 
 ```dotenv
-EXPO_PUBLIC_BACKEND_URL=https://abcd-1234.ngrok-free.app
+# frontend/.env
+EXPO_PUBLIC_BACKEND_URL=https://tu-dominio-backend.ngrok-free.app
 ```
 
 ```dotenv
-VITE_BACKEND_URL=https://abcd-1234.ngrok-free.app
+# backend/.env
+WEB_AUTH_URL=https://tu-dominio-webauth.ngrok-free.app
 ```
 
-Si **usás dominio estático**, este paso solo es necesario la primera vez.
+```dotenv
+# web-auth/.env
+VITE_BACKEND_URL=https://tu-dominio-backend.ngrok-free.app
+```
 
 ### Paso 3 — Configurá el secreto JWT del backend
 
 Abrí `backend/.env` y definí `JWT_ACCESS_SECRET` con un valor base64 de al menos 32 bytes. Ejemplo:
 
 ```dotenv
-JWT_ACCESS_SECRET=z4+HANbXJmq3HqLAmEWBBVWeSAZ8jXES3eCbXtMiHOY=}
+JWT_ACCESS_SECRET=z4+HANbXJmq3HqLAmEWBBVWeSAZ8jXES3eCbXtMiHOY=
 ```
 
-Si no usas `.env` local (por ejemplo, al ejecutar el backend fuera de Docker), tambien podes definirlo en `backend/src/main/resources/application.properties` con `jwt.access.secret`
+Si no usás `.env` local (por ejemplo, al ejecutar el backend fuera de Docker), también podés definirlo en `backend/src/main/resources/application.properties` con `jwt.access.secret`.
 
 ### Paso 4 — Configurá la cuenta admin inicial
 
@@ -239,7 +254,8 @@ git config --local --add core.hookspath git-hooks
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
-| `Network request failed` al hacer login o registro | La URL en `frontend/.env` no coincide con la URL activa de ngrok | Verificá que ngrok esté corriendo y que `EXPO_PUBLIC_BACKEND_URL` tenga la URL correcta. Reiniciá el contenedor del frontend tras cualquier cambio en `.env` con `docker compose up --build frontend` |
+| `Network request failed` al hacer login o registro | La URL en `frontend/.env` no coincide con la URL activa del túnel ngrok del backend | Verificá que el túnel de la Cuenta A esté corriendo y que `EXPO_PUBLIC_BACKEND_URL` tenga la URL correcta. Reiniciá el contenedor del frontend tras cualquier cambio en `.env` con `docker compose up --build frontend` |
+| El flujo de autenticación no redirige correctamente | La URL en `backend/.env` (`WEB_AUTH_URL`) no coincide con la URL activa del túnel ngrok de web-auth | Verificá que el túnel de la Cuenta B esté corriendo y que `WEB_AUTH_URL` tenga la URL correcta. Reiniciá el backend con `docker compose up --build backend` |
 | Las requests devuelven HTML en lugar de JSON | ngrok muestra una página de advertencia interstitial | Asegurate de enviar el header `Content-Type: application/json` en los requests (ya configurado por defecto en el código) |
 | `There was a problem running the requested app` al escanear el QR | Problema de conectividad entre el dispositivo y el servidor de Expo | Verificá que el contenedor del frontend esté corriendo con `docker compose logs -f frontend` y que Expo esté usando `--tunnel` |
 | El contenedor del frontend reinicia en loop | Error en la configuración de Expo o variable de entorno faltante | Revisá `docker compose logs -f frontend` y verificá que `frontend/.env` exista y tenga todas las variables requeridas |
