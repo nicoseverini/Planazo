@@ -2,5 +2,6 @@ package com.planazo.config.security;
 
 public record JwtUserDetails (
         String username,
-        String role
+        String role,
+        Long id
 ) {}

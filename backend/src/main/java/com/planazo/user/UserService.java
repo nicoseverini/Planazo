@@ -5,7 +5,13 @@ import com.planazo.config.security.JwtUserDetails;
 import com.planazo.user.dto.*;
 import com.planazo.user.refresh_token.RefreshToken;
 import com.planazo.user.refresh_token.RefreshTokenService;
+import com.planazo.user.verification.VerificationTokenService;
+import com.planazo.user.verification.VerificationToken;
+import com.planazo.user.change_password.ChangePasswordToken;
+import com.planazo.user.change_password.ChangePasswordTokenService;
+import com.planazo.user.email_service.EmailService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +21,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.Optional;
 
@@ -26,17 +33,26 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final RefreshTokenService refreshTokenService;
+    private final VerificationTokenService verificationTokenService;
+    private final ChangePasswordTokenService changePasswordTokenService;
+    private final EmailService emailService;
 
     @Autowired
     UserService(
             JwtService jwtService,
             PasswordEncoder passwordEncoder,
             UserRepository userRepository,
-            RefreshTokenService refreshTokenService) {
+            RefreshTokenService refreshTokenService, 
+            VerificationTokenService verificationTokenService, 
+            ChangePasswordTokenService changePasswordTokenService,
+            EmailService emailService) {
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.refreshTokenService = refreshTokenService;
+        this.verificationTokenService = verificationTokenService;
+        this.changePasswordTokenService = changePasswordTokenService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -49,19 +65,36 @@ public class UserService implements UserDetailsService {
                 });
     }
 
-    Optional<TokenDTO> createUser(UserCreateDTO data) {
+    Optional<StatusResponseDTO> createUser(UserCreateDTO data) {
         if (userRepository.findByEmail(data.email()).isPresent()) {
             return Optional.empty();
-        } else {
-            var user = data.asUser(passwordEncoder::encode);
+        }
+
+        var user = data.asUser(passwordEncoder::encode);
+        try {
             userRepository.save(user);
-            return Optional.of(generateTokens(user));
+            VerificationToken vToken = verificationTokenService.createFor(user);
+            emailService.sendVerificationEmail(user.getEmail(), vToken.getToken());
+            return Optional.of(new StatusResponseDTO("success", "User created. Check your email to verify your account."));
+        } catch (DataIntegrityViolationException dive) {
+            return Optional.empty();
+        } catch (Exception ex) {
+            throw new RuntimeException("Error occurred while creating user: " + ex.getMessage());
         }
     }
 
     Optional<TokenDTO> loginUser(UserCredentials data) {
         Optional<User> maybeUser = userRepository.findByEmail(data.email());
         return maybeUser
+                .filter(user -> Boolean.TRUE.equals(user.isVerified()))
+                .filter(user -> passwordEncoder.matches(data.password(), user.getPassword()))
+                .map(this::generateTokens);
+    }
+
+    Optional<TokenDTO> loginUserAdmin(UserCredentials data) {
+        Optional<User> maybeUser = userRepository.findByEmail(data.email());
+        return maybeUser
+                .filter(user -> "ADMIN".equals(user.getRole()))
                 .filter(user -> passwordEncoder.matches(data.password(), user.getPassword()))
                 .map(this::generateTokens);
     }
@@ -81,7 +114,27 @@ public class UserService implements UserDetailsService {
                         user.getLastname(),
                         user.getPhoto(),
                         user.getGender(),
-                        user.getBirthDate()));
+                        user.getBirthDate(),
+                        user.getInterests(),
+                        user.getBudget(),
+                        user.getTravelType(),
+                        user.getLanguages()));
+    }
+
+    Optional<UserProfileDTO> getUserProfileByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(user -> new UserProfileDTO(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getName(),
+                        user.getLastname(),
+                        user.getPhoto(),
+                        user.getGender(),
+                        user.getBirthDate(),
+                        user.getInterests(),
+                        user.getBudget(),
+                        user.getTravelType(),
+                        user.getLanguages()));
     }
 
     Optional<User> deleteUser(Long id) {
@@ -96,7 +149,9 @@ public class UserService implements UserDetailsService {
     private TokenDTO generateTokens(User user) {
         String accessToken = jwtService.createToken(new JwtUserDetails(
                 user.getUsername(),
-                user.getRole()));
+                user.getRole(),
+                user.getId()
+        ));
         RefreshToken refreshToken = refreshTokenService.createFor(user);
         return new TokenDTO(accessToken, refreshToken.value());
     }
@@ -128,6 +183,18 @@ public class UserService implements UserDetailsService {
                     if (userDTO.birthDate() != null) {
                         findedUser.setBirthDate(userDTO.birthDate());
                     }
+                    if (userDTO.interests() != null) {
+                        findedUser.setInterests(userDTO.interests());
+                    }
+                    if (userDTO.budget() != null) {
+                        findedUser.setBudget(userDTO.budget());
+                    }
+                    if (userDTO.travelType() != null) {
+                        findedUser.setTravelType(userDTO.travelType());
+                    }
+                    if (userDTO.languages() != null) {
+                        findedUser.setLanguages(userDTO.languages());
+                    }
                     if (userDTO.password() != null) {
                         findedUser.setPassword(userDTO.password());
                     }
@@ -155,6 +222,18 @@ public class UserService implements UserDetailsService {
                     if (userDTO.birthDate() != null) {
                         findedUser.setBirthDate(userDTO.birthDate());
                     }
+                    if (userDTO.interests() != null) {
+                        findedUser.setInterests(userDTO.interests());
+                    }
+                    if (userDTO.budget() != null) {
+                        findedUser.setBudget(userDTO.budget());
+                    }
+                    if (userDTO.travelType() != null) {
+                        findedUser.setTravelType(userDTO.travelType());
+                    }
+                    if (userDTO.languages() != null) {
+                        findedUser.setLanguages(userDTO.languages());
+                    }
                     if (userDTO.password() != null) {
                         findedUser.setPassword(userDTO.password());
                     }
@@ -162,5 +241,50 @@ public class UserService implements UserDetailsService {
                     userRepository.save(findedUser);
                     return ResponseEntity.status(HttpStatus.OK).body(new StatusResponseDTO("success", "User updated"));
                 });
+    }
+
+    public boolean verifyUserAccount(String tokenValue) {
+        Optional<VerificationToken> vTokenOpt = verificationTokenService.findByVerifiedToken(tokenValue);
+
+        if (vTokenOpt.isPresent()) {
+            VerificationToken vToken = vTokenOpt.get();
+            User user = vToken.getUser();
+
+            user.setVerified(true);
+            userRepository.save(user);
+
+            verificationTokenService.deleteToken(tokenValue);
+            
+            return true;
+        }
+        return false;
+    }
+
+    public boolean requestPasswordReset(String email) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            ChangePasswordToken token = changePasswordTokenService.createFor(user);
+            emailService.sendPasswordResetEmail(user.getEmail(), token.getToken());
+            return true;
+        }
+        return false;
+    }
+
+    public boolean changePassword(String tokenValue, String newPassword) {
+        Optional<ChangePasswordToken> vTokenOpt = changePasswordTokenService.findByVerifiedToken(tokenValue);
+
+        if (vTokenOpt.isPresent()) {
+            ChangePasswordToken vToken = vTokenOpt.get();
+            User user = vToken.getUser();
+            
+            changePasswordTokenService.deleteToken(vToken);
+            
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            
+            return true;
+        }
+        return false;
     }
 }

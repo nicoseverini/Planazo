@@ -3,13 +3,13 @@ services:
     image: "postgres:17.4"
     restart: on-failure
     environment:
-      POSTGRES_DB: "${DB_NAME:-planazo}"
-      POSTGRES_USER: "${DB_USERNAME:-postgres}"
-      POSTGRES_PASSWORD: "${DB_PASSWORD:-postgres}"
+      POSTGRES_DB: "${DB_NAME:?DB_NAME is required}"
+      POSTGRES_USER: "${DB_USERNAME:?DB_USERNAME is required}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:?DB_PASSWORD is required}"
     volumes:
       - "${VOLUME_DIR:-.docker}/data/postgres:/var/lib/postgresql/data"
     ports:
-      - "127.0.0.1:${DB_EXTERNAL_PORT:-5435}:5432"
+      - "127.0.0.1:${DB_EXTERNAL_PORT:-5432}:5432"
 
   backend:
     # For local development, we build from source:
@@ -18,14 +18,34 @@ services:
     # image: ghcr.io/YOUR_GITHUB_USERNAME/todo-template-backend:latest
     depends_on:
       - "db"
+    env_file:
+      - "./backend/.env"
     restart: on-failure
     environment:
-      SPRING_DATASOURCE_USERNAME: "${DB_USERNAME:-postgres}"
-      SPRING_DATASOURCE_PASSWORD: "${DB_PASSWORD:-postgres}"
-      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/${DB_NAME:-planazo}"
+      SPRING_DATASOURCE_USERNAME: "${DB_USERNAME:?DB_USERNAME is required}"
+      SPRING_DATASOURCE_PASSWORD: "${DB_PASSWORD:?DB_PASSWORD is required}"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/${DB_NAME}"
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
     ports:
       - "${BACKEND_EXTERNAL_PORT:-8080}:8080"
+
+  web-auth:
+    build: "./web-auth"
+    depends_on:
+      - "backend"
+    env_file:
+      - "./web-auth/.env"
+    restart: on-failure
+    ports:
+      - "${WEB_AUTH_EXTERNAL_PORT:-5173}:5173"
+
+  adminer:
+    image: "adminer:5.0.4"
+    depends_on:
+      - "db"
+    restart: on-failure
+    ports:
+      - "${ADMINER_EXTERNAL_PORT:-8082}:8080"
 
   frontend:
     # For local development:
@@ -34,16 +54,12 @@ services:
     # image: ghcr.io/YOUR_GITHUB_USERNAME/todo-template-frontend:latest
     depends_on:
       - "backend"
-    restart: on-failure
-    environment:
-      BACKEND_EXTERNAL_URL: "${BACKEND_EXTERNAL_URL:-http://localhost:8080}"
-    ports:
-      - "${FRONTEND_EXTERNAL_PORT:-3000}:80"
-
-  adminer:
-    image: "adminer:5.0.4"
-    depends_on:
-      - "db"
+    env_file:
+      - "./frontend/.env"
     restart: on-failure
     ports:
-      - "${ADMINER_EXTERNAL_PORT:-8081}:8080"
+      - "${FRONTEND_EXTERNAL_PORT:-8081}:8081"
+      - "19000:19000"
+      - "19001:19001"
+    stdin_open: true
+    tty: true

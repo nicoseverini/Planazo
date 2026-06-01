@@ -1,54 +1,33 @@
-# React + TypeScript + Vite
+# Frontend (Expo)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+App mobile con Expo Router y estructura organizada en `app/` + `src/`.
 
-Currently, two official plugins are available:
+## Comandos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+npm install
+npm run start
+npm run android
+npm run ios
+npm run web
+npm run lint
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Estructura
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- `app/`: rutas (wrappers). Cada archivo exporta la pantalla de `src/screens/*`.
+- `src/screens/`: pantallas, cada una en carpeta con `index.tsx` + `styles.ts`.
+- `src/components/`: componentes encapsulados (carpeta por componente).
+- `src/components/auth/`: piezas de autenticacion reutilizables.
+- `src/components/ui/`: componentes UI base.
+- `src/services/`: llamadas a API.
+- `src/models/`: tipos y validaciones.
+- `src/hooks/`: hooks compartidos.
+- `src/constants/`: temas y constantes.
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+## Convenciones
+
+- Cada pantalla vive en `src/screens/<nombre>/index.tsx` con `styles.ts`.
+- Cada componente vive en `src/components/<Nombre>/` con `index.ts` y/o `styles.ts`.
+- Los wrappers en `app/` solo exportan la pantalla (sin logica).
+- Usar alias `@/` para importar desde `src/`.

@@ -14,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod;
 
 import java.util.List;
 
@@ -22,11 +23,13 @@ import java.util.List;
 public class SecurityConfig {
 
     public static final String[] PUBLIC_ENDPOINTS = {
-            "api/v1/auth/**"
+            "/api/v1/auth/**",
+            "/api/v1/plans",
     };
 
     public static final String[] ADMIN_ENDPOINTS = {
-            "/api/v1/users/admin/**"
+            "/api/v1/users/admin/**",
+            "/api/v1/plans/admin/**"
     };
 
     private final JwtAuthFilter authFilter;
@@ -55,6 +58,7 @@ public class SecurityConfig {
                                 "/api-docs/**",
                                 "/error")
                         .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/plans", "/api/v1/plans/filter", "/api/v1/plans/nearby").permitAll()
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
                         .anyRequest().authenticated())

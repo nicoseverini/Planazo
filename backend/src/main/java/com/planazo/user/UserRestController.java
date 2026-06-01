@@ -1,6 +1,7 @@
 package com.planazo.user;
 
 import com.planazo.user.dto.*;
+import com.planazo.config.security.JwtUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -23,6 +24,19 @@ class UserRestController {
         @Autowired
         UserRestController(UserService userService) {
                 this.userService = userService;
+        }
+
+        @PreAuthorize("isAuthenticated()")
+        @GetMapping(value = "/profile/me", produces = "application/json")
+        @Operation(summary = "View your profile")
+        @ResponseStatus(HttpStatus.OK)
+        @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
+        @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+        ResponseEntity<UserProfileDTO> viewMyProfile(
+                        @AuthenticationPrincipal(expression = "username") String email) {
+                return userService.getUserProfileByEmail(email)
+                                .map(ResponseEntity::ok)
+                                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
         }
 
         @PreAuthorize("isAuthenticated()")
@@ -71,12 +85,12 @@ class UserRestController {
         @ResponseStatus(HttpStatus.OK)
         @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
         @ApiResponse(responseCode = "409", description = "Email already register", content = @Content)
-        ResponseEntity<TokenDTO> createAdmin(
-                        @PathVariable Long id,
+        ResponseEntity<StatusResponseDTO> createAdmin(
                         @RequestBody UserCreateDTO userDTO) {
                 return userService.createUser(userDTO)
-                                .map(tk -> ResponseEntity.status(HttpStatus.CREATED).body(tk))
-                                .orElse(ResponseEntity.status(HttpStatus.CONFLICT).build());
+                                .map(status -> ResponseEntity.status(HttpStatus.CREATED).body(status))
+                                .orElse(ResponseEntity.status(HttpStatus.CONFLICT)
+                                                .body(new StatusResponseDTO("error", "Email already in use")));
         }
 
         @PreAuthorize("isAuthenticated()")

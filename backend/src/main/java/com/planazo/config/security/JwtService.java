@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Optional;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class JwtService {
@@ -37,6 +38,7 @@ public class JwtService {
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .claim("role", role)
+                .claim("id", claims.id())
                 .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
     }
@@ -50,7 +52,8 @@ public class JwtService {
                     .getPayload();
 
             if (claims.getSubject() != null && claims.get("role") instanceof String role) {
-                return Optional.of(new JwtUserDetails(claims.getSubject(), role));
+                Long id = claims.get("id", Long.class);
+                return Optional.of(new JwtUserDetails(claims.getSubject(), role, id));
             }
         } catch (Exception e) {
             // TODO: Tenemos que handlear el error
@@ -59,7 +62,23 @@ public class JwtService {
     }
 
     private SecretKey getSigningKey() {
-        byte[] bytes = Decoders.BASE64.decode(secret);
-        return Keys.hmacShaKeyFor(bytes);
+        try {
+            byte[] bytes = Decoders.BASE64.decode(secret);
+            ensureKeyLength(bytes);
+            return Keys.hmacShaKeyFor(bytes);
+        } catch (RuntimeException ex) {
+            // Fallback for raw (non-base64) secrets.
+            byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
+            ensureKeyLength(bytes);
+            return Keys.hmacShaKeyFor(bytes);
+        }
+    }
+
+    private void ensureKeyLength(byte[] bytes) {
+        if (bytes.length < 32) {
+            throw new IllegalStateException(
+                    "JWT secret demasiado corto. Usa al menos 32 bytes (256 bits) para HS256."
+            );
+        }
     }
 }

@@ -1,15 +1,16 @@
-FROM node:22 AS build
+FROM node:20-alpine
+
 WORKDIR /app
-COPY ./package.json ./package-lock.json ./
-RUN npm ci
+
+# Install dependencies
+COPY package.json package-lock.json* yarn.lock* ./
+RUN npm install --legacy-peer-deps
+
+# Copy source code
 COPY . .
-RUN npm run build
 
+# Expose Expo ports
+EXPOSE 8081 19000 19001
 
-FROM nginx:1.27.4 AS deploy
-WORKDIR /usr/share/nginx/html/
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY run.sh /
-COPY --from=build /app/dist/ .
-
-CMD ["sh", "/run.sh"]
+# Run Expo with LAN (works better in Docker, still allows QR)
+CMD ["npx", "expo", "start", "-c", "--tunnel"]
