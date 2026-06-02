@@ -89,23 +89,23 @@ export default function PlanDetailScreen() {
     const [isSubscribed, setIsSubscribed] = useState(false);
 
     const CATEGORY_BY_INTEREST: Record<string, string> = {
-        FOOD:      'Gastronomia',
-        CULTURE:   'Cultura',
-        NATURE:    'Naturaleza',
-        BEACH:     'Playa',
-        ADVENTURE: 'Aventura',
-        NIGHTLIFE: 'Fiesta',
+        FOOD:      'Gastronomy',
+        CULTURE:   'Culture',
+        NATURE:    'Nature',
+        BEACH:     'Beach',
+        ADVENTURE: 'Adventure',
+        NIGHTLIFE: 'Nightlife',
         SHOPPING:  'Shopping',
-        HISTORY:   'Historia',
-        MOUNTAINS: 'Montañas',
-        OTHER:     'Otro',
+        HISTORY:   'History',
+        MOUNTAINS: 'Mountains',
+        OTHER:     'Other',
     };
 
     const loadPlan = useCallback(async () => {
         const planId = parsePlanId(id);
         if (!planId) {
             setLoading(false);
-            Alert.alert('Error', 'El identificador del plan no es valido.');
+            Alert.alert('Error', 'The plan identifier is not valid.');
             return;
         }
 
@@ -211,23 +211,23 @@ export default function PlanDetailScreen() {
 
     const handleDelete = () => {
         Alert.alert(
-            'Eliminar Plan',
-            '¿Estás seguro de que deseas eliminar este plan? Esta acción no se puede deshacer.',
+            'Delete Plan',
+            'Are you sure you want to delete this plan? This action cannot be undone.',
             [
-                { text: 'Cancelar', style: 'cancel' },
+                { text: 'Cancel', style: 'cancel' },
                 {
-                    text: 'Eliminar',
+                    text: 'Delete',
                     style: 'destructive',
                     onPress: async () => {
                         try {
                             setLoading(true);
                             await remove(plan.id);
-                            Alert.alert('Éxito', 'El plan ha sido eliminado correctamente.', [
+                            Alert.alert('Success', 'Plan deleted successfully.', [
                                 { text: 'OK', onPress: () => router.back() }
                             ]);
                         } catch (err) {
-                            console.error('[PlanDetailScreen] Error eliminando plan:', err);
-                            Alert.alert('Error', 'No se pudo eliminar el plan. Verifica tu conexión.');
+                            console.error('[PlanDetailScreen] Error deleting plan:', err);
+                            Alert.alert('Error', 'Could not delete the plan. Check your connection.');
                             setLoading(false);
                         }
                     }
@@ -471,7 +471,7 @@ export default function PlanDetailScreen() {
                         <View style={styles.subscribeInfoRow}>
                             <Ionicons name="people-outline" size={20} color={mutedText} />
                             <ThemedText type="body" style={{ marginLeft: 8 }}>
-                                {plan.subscribersCount} de {plan.maxSubscribers} participantes
+                                {plan.subscribersCount} of {plan.maxSubscribers} participants
                             </ThemedText>
                         </View>
                         <View style={styles.subscribeInfoRow}>

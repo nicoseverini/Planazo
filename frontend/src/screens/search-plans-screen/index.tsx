@@ -19,16 +19,16 @@ const INTERESTS = [
     'NIGHTLIFE','SHOPPING','HISTORY','MOUNTAINS', 'OTHER',
 ];
 const INTEREST_LABELS: Record<string, string> = {
-    FOOD:      'Gastronomia',
-    CULTURE:   'Cultura',
-    NATURE:    'Naturaleza',
-    BEACH:     'Playa',
-    ADVENTURE: 'Aventura',
-    NIGHTLIFE: 'Fiesta',
+    FOOD:      'Gastronomy',
+    CULTURE:   'Culture',
+    NATURE:    'Nature',
+    BEACH:     'Beach',
+    ADVENTURE: 'Adventure',
+    NIGHTLIFE: 'Nightlife',
     SHOPPING:  'Shopping',
-    HISTORY:   'Historia',
-    MOUNTAINS: 'Montañas',
-    OTHER:     'Otro',
+    HISTORY:   'History',
+    MOUNTAINS: 'Mountains',
+    OTHER:     'Other',
 };
 
 const fmt = (d: Date) =>
@@ -159,12 +159,12 @@ export function SearchPlansScreen() {
                     )}
                     {dateFrom && (
                         <View style={activeChipStyle}>
-                            <ThemedText type="label" style={{ color: tintText }}>Desde {fmt(dateFrom)}</ThemedText>
+                            <ThemedText type="label" style={{ color: tintText }}>From {fmt(dateFrom)}</ThemedText>
                         </View>
                     )}
                     {dateTo && (
                         <View style={activeChipStyle}>
-                            <ThemedText type="label" style={{ color: tintText }}>Hasta {fmt(dateTo)}</ThemedText>
+                            <ThemedText type="label" style={{ color: tintText }}>Until {fmt(dateTo)}</ThemedText>
                         </View>
                     )}
                     <Pressable onPress={clearFilters} style={{ justifyContent: 'center' }}>
@@ -237,16 +237,16 @@ export function SearchPlansScreen() {
                     contentContainerStyle={{ padding: 24, paddingBottom: 60 }}
                     keyboardShouldPersistTaps="handled"
                 >
-                    {/* Título modal */}
+                    {/* Filter modal */}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                        <ThemedText type="heading">Filtros</ThemedText>
+                        <ThemedText type="heading">Filters</ThemedText>
                         <Pressable onPress={() => setShowFilters(false)}>
                             <Ionicons name="close" size={24} color={textColor} />
                         </Pressable>
                     </View>
 
                     {/* Categoría */}
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Categoría</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Category</ThemedText>
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
                         {INTERESTS.map((i) => {
                             const active = selectedInterest === i;
@@ -269,12 +269,12 @@ export function SearchPlansScreen() {
                     </View>
 
                     {/* Ubicación */}
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Ubicación</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Location</ThemedText>
                     <View style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24 }]}>
                         <Ionicons name="location-outline" size={18} color={mutedText} />
                         <TextInput
                             style={[styles.searchInput, { color: textColor }]}
-                            placeholder="Ej: FIUBA, Paseo Colón..."
+                            placeholder="E.g.: Buenos Aires, Obelisco..."
                             placeholderTextColor={mutedText}
                             value={locationFilter}
                             onChangeText={setLocationFilter}
@@ -287,14 +287,14 @@ export function SearchPlansScreen() {
                     </View>
 
                     {/* Fecha desde */}
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Fecha desde</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Start Date</ThemedText>
                     <Pressable
                         onPress={() => setShowDateFrom(true)}
                         style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24 }]}
                     >
                         <Ionicons name="calendar-outline" size={18} color={mutedText} />
                         <ThemedText type="body" style={{ flex: 1, color: dateFrom ? textColor : mutedText }}>
-                            {dateFrom ? fmt(dateFrom) : 'Seleccionar fecha'}
+                            {dateFrom ? fmt(dateFrom) : 'Select date'}
                         </ThemedText>
                         {dateFrom && (
                             <Pressable onPress={() => setDateFrom(null)}>
@@ -315,14 +315,14 @@ export function SearchPlansScreen() {
                     )}
 
                     {/* Fecha hasta */}
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Fecha hasta</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>End Date</ThemedText>
                     <Pressable
                         onPress={() => setShowDateTo(true)}
                         style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24 }]}
                     >
                         <Ionicons name="calendar-outline" size={18} color={mutedText} />
                         <ThemedText type="body" style={{ flex: 1, color: dateTo ? textColor : mutedText }}>
-                            {dateTo ? fmt(dateTo) : 'Seleccionar fecha'}
+                            {dateTo ? fmt(dateTo) : 'Select date'}
                         </ThemedText>
                         {dateTo && (
                             <Pressable onPress={() => setDateTo(null)}>
@@ -343,13 +343,13 @@ export function SearchPlansScreen() {
                         />
                     )}
 
-                    {/* Precio máximo
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Precio máximo</ThemedText>
+                    {/* Max Price
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Max Price</ThemedText>
                     <View style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 32 }]}>
                         <Ionicons name="cash-outline" size={18} color={mutedText} />
                         <TextInput
                             style={[styles.searchInput, { color: textColor }]}
-                            placeholder="Ej: 5000"
+                            placeholder="E.g.: 5000"
                             placeholderTextColor={mutedText}
                             keyboardType="numeric"
                         />

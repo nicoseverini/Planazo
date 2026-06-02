@@ -70,7 +70,7 @@ export function validateSignupForm(values: SignupFormState) {
   }
 
   if (!/^\S+@\S+\.\S+$/.test(values.email.trim())) {
-    return 'Ingresá un email válido';
+    return 'Please enter a valid email';
   }
 
   if (values.password.length < 8) {

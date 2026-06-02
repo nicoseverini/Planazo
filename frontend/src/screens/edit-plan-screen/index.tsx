@@ -24,29 +24,29 @@ import { PlanUpdateRequest, usePlans } from '@/services/plan';
 import { styles } from './styles';
 
 const CATEGORY_OPTIONS = [
-    'Gastronomia',
-    'Cultura',
-    'Naturaleza',
-    'Playa',
-    'Aventura',
-    'Fiesta',
+    'Gastronomy',
+    'Culture',
+    'Nature',
+    'Beach',
+    'Adventure',
+    'Nightlife',
     'Shopping',
-    'Historia',
-    'Montañas',
-    'Otro',
+    'History',
+    'Mountains',
+    'Other',
 ];
 
 const INTEREST_BY_CATEGORY: Record<string, string> = {
-    Gastronomia:      'FOOD',
-    Cultura:   'CULTURE',
-    Naturaleza:    'NATURE',
-    Playa:     'BEACH',
-    Aventura: 'ADVENTURE',
-    Fiesta: 'NIGHTLIFE',
+    Gastronomy:      'FOOD',
+    Culture:   'CULTURE',
+    Nature:    'NATURE',
+    Beach:     'BEACH',
+    Adventure: 'ADVENTURE',
+    Nightlife: 'NIGHTLIFE',
     Shopping:  'SHOPPING',
-    Historia:   'HISTORY',
-    Montañas: 'MOUNTAINS',
-    Otro:     'OTHER',
+    History:   'HISTORY',
+    Mountains: 'MOUNTAINS',
+    Other:     'OTHER',
 };
 
 const DEFAULT_INTEREST = 'ADVENTURE';
@@ -325,7 +325,7 @@ export default function EditPlanScreen() {
             if (!finalLat || !finalLng) {
                 const geocodedLocation = await Location.geocodeAsync(location.trim());
                 if (!geocodedLocation || geocodedLocation.length === 0) {
-                    setError('No pudimos encontrar la ubicación en el mapa. Intenta agregar la ciudad.');
+                    setError('We could not find the location on the map. Try adding the city.');
                     setSaving(false);
                     return;
                 }
@@ -390,12 +390,12 @@ export default function EditPlanScreen() {
             <View style={styles.titleRow}>
                 <View style={styles.titleInput}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Título
+                        Title
                     </ThemedText>
                     <TextInput
                         value={title}
                         onChangeText={setTitle}
-                        placeholder="Nombre del plan"
+                        placeholder="Plan name"
                         placeholderTextColor={mutedText}
                         style={[
                             styles.input,
@@ -445,7 +445,7 @@ export default function EditPlanScreen() {
                 {/* Input de Fecha */}
                 <View style={styles.halfInput}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Fecha
+                        Date
                     </ThemedText>
                     <View style={[styles.input, { backgroundColor: surface, borderColor: border, flexDirection: 'row', alignItems: 'center', padding: 0, overflow: 'hidden' }]}>
                         <TextInput
@@ -645,7 +645,7 @@ export default function EditPlanScreen() {
 
                 <View style={styles.infoInputGroup}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Categoría
+                        Category
                     </ThemedText>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <View style={styles.categoryRow}>
@@ -674,7 +674,7 @@ export default function EditPlanScreen() {
                 <View style={styles.row}>
                     <View style={styles.halfInput}>
                         <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                            Máx participantes
+                            Max Participants
                         </ThemedText>
                         <TextInput
                             value={maxParticipants}
@@ -729,7 +729,7 @@ export default function EditPlanScreen() {
                     <ActivityIndicator size="small" color={tintText} />
                 ) : (
                     <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                        GUARDAR CAMBIOS
+                        SAVE CHANGES
                     </ThemedText>
                 )}
             </Pressable>

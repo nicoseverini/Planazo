@@ -13,17 +13,17 @@ import { styles } from './styles';
 import {AppScreen} from "@/components/ui";
 
 const CATEGORY_MAP: Record<string, string> = {
-    'Todos':         'ALL',
-    'Gastronomia':   'FOOD',
-    'Cultura':       'CULTURE',
-    'Naturaleza':    'NATURE',
-    'Playa':         'BEACH',
-    'Aventura':      'ADVENTURE',
-    'Fiesta': 'NIGHTLIFE',
+    'All':         'ALL',
+    'Gastronomy':   'FOOD',
+    'Culture':       'CULTURE',
+    'Nature':    'NATURE',
+    'Beach':         'BEACH',
+    'Adventure':      'ADVENTURE',
+    'Nightlife': 'NIGHTLIFE',
     'Shopping':      'SHOPPING',
-    'Historia':      'HISTORY',
-    'Montañas':      'MOUNTAINS',
-    'Otro':          'OTHER',
+    'History':      'HISTORY',
+    'Mountains':      'MOUNTAINS',
+    'Other':          'OTHER',
 };
 
 export default function MapScreen() {
@@ -119,7 +119,7 @@ export default function MapScreen() {
                                         📍 {plan.location}
                                     </ThemedText>
                                     <ThemedText type="label" style={{ fontSize: 12, color: tint, marginTop: 4, fontWeight: 'bold' }}>
-                                        Ver detalles &rarr;
+                                        View details &rarr;
                                     </ThemedText>
                                 </View>
                             </Callout>

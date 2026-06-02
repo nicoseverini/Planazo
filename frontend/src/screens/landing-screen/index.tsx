@@ -32,7 +32,7 @@ export default function LandingScreen() {
 
         <ThemedText type="heading" style={styles.titleContainer}>Welcome</ThemedText>
         <ThemedText type="body" style={styles.subtitle}>
-          Iniciá sesión o creá una cuenta para continuar.
+          Sign in or create an account to continue.
         </ThemedText>
       </View>
 

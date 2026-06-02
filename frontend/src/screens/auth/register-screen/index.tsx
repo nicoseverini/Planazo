@@ -218,10 +218,10 @@ export default function RegisterScreen() {
       <AuthCard kicker="Registration" title="Create account" body="Fill in the details to create your account and start a new session.">
         <AuthInput label="Email" value={values.email} onChangeText={(value) => update('email', value)} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
         <AuthInput label="Password" value={values.password} onChangeText={(value) => update('password', value)} secureTextEntry autoCapitalize="none" autoComplete="password" />
-        <AuthInput label="Nombre" value={values.name} onChangeText={(value) => update('name', value)} autoCapitalize="words" />
-        <AuthInput label="Apellido" value={values.lastname} onChangeText={(value) => update('lastname', value)} autoCapitalize="words" />
+        <AuthInput label="First name" value={values.name} onChangeText={(value) => update('name', value)} autoCapitalize="words" />
+        <AuthInput label="Last name" value={values.lastname} onChangeText={(value) => update('lastname', value)} autoCapitalize="words" />
         <ChoiceGroup
-          label="Género"
+          label="Gender"
           options={GENDER_OPTIONS.map((value) => ({
             label: GENDER_LABELS[value] ?? value,
             value,
@@ -231,7 +231,7 @@ export default function RegisterScreen() {
         />
         <BirthDateField value={values.birthDate} onChange={(value) => update('birthDate', value)} />
         <MultiChoiceGroup
-          label="Intereses (opcional)"
+          label="Interests (optional)"
           options={INTEREST_OPTIONS.map((value) => ({
             label: INTEREST_LABELS[value] ?? value,
             value,

@@ -10,9 +10,9 @@ export default function HomeScreen() {
   return (
     <AppScreen centered>
       <View style={styles.center}>
-        <ThemedText type="heading">¡Bienvenido!</ThemedText>
+        <ThemedText type="heading">Welcome!</ThemedText>
         <ThemedText type="body" style={styles.subtitle}>
-          Estás dentro de la app.
+          Welcome to the app.
         </ThemedText>
       </View>
     </AppScreen>

@@ -24,29 +24,29 @@ import { PlanCreateRequest, usePlans } from '@/services/plan';
 import { styles } from './styles';
 
 const CATEGORY_OPTIONS = [
-    'Gastronomia',
-    'Cultura',
-    'Naturaleza',
-    'Playa',
-    'Aventura',
-    'Fiesta',
+    'Gastronomy',
+    'Culture',
+    'Nature',
+    'Beach',
+    'Adventure',
+    'Nightlife',
     'Shopping',
-    'Historia',
-    'Montañas',
-    'Otro',
+    'History',
+    'Mountains',
+    'Other',
 ] as const;
 
 const INTEREST_BY_CATEGORY: Record<string, string> = {
-    Gastronomia:      'FOOD',
-    Cultura:   'CULTURE',
-    Naturaleza:    'NATURE',
-    Playa:     'BEACH',
-    Aventura: 'ADVENTURE',
-    Fiesta: 'NIGHTLIFE',
+    Gastronomy:      'FOOD',
+    Culture:   'CULTURE',
+    Nature:    'NATURE',
+    Beach:     'BEACH',
+    Adventure: 'ADVENTURE',
+    Nightlife: 'NIGHTLIFE',
     Shopping:  'SHOPPING',
-    Historia:   'HISTORY',
-    Montañas: 'MOUNTAINS',
-    Otro:     'OTHER',
+    History:   'HISTORY',
+    Mountains: 'MOUNTAINS',
+    Other:     'OTHER',
 };
 
 const DEFAULT_INTEREST = 'ADVENTURE';
