@@ -8,6 +8,10 @@ import { PlansPage } from './plans.tsx'
 import { CreatePlanPage } from './create-plan'
 import { PlanDetailPage } from './plan-detail'
 import { EditPlanPage } from './edit-plan'
+import { TuristicPlacesPage } from './turistic-places'
+import { CreateTuristicPlacePage } from './create-turistic-place'
+import { TuristicPlaceDetailPage } from './turistic-place-detail'
+import { EditTuristicPlacePage } from './edit-turistic-place'
 
 function resolveRoute(pathname: string) {
   const normalizedPath = pathname.replace(/\/+$/, '') || '/'
@@ -20,6 +24,10 @@ function resolveRoute(pathname: string) {
     return <PlansPage />
   }
 
+  if (normalizedPath === '/turistic-places') {
+    return <TuristicPlacesPage />
+  }
+
   const planDetailMatch = normalizedPath.match(/^\/plans\/(\d+)$/)
   if (planDetailMatch) {
     return <PlanDetailPage planId={Number(planDetailMatch[1])} />
@@ -30,8 +38,22 @@ function resolveRoute(pathname: string) {
     return <EditPlanPage planId={Number(planEditMatch[1])} />
   }
 
+  const placeDetailMatch = normalizedPath.match(/^\/turistic-places\/(\d+)$/)
+  if (placeDetailMatch) {
+    return <TuristicPlaceDetailPage placeId={Number(placeDetailMatch[1])} />
+  }
+
+  const placeEditMatch = normalizedPath.match(/^\/turistic-places\/(\d+)\/edit$/)
+  if (placeEditMatch) {
+    return <EditTuristicPlacePage placeId={Number(placeEditMatch[1])} />
+  }
+
   if (normalizedPath === '/create-plan') {
     return <CreatePlanPage />
+  }
+
+  if (normalizedPath === '/create-turistic-place') {
+    return <CreateTuristicPlacePage />
   }
 
   if (normalizedPath === '/verify-email') {
@@ -53,7 +75,13 @@ function resolveRoute(pathname: string) {
           <a href="/plans">/plans</a>
         </li>
         <li>
+          <a href="/turistic-places">/turistic-places</a>
+        </li>
+        <li>
           <a href="/create-plan">/create-plan</a>
+        </li>
+        <li>
+          <a href="/create-turistic-place">/create-turistic-place</a>
         </li>
         <li>
           <a href="/verify-email?token=tu-token">/verify-email?token=tu-token</a>

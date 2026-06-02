@@ -3,6 +3,7 @@ package com.planazo.config.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity(debug = false)
+@EnableMethodSecurity
 public class SecurityConfig {
 
     public static final String[] PUBLIC_ENDPOINTS = {
@@ -59,6 +61,8 @@ public class SecurityConfig {
                                 "/error")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/plans", "/api/v1/plans/filter", "/api/v1/plans/nearby").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/turistic-places", "/api/v1/turistic-places/**").permitAll()
+                        .requestMatchers("/api/v1/turistic-places/**").hasRole("ADMIN")
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
                         .anyRequest().authenticated())

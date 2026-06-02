@@ -17,16 +17,18 @@ export function VerifyEmailPage() {
       return
     }
 
-    if (processedTokens.has(token)) {
+    const tokenValue = token
+
+    if (processedTokens.has(tokenValue)) {
       return
     }
 
-    processedTokens.add(token)
+    processedTokens.add(tokenValue)
 
     async function verify() {
       try {
         const backendUrl = getBackendUrl()
-        const response = await fetch(`${backendUrl}/api/v1/auth/verify_user?token=${encodeURIComponent(token)}`, {
+        const response = await fetch(`${backendUrl}/api/v1/auth/verify_user?token=${encodeURIComponent(tokenValue)}`, {
           method: 'PATCH',
           headers: {
             Accept: 'application/json',
@@ -40,12 +42,12 @@ export function VerifyEmailPage() {
           const errorText = await response.text()
           setStatus('error')
           setMessage(errorText || 'El token es inválido o ha expirado.')
-          processedTokens.delete(token)
+          processedTokens.delete(tokenValue)
         }
       } catch (err) {
         setStatus('error')
         setMessage(`Error al conectar con el servidor: ${err instanceof Error ? err.message : 'Error desconocido'}`)
-        processedTokens.delete(token)
+        processedTokens.delete(tokenValue)
       }
     }
 
