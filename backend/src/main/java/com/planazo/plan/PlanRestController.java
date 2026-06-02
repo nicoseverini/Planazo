@@ -133,6 +133,20 @@ class PlanRestController {
                 .orElse(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping(value = "/admin/{id}", produces = "application/json")
+    @Operation(summary = "Update a plan (admin only)")
+    @ApiResponse(responseCode = "403", description = "Not the creator", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Plan not found", content = @Content)
+    ResponseEntity<PlanDetailDTO> updatePlan(
+            @PathVariable Long id,
+            @RequestBody PlanUpdateDTO data
+    ) {
+        return planService.updatePlanAsAdmin(id, data)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+    }
+
     // ── Delete (soft) ────────────────────────────────────────────────────────
 
     @PreAuthorize("isAuthenticated()")

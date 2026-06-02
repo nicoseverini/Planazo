@@ -89,8 +89,15 @@ export function PlansPage() {
 					{plans.length > 0 ? (
 						plans.map((plan) => (
 							<li key={plan.id} className="plan-item">
-								<div className="plan-title">{plan.title}</div>
+								<div className="plan-title">
+									<a href={`/plans/${plan.id}`}>{plan.title}</a>
+								</div>
 								<div className="plan-creator">{plan.creatorName}</div>
+								<div className="plan-item-actions">
+									<a className="button button--secondary" href={`/plans/${plan.id}`}>
+										Ver detalles
+									</a>
+								</div>
 							</li>
 						))
 					) : (

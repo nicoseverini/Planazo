@@ -6,6 +6,8 @@ import { ResetPasswordPage } from './reset-password'
 import { LoginPage } from './login'
 import { PlansPage } from './plans.tsx'
 import { CreatePlanPage } from './create-plan'
+import { PlanDetailPage } from './plan-detail'
+import { EditPlanPage } from './edit-plan'
 
 function resolveRoute(pathname: string) {
   const normalizedPath = pathname.replace(/\/+$/, '') || '/'
@@ -16,6 +18,16 @@ function resolveRoute(pathname: string) {
 
   if (normalizedPath === '/plans') {
     return <PlansPage />
+  }
+
+  const planDetailMatch = normalizedPath.match(/^\/plans\/(\d+)$/)
+  if (planDetailMatch) {
+    return <PlanDetailPage planId={Number(planDetailMatch[1])} />
+  }
+
+  const planEditMatch = normalizedPath.match(/^\/plans\/(\d+)\/edit$/)
+  if (planEditMatch) {
+    return <EditPlanPage planId={Number(planEditMatch[1])} />
   }
 
   if (normalizedPath === '/create-plan') {
