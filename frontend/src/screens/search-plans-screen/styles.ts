@@ -1,6 +1,15 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+    appScreenContent: {
+        padding: 0,
+        paddingBottom: 0,
+        paddingTop: 0,
+        paddingLeft: 0,
+        paddingRight: 0,
+        paddingHorizontal: 0,
+        maxWidth: '100%',
+    },
     container: {
         flex: 1,
     },
@@ -47,7 +56,7 @@ export const styles = StyleSheet.create({
     fab: {
         position: 'absolute',
         right: 20,
-        bottom: 100,
+        bottom: 24,
         width: 56,
         height: 56,
         borderRadius: 28,

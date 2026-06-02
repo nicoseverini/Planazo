@@ -129,7 +129,7 @@ export function SearchPlansScreen() {
     const activeChipStyle = { backgroundColor: tint, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 };
 
     return (
-        <AppScreen>
+        <AppScreen contentStyle={styles.appScreenContent}>
             {/* Header */}
             <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
                 <ThemedText type="title">Planes</ThemedText>

@@ -123,7 +123,7 @@ export function MyPlansScreen() {
     );
 
     return (
-        <AppScreen>
+        <AppScreen contentStyle={styles.appScreenContent}>
             {/* Header */}
             <View style={styles.header}>
                 <ThemedText type="title">Mis Planes</ThemedText>

@@ -88,7 +88,10 @@ export default function MapScreen() {
     });
 
     return (
-        <AppScreen>
+        <AppScreen
+            contentStyle={styles.appScreenContent}
+            safeAreaEdges={['top', 'bottom']}
+        >
         <View style={styles.container}>
             <MapView
                 ref={mapRef}
