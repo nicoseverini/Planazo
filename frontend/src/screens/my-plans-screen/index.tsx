@@ -65,7 +65,7 @@ export function MyPlansScreen() {
                 (plan) =>
                     plan.title.toLowerCase().includes(query) ||
                     plan.location.toLowerCase().includes(query) ||
-                    plan.interest.toLowerCase().includes(query)
+                    (plan.interests ?? []).some((interest) => interest.toLowerCase().includes(query))
             );
         }
 

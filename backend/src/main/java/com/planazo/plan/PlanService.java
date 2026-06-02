@@ -46,7 +46,7 @@ public class PlanService {
                 data.maxSubscribers(),
                 data.minAge(),
                 data.maxAge(),
-                data.interest(),
+                data.interests(),
                 data.travelType(),
                 data.location(),
                 data.latitude(),
@@ -154,7 +154,7 @@ public class PlanService {
         if (data.maxSubscribers() != null)  plan.setMaxSubscribers(data.maxSubscribers());
         if (data.minAge() != null)          plan.setMinAge(data.minAge());
         if (data.maxAge() != null)          plan.setMaxAge(data.maxAge());
-        if (data.interest() != null)        plan.setInterest(data.interest());
+        if (data.interests() != null)       plan.setInterests(data.interests());
         if (data.travelType() != null)      plan.setTravelType(data.travelType());
         if (data.location() != null)        plan.setLocation(data.location());
         if (data.latitude() != null)        plan.setLatitude(data.latitude());
@@ -219,7 +219,7 @@ public class PlanService {
                 plan.getMaxSubscribers(),
                 plan.getMinAge(),
                 plan.getMaxAge(),
-                plan.getInterest(),
+                List.copyOf(plan.getInterests()),
                 plan.getTravelType(),
                 plan.getLocation(),
                 plan.getLatitude(),
@@ -240,7 +240,7 @@ public class PlanService {
                 plan.getLocation(),
                 plan.getLatitude(),
                 plan.getLongitude(),
-                plan.getInterest(),
+                List.copyOf(plan.getInterests()),
                 plan.getTravelType(),
                 plan.getVisibility(),
                 plan.getSubscribers().size(),

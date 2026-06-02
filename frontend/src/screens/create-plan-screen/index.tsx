@@ -29,6 +29,7 @@ const CATEGORY_OPTIONS = [
     'Naturaleza',
     'Playa',
     'Aventura',
+    'Deporte',
     'Fiesta',
     'Shopping',
     'Historia',
@@ -42,6 +43,7 @@ const INTEREST_BY_CATEGORY: Record<string, string> = {
     Naturaleza:    'NATURE',
     Playa:     'BEACH',
     Aventura: 'ADVENTURE',
+    Deporte: 'SPORTS',
     Fiesta: 'NIGHTLIFE',
     Shopping:  'SHOPPING',
     Historia:   'HISTORY',
@@ -115,7 +117,7 @@ export default function CreatePlanScreen() {
     const [pinLocation, setPinLocation] = useState<{latitude: number, longitude: number} | null>(null);
     const [minAge, setMinAge] = useState('18');
     const [maxParticipants, setMaxParticipants] = useState('10');
-    const [category, setCategory] = useState<typeof INTEREST_OPTIONS[number]>('FOOD');
+    const [selectedCategories, setSelectedCategories] = useState<Array<(typeof CATEGORY_OPTIONS)[number]>>(['Aventura']);
     const [budget, setBudget] = useState('');
     const [images, setImages] = useState<string[]>([]);
 
@@ -169,7 +171,20 @@ export default function CreatePlanScreen() {
             setError('La ubicacion es requerida');
             return false;
         }
+        if (selectedCategories.length === 0) {
+            setError('Selecciona al menos una categoria');
+            return false;
+        }
         return true;
+    };
+
+    const toggleCategory = (cat: (typeof CATEGORY_OPTIONS)[number]) => {
+        if (selectedCategories.includes(cat)) {
+            setSelectedCategories(selectedCategories.filter((entry) => entry !== cat));
+            return;
+        }
+
+        setSelectedCategories([...selectedCategories, cat]);
     };
 
     const handleSearchAddress = async () => {
@@ -292,6 +307,10 @@ export default function CreatePlanScreen() {
 
             const { latitude, longitude } = geocodedLocation[0];
 
+            const mappedInterests = selectedCategories
+                .map((cat) => INTEREST_BY_CATEGORY[cat])
+                .filter(Boolean);
+
             const payload: PlanCreateRequest = {
                 title: title.trim(),
                 description: description.trim(),
@@ -302,7 +321,7 @@ export default function CreatePlanScreen() {
                 visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
                 maxSubscribers: Number.isNaN(parsedMaxSubscribers) ? 10 : parsedMaxSubscribers,
                 minAge: Number.isNaN(parsedMinAge) ? undefined : parsedMinAge,
-                interest: INTEREST_BY_CATEGORY[category] ?? DEFAULT_INTEREST,
+                interests: mappedInterests.length > 0 ? mappedInterests : [DEFAULT_INTEREST],
                 travelType: DEFAULT_TRAVEL_TYPE,
                 location: location.trim(),
                 images: images.length > 0 ? images : undefined,
@@ -603,16 +622,16 @@ export default function CreatePlanScreen() {
                             {CATEGORY_OPTIONS.map((cat) => (
                                 <Pressable
                                     key={cat}
-                                    onPress={() => setCategory(cat)}
+                                    onPress={() => toggleCategory(cat)}
                                     style={[
                                         styles.categoryChip,
                                         { borderColor: border },
-                                        category === cat && { backgroundColor: tint, borderColor: tint },
+                                        selectedCategories.includes(cat) && { backgroundColor: tint, borderColor: tint },
                                     ]}
                                 >
                                     <ThemedText
                                         type="label"
-                                        style={{ color: category === cat ? tintText : text }}
+                                        style={{ color: selectedCategories.includes(cat) ? tintText : text }}
                                     >
                                         {cat}
                                     </ThemedText>

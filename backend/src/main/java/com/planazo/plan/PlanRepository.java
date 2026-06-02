@@ -34,7 +34,7 @@ public interface PlanRepository extends JpaRepository<Plan, Long>, JpaSpecificat
 
     // Filter by interest
     @EntityGraph(attributePaths = "images")
-    List<Plan> findByVisibilityAndInterestAndActiveTrue(PlanVisibility visibility, Interest interest);
+    List<Plan> findByVisibilityAndInterestsContainingAndActiveTrue(PlanVisibility visibility, Interest interest);
 
     // Filter by travelType
     @EntityGraph(attributePaths = "images")

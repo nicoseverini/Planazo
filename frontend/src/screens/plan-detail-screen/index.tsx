@@ -94,12 +94,17 @@ export default function PlanDetailScreen() {
         NATURE:    'Naturaleza',
         BEACH:     'Playa',
         ADVENTURE: 'Aventura',
+        SPORTS:    'Deporte',
         NIGHTLIFE: 'Fiesta',
         SHOPPING:  'Shopping',
         HISTORY:   'Historia',
         MOUNTAINS: 'Montañas',
         OTHER:     'Otro',
     };
+
+    const interestLabel = (plan?.interests ?? [])
+        .map((interest) => CATEGORY_BY_INTEREST[interest] || interest)
+        .join(' · ');
 
     const loadPlan = useCallback(async () => {
         const planId = parsePlanId(id);
@@ -439,7 +444,7 @@ export default function PlanDetailScreen() {
                         <View style={styles.infoList}>
                             <View style={styles.infoListItem}>
                                 <View style={[styles.infoDot, { backgroundColor: tint }]} />
-                                <ThemedText type="body">Interes: {CATEGORY_BY_INTEREST[plan.interest] || plan.interest}</ThemedText>
+                                <ThemedText type="body">Interes: {interestLabel}</ThemedText>
                             </View>
                             <View style={styles.infoListItem}>
                                 <View style={[styles.infoDot, { backgroundColor: tint }]} />

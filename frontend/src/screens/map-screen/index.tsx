@@ -19,6 +19,7 @@ const CATEGORY_MAP: Record<string, string> = {
     'Naturaleza':    'NATURE',
     'Playa':         'BEACH',
     'Aventura':      'ADVENTURE',
+    'Deporte':       'SPORTS',
     'Fiesta': 'NIGHTLIFE',
     'Shopping':      'SHOPPING',
     'Historia':      'HISTORY',
@@ -84,7 +85,7 @@ export default function MapScreen() {
 
     const filteredPlans = plans.filter((plan) => {
         if (selectedCategory === 'Todos') return true;
-        return plan.interest === CATEGORY_MAP[selectedCategory];
+        return plan.interests?.includes(CATEGORY_MAP[selectedCategory]);
     });
 
     return (

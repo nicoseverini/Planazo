@@ -7,6 +7,7 @@ public enum Interest {
     BEACH,
     ADVENTURE,
     NIGHTLIFE,
+    SPORTS,
     SHOPPING,
     HISTORY,
     MOUNTAINS,

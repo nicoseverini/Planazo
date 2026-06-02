@@ -15,7 +15,7 @@ import { PlanFilters, PlanSummary, usePlans } from '@/services/plan';
 import { styles } from './styles';
 
 const INTERESTS = [
-    'FOOD','CULTURE','NATURE','BEACH','ADVENTURE',
+    'FOOD','CULTURE','NATURE','BEACH','ADVENTURE','SPORTS',
     'NIGHTLIFE','SHOPPING','HISTORY','MOUNTAINS', 'OTHER',
 ];
 const INTEREST_LABELS: Record<string, string> = {
@@ -24,6 +24,7 @@ const INTEREST_LABELS: Record<string, string> = {
     NATURE:    'Naturaleza',
     BEACH:     'Playa',
     ADVENTURE: 'Aventura',
+    SPORTS:    'Deporte',
     NIGHTLIFE: 'Fiesta',
     SHOPPING:  'Shopping',
     HISTORY:   'Historia',
@@ -96,7 +97,7 @@ export function SearchPlansScreen() {
         setFilteredPlans(plans.filter(p =>
             p.title.toLowerCase().includes(q) ||
             p.location?.toLowerCase().includes(q) ||
-            p.interest.toLowerCase().includes(q)
+            (p.interests ?? []).some((interest) => interest.toLowerCase().includes(q))
         ));
     }, [searchQuery, plans]);
 
