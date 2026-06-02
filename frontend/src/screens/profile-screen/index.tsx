@@ -47,14 +47,14 @@ const DEFAULT_PROFILE: UserProfile = {
 
 function formatList(values: string[] | undefined, labelMap?: Record<string, string>) {
     if (!values || values.length === 0) {
-        return 'Sin definir';
+        return 'Not set';
     }
     return values.map((value) => labelMap?.[value] ?? value).join(', ');
 }
 
 function formatValue(value?: string, labelMap?: Record<string, string>) {
     if (!value) {
-        return 'Sin definir';
+        return 'Not set';
     }
     return labelMap?.[value] ?? value;
 }
@@ -170,7 +170,7 @@ export default function ProfileScreen() {
             setPhotoUrl(normalizePhotoValue(normalized.photo));
         } catch (err) {
             console.error('[ProfileScreen] Error loading profile:', err);
-            setError('Error al cargar el perfil');
+            setError('Error loading profile');
         } finally {
             setLoading(false);
         }
@@ -231,7 +231,7 @@ export default function ProfileScreen() {
             setEditing(false);
         } catch (err) {
             console.error('[ProfileScreen] Error saving profile:', err);
-            setError('Error al guardar los cambios');
+            setError('Error saving changes');
         } finally {
             setSaving(false);
         }
@@ -247,7 +247,7 @@ export default function ProfileScreen() {
     async function handleChangePhoto() {
         const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (permission.status !== 'granted') {
-            Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galeria para elegir una foto.');
+            Alert.alert('Permission required', 'We need access to your gallery to choose a photo.');
             return;
         }
 
@@ -264,7 +264,7 @@ export default function ProfileScreen() {
 
         const asset = result.assets[0];
         if (!asset.base64) {
-            setError('No se pudo leer la imagen seleccionada.');
+            setError('Could not read selected image.');
             return;
         }
 
@@ -285,13 +285,13 @@ export default function ProfileScreen() {
     }
 
     async function handleLogout() {
-        Alert.alert(
-            'Cerrar sesion',
-            '¿Seguro que queres cerrar sesion?',
+            Alert.alert(
+            'Log out',
+            'Are you sure you want to log out?',
             [
-                { text: 'Cancelar', style: 'cancel' },
+                { text: 'Cancel', style: 'cancel' },
                 {
-                    text: 'Cerrar sesion',
+                    text: 'Log out',
                     style: 'destructive',
                     onPress: async () => {
                         setLoggingOut(true);
@@ -304,13 +304,13 @@ export default function ProfileScreen() {
     }
 
     async function handleDeleteAccount() {
-        Alert.alert(
-            'Eliminar cuenta',
-            '¿Estás seguro? Esta acción es irreversible y borrará todos tus datos.',
+            Alert.alert(
+            'Delete account',
+            'Are you sure? This action is irreversible and will delete all your data.',
             [
-                { text: 'Cancelar', style: 'cancel' },
+                { text: 'Cancel', style: 'cancel' },
                 {
-                    text: 'Eliminar',
+                    text: 'Delete',
                     style: 'destructive',
                     onPress: async () => {
                         setDeletingAccount(true);
@@ -320,7 +320,7 @@ export default function ProfileScreen() {
                             router.replace('/');
                         } catch (err) {
                             console.error('[ProfileScreen] Error deleting account:', err);
-                            setError('No se pudo eliminar la cuenta. Intentá de nuevo.');
+                            setError('Could not delete account. Please try again.');
                             setDeletingAccount(false);
                         }
                     },
@@ -336,7 +336,7 @@ export default function ProfileScreen() {
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={tint} />
                     <ThemedText type="body" style={{ color: mutedText, marginTop: 12 }}>
-                        Cerrando sesión...
+                        Logging out...
                     </ThemedText>
                 </View>
             </AppScreen>
@@ -350,14 +350,14 @@ export default function ProfileScreen() {
                 <View style={styles.loadingContainer}>
                     <Ionicons name="person-outline" size={48} color={mutedText} />
                     <ThemedText type="body" style={{ color: mutedText, marginTop: 12 }}>
-                        Inicia sesion para ver tu perfil
+                        Sign in to view your profile
                     </ThemedText>
                     <Pressable
                         onPress={() => router.replace('/')}
                         style={[styles.primaryButton, { backgroundColor: tint, marginTop: 24 }]}
                     >
-                        <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                            Iniciar sesion
+                            <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
+                            Sign in
                         </ThemedText>
                     </Pressable>
                 </View>
@@ -365,7 +365,7 @@ export default function ProfileScreen() {
         );
     }
 
-    const fullName = `${displayUser.name || 'Usuario'} ${displayUser.lastname || ''}`.trim();
+    const fullName = `${displayUser.name || 'User'} ${displayUser.lastname || ''}`.trim();
     const avatarInitial = resolveInitial(displayUser.name, displayUser.photo);
 
     return (
@@ -424,7 +424,7 @@ export default function ProfileScreen() {
                             <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
                                 <Ionicons name="person-outline" size={20} color={mutedText} />
                                 <View style={styles.infoContent}>
-                                    <ThemedText type="label" style={{ color: mutedText }}>Genero</ThemedText>
+                                    <ThemedText type="label" style={{ color: mutedText }}>Gender</ThemedText>
                                     <ThemedText type="body">{formatValue(displayUser.gender, GENDER_LABELS)}</ThemedText>
                                 </View>
                             </View>
@@ -433,7 +433,7 @@ export default function ProfileScreen() {
                             <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
                                 <Ionicons name="calendar-outline" size={20} color={mutedText} />
                                 <View style={styles.infoContent}>
-                                    <ThemedText type="label" style={{ color: mutedText }}>Fecha de nacimiento</ThemedText>
+                                    <ThemedText type="label" style={{ color: mutedText }}>Birth date</ThemedText>
                                     <ThemedText type="body">{displayUser.birthDate}</ThemedText>
                                 </View>
                             </View>
@@ -442,7 +442,7 @@ export default function ProfileScreen() {
                             <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
                                 <Ionicons name="location-outline" size={20} color={mutedText} />
                                 <View style={styles.infoContent}>
-                                    <ThemedText type="label" style={{ color: mutedText }}>Ubicacion</ThemedText>
+                                    <ThemedText type="label" style={{ color: mutedText }}>Location</ThemedText>
                                     <ThemedText type="body">{displayUser.zone}</ThemedText>
                                 </View>
                             </View>
@@ -450,30 +450,30 @@ export default function ProfileScreen() {
                         <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
                             <Ionicons name="heart-outline" size={20} color={mutedText} />
                             <View style={styles.infoContent}>
-                                <ThemedText type="label" style={{ color: mutedText }}>Intereses</ThemedText>
+                                <ThemedText type="label" style={{ color: mutedText }}>Interests</ThemedText>
                                 <ThemedText type="body">{formatList(displayUser.interests, INTEREST_LABELS)}</ThemedText>
                             </View>
                         </View>
                         <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
                             <Ionicons name="language-outline" size={20} color={mutedText} />
                             <View style={styles.infoContent}>
-                                <ThemedText type="label" style={{ color: mutedText }}>Idiomas</ThemedText>
+                                <ThemedText type="label" style={{ color: mutedText }}>Languages</ThemedText>
                                 <ThemedText type="body">{formatList(displayUser.languages)}</ThemedText>
                             </View>
                         </View>
                         <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
                             <Ionicons name="airplane-outline" size={20} color={mutedText} />
                             <View style={styles.infoContent}>
-                                <ThemedText type="label" style={{ color: mutedText }}>Tipo de viaje</ThemedText>
+                                <ThemedText type="label" style={{ color: mutedText }}>Travel type</ThemedText>
                                 <ThemedText type="body">{formatValue(displayUser.travelType, TRAVEL_TYPE_LABELS)}</ThemedText>
                             </View>
                         </View>
                         <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
                             <Ionicons name="cash-outline" size={20} color={mutedText} />
                             <View style={styles.infoContent}>
-                                <ThemedText type="label" style={{ color: mutedText }}>Presupuesto</ThemedText>
+                                <ThemedText type="label" style={{ color: mutedText }}>Budget</ThemedText>
                                 <ThemedText type="body">
-                                    {displayUser.budget !== undefined ? `$${displayUser.budget}` : 'Sin definir'}
+                                    {displayUser.budget !== undefined ? `$${displayUser.budget}` : 'Not set'}
                                 </ThemedText>
                             </View>
                         </View>
@@ -482,12 +482,12 @@ export default function ProfileScreen() {
                     {/* Menu de opciones */}
                     <View style={styles.menuSection}>
                         <ThemedText type="label" style={[styles.sectionTitle, { color: mutedText }]}>
-                            Cuenta
+                            Account
                         </ThemedText>
                         <View style={styles.menuGroup}>
                             <MenuItem
                                 icon="person-outline"
-                                label="Editar perfil"
+                                label="Edit profile"
                                 onPress={() => setEditing(true)}
                             />
                         </View>
@@ -497,13 +497,13 @@ export default function ProfileScreen() {
                         <View style={styles.menuGroup}>
                             <MenuItem
                                 icon="log-out-outline"
-                                label="Cerrar sesion"
+                                label="Log out"
                                 onPress={handleLogout}
                                 danger
                             />
                             <MenuItem
                                 icon="trash-outline"
-                                label="Eliminar cuenta"
+                                label="Delete account"
                                 onPress={handleDeleteAccount}
                                 danger
                             />
@@ -514,27 +514,27 @@ export default function ProfileScreen() {
                 /* Modo edicion */
                 <View style={styles.editForm}>
                     <ThemedText type="subtitle" style={styles.editTitle}>
-                        Editar informacion
+                        Edit information
                     </ThemedText>
 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Nombre</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>Name</ThemedText>
                         <TextInput
                             style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
                             value={formData?.name || ''}
                             onChangeText={(value) => onChange('name', value.replace(/[0-9]/g, ''))}
-                            placeholder="Tu nombre"
+                            placeholder="Your name"
                             placeholderTextColor={mutedText}
                         />
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Apellido</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>Last name</ThemedText>
                         <TextInput
                             style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
                             value={formData?.lastname || ''}
                             onChangeText={(value) => onChange('lastname', value.replace(/[0-9]/g, ''))}
-                            placeholder="Tu apellido"
+                            placeholder="Your last name"
                             placeholderTextColor={mutedText}
                         />
                     </View>
@@ -546,13 +546,13 @@ export default function ProfileScreen() {
                             value={formData?.email || ''}
                             editable={false}
                         />
-                        <ThemedText type="label" style={{ color: mutedText, fontSize: 11, marginTop: 4 }}>
-                            El email no se puede cambiar
+                            <ThemedText type="label" style={{ color: mutedText, fontSize: 11, marginTop: 4 }}>
+                            Email cannot be changed
                         </ThemedText>
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Foto</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>Photo</ThemedText>
                         <View style={styles.photoRow}>
                             <TextInput
                                 style={[
@@ -570,23 +570,23 @@ export default function ProfileScreen() {
                                 onPress={handleChangePhoto}
                                 style={[styles.photoButton, { borderColor: border }]}
                             >
-                                <ThemedText type="label" style={{ color: text }}>
-                                    Seleccionar
+                                    <ThemedText type="label" style={{ color: text }}>
+                                    Select
                                 </ThemedText>
                             </Pressable>
                             <Pressable
                                 onPress={handleClearPhoto}
                                 style={[styles.photoButton, { borderColor: border }]}
                             >
-                                <ThemedText type="label" style={{ color: text }}>
-                                    Borrar
+                                    <ThemedText type="label" style={{ color: text }}>
+                                    Clear
                                 </ThemedText>
                             </Pressable>
                         </View>
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Genero</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>Gender</ThemedText>
                         <View style={[styles.selectContainer, { backgroundColor: surface, borderColor: border }]}>
                             {GENDER_OPTIONS.map((option) => (
                                 <Pressable
@@ -612,7 +612,7 @@ export default function ProfileScreen() {
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Intereses</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>Interests</ThemedText>
                         <View style={[styles.selectContainer, { backgroundColor: surface, borderColor: border }]}>
                             {INTEREST_OPTIONS.map((option) => {
                                 const selected = formData?.interests?.includes(option);
@@ -641,7 +641,7 @@ export default function ProfileScreen() {
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Idiomas</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>Languages</ThemedText>
                         <View style={[styles.selectContainer, { backgroundColor: surface, borderColor: border }]}>
                             {LANGUAGE_OPTIONS.map((option) => {
                                 const selected = formData?.languages?.includes(option);
@@ -670,7 +670,7 @@ export default function ProfileScreen() {
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Tipo de viaje</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>Travel type</ThemedText>
                         <View style={[styles.selectContainer, { backgroundColor: surface, borderColor: border }]}>
                             {TRAVEL_TYPE_OPTIONS.map((option) => (
                                 <Pressable
@@ -696,7 +696,7 @@ export default function ProfileScreen() {
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Presupuesto</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>Budget</ThemedText>
                         <TextInput
                             style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
                             value={formData?.budget !== undefined ? String(formData.budget) : ''}
@@ -727,8 +727,8 @@ export default function ProfileScreen() {
                             {saving ? (
                                 <ActivityIndicator size="small" color={tintText} />
                             ) : (
-                                <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                                    Guardar cambios
+                                    <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
+                                        Save changes
                                 </ThemedText>
                             )}
                         </Pressable>
@@ -738,7 +738,7 @@ export default function ProfileScreen() {
                             style={[styles.secondaryButton, { borderColor: border }]}
                         >
                             <ThemedText type="body" style={{ color: text }}>
-                                Cancelar
+                                Cancel
                             </ThemedText>
                         </Pressable>
                     </View>

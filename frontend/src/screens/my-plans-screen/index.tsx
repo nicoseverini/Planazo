@@ -97,7 +97,7 @@ export function MyPlansScreen() {
     const renderSubscribedSection = () => (
         <View style={styles.section}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>
-                Planes Subscriptos
+                Subscribed Plans
             </ThemedText>
             {filteredSubscribedPlans.length > 0 ? (
                 <ScrollView
@@ -113,7 +113,7 @@ export function MyPlansScreen() {
                 <View style={[styles.emptySubscribed, { backgroundColor: surface, borderColor: border }]}>
                     <Ionicons name="calendar-outline" size={24} color={mutedText} />
                     <ThemedText type="label" style={[styles.emptyText, { color: mutedText }]}>
-                        No estas subscripto a ningun plan
+                        You are not subscribed to any plan
                     </ThemedText>
                 </View>
             )}
@@ -124,7 +124,7 @@ export function MyPlansScreen() {
                 >
                     <ThemedText type="label" style={[styles.browseButtonText, { color: tint }]}
                     >
-                        Buscar Plan
+                        Search Plan
                     </ThemedText>
                 </Pressable>
             </View>
@@ -135,7 +135,7 @@ export function MyPlansScreen() {
         <AppScreen contentStyle={styles.appScreenContent}>
             {/* Header */}
             <View style={styles.header}>
-                <ThemedText type="title">Mis Planes</ThemedText>
+                <ThemedText type="title">My Plans</ThemedText>
             </View>
 
             <View style={styles.tabsContainer}>
@@ -180,7 +180,7 @@ export function MyPlansScreen() {
                     <Ionicons name="search-outline" size={20} color={mutedText} />
                     <TextInput
                         style={[styles.searchInput, { color: textColor }]}
-                        placeholder="Buscar plan..."
+                        placeholder="Search plan..."
                         placeholderTextColor={mutedText}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
@@ -193,7 +193,7 @@ export function MyPlansScreen() {
                 </View>
 
                 <ThemedText type="subtitle" style={styles.sectionTitle}>
-                    Planes Activos Creados
+                    Active Plans You Created
                 </ThemedText>
 
                 {/* Created Plans List */}
@@ -211,7 +211,7 @@ export function MyPlansScreen() {
                     <View style={styles.emptyCreated}>
                         <Ionicons name="create-outline" size={48} color={mutedText} />
                         <ThemedText type="body" style={[styles.emptyText, { color: mutedText }]}>
-                            No has creado ningun plan
+                            You have not created any plan
                         </ThemedText>
                     </View>
                 )}
@@ -223,7 +223,7 @@ export function MyPlansScreen() {
                     >
                         <ThemedText type="label" style={[styles.browseButtonText, { color: tint }]}
                         >
-                            Crear Plan
+                            Create Plan
                         </ThemedText>
                     </Pressable>
                 </View>

@@ -24,31 +24,29 @@ import { PlanCreateRequest, usePlans } from '@/services/plan';
 import { styles } from './styles';
 
 const CATEGORY_OPTIONS = [
-    'Gastronomia',
-    'Cultura',
-    'Naturaleza',
-    'Playa',
-    'Aventura',
-    'Deporte',
-    'Fiesta',
+    'Gastronomy',
+    'Culture',
+    'Nature',
+    'Beach',
+    'Adventure',
+    'Nightlife',
     'Shopping',
-    'Historia',
-    'Montañas',
-    'Otro',
+    'History',
+    'Mountains',
+    'Other',
 ] as const;
 
 const INTEREST_BY_CATEGORY: Record<string, string> = {
-    Gastronomia:      'FOOD',
-    Cultura:   'CULTURE',
-    Naturaleza:    'NATURE',
-    Playa:     'BEACH',
-    Aventura: 'ADVENTURE',
-    Deporte: 'SPORTS',
-    Fiesta: 'NIGHTLIFE',
+    Gastronomy:      'FOOD',
+    Culture:   'CULTURE',
+    Nature:    'NATURE',
+    Beach:     'BEACH',
+    Adventure: 'ADVENTURE',
+    Nightlife: 'NIGHTLIFE',
     Shopping:  'SHOPPING',
-    Historia:   'HISTORY',
-    Montañas: 'MOUNTAINS',
-    Otro:     'OTHER',
+    History:   'HISTORY',
+    Mountains: 'MOUNTAINS',
+    Other:     'OTHER',
 };
 
 const DEFAULT_INTEREST = 'ADVENTURE';
@@ -123,8 +121,8 @@ export default function CreatePlanScreen() {
 
     const handleAddImage = async () => {
         const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (permission.status !== 'granted') {
-            Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galeria para elegir imagenes.');
+            if (permission.status !== 'granted') {
+                Alert.alert('Permission required', 'We need access to your gallery to choose images.');
             return;
         }
 
@@ -140,8 +138,8 @@ export default function CreatePlanScreen() {
         }
 
         const asset = result.assets[0];
-        if (!asset.base64) {
-            setError('No se pudo leer la imagen seleccionada.');
+            if (!asset.base64) {
+            setError('Could not read selected image.');
             return;
         }
 
@@ -156,19 +154,19 @@ export default function CreatePlanScreen() {
 
     const validateForm = (): boolean => {
         if (!title.trim()) {
-            setError('El titulo es requerido');
+            setError('Title is required');
             return false;
         }
         if (!date.trim()) {
-            setError('La fecha es requerida');
+            setError('Date is required');
             return false;
         }
         if (!time.trim()) {
-            setError('La hora es requerida');
+            setError('Time is required');
             return false;
         }
         if (!location.trim()) {
-            setError('La ubicacion es requerida');
+            setError('Location is required');
             return false;
         }
         if (selectedCategories.length === 0) {
@@ -203,11 +201,11 @@ export default function CreatePlanScreen() {
                     longitudeDelta: 0.02,
                 }, 1000);
             } else {
-                Alert.alert('No encontrada', 'Intenta ser más específico (ej: agregar ciudad).');
+                Alert.alert('Not found', 'Try being more specific (e.g., add city).');
             }
         } catch (e) {
             console.log(e);
-            Alert.alert('Error', 'Hubo un problema buscando la dirección.');
+            Alert.alert('Error', 'There was a problem searching the address.');
         } finally {
             setIsSearchingLoc(false);
         }
@@ -285,7 +283,7 @@ export default function CreatePlanScreen() {
 
         const dateTime = buildDateTime(date, time);
         if (!dateTime) {
-            setError('La fecha o la hora no tienen un formato valido.');
+            setError('Date or time has an invalid format.');
             return;
         }
 
@@ -300,7 +298,7 @@ export default function CreatePlanScreen() {
             const geocodedLocation = await Location.geocodeAsync(location.trim());
 
             if (!geocodedLocation || geocodedLocation.length === 0) {
-                setError('No pudimos encontrar la ubicación en el mapa. Intenta agregar la ciudad (ej: Obelisco, Buenos Aires).');
+                setError('We could not find the location on the map. Try adding the city (e.g., Obelisco, Buenos Aires).');
                 setSaving(false);
                 return;
             }
@@ -328,12 +326,12 @@ export default function CreatePlanScreen() {
             };
 
             await create(payload);
-            Alert.alert('Exito', 'Plan creado correctamente', [
+            Alert.alert('Success', 'Plan created successfully', [
                 { text: 'OK', onPress: () => router.back() },
             ]);
         } catch (err) {
             console.error('[CreatePlanScreen] Error creating plan:', err);
-            setError('No se pudo crear el plan. Intenta de nuevo.');
+            setError('Could not create the plan. Please try again.');
         } finally {
             setSaving(false);
         }
@@ -353,19 +351,19 @@ export default function CreatePlanScreen() {
                 >
                     <Ionicons name="arrow-back" size={24} color={text} />
                 </Pressable>
-                <ThemedText type="title">Crear Plan</ThemedText>
+                <ThemedText type="title">Create Plan</ThemedText>
             </View>
 
             {/* Titulo y visibilidad */}
             <View style={styles.titleRow}>
                 <View style={styles.titleInput}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Titulo
+                        Title
                     </ThemedText>
                     <TextInput
                         value={title}
                         onChangeText={setTitle}
-                        placeholder="Nombre del plan"
+                        placeholder="Plan name"
                         placeholderTextColor={mutedText}
                         style={[
                             styles.input,
@@ -375,7 +373,7 @@ export default function CreatePlanScreen() {
                 </View>
                 <View style={styles.visibilityToggle}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Visibilidad
+                        Visibility
                     </ThemedText>
                     <View style={[styles.toggleContainer, { backgroundColor: surface, borderColor: border }]}>
                         <Pressable
@@ -385,12 +383,12 @@ export default function CreatePlanScreen() {
                                 !isPublic && { backgroundColor: tint },
                             ]}
                         >
-                            <ThemedText
-                                type="label"
-                                style={{ color: !isPublic ? tintText : mutedText, fontSize: 11 }}
-                            >
-                                Privado
-                            </ThemedText>
+                                    <ThemedText
+                                        type="label"
+                                        style={{ color: !isPublic ? tintText : mutedText, fontSize: 11 }}
+                                    >
+                                        Private
+                                    </ThemedText>
                         </Pressable>
                         <Pressable
                             onPress={() => setIsPublic(true)}
@@ -399,12 +397,12 @@ export default function CreatePlanScreen() {
                                 isPublic && { backgroundColor: tint },
                             ]}
                         >
-                            <ThemedText
-                                type="label"
-                                style={{ color: isPublic ? tintText : mutedText, fontSize: 11 }}
-                            >
-                                Publico
-                            </ThemedText>
+                                    <ThemedText
+                                        type="label"
+                                        style={{ color: isPublic ? tintText : mutedText, fontSize: 11 }}
+                                    >
+                                        Public
+                                    </ThemedText>
                         </Pressable>
                     </View>
                 </View>
@@ -415,7 +413,7 @@ export default function CreatePlanScreen() {
                 {/* Input de Fecha */}
                 <View style={styles.halfInput}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Fecha
+                        Date
                     </ThemedText>
                     <View style={[styles.input, { backgroundColor: surface, borderColor: border, flexDirection: 'row', alignItems: 'center', padding: 0, overflow: 'hidden' }]}>
                         <TextInput
@@ -437,7 +435,7 @@ export default function CreatePlanScreen() {
                 {/* Input de Hora */}
                 <View style={styles.halfInput}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Hora
+                        Time
                     </ThemedText>
                     <View style={[styles.input, { backgroundColor: surface, borderColor: border, flexDirection: 'row', alignItems: 'center', padding: 0, overflow: 'hidden' }]}>
                         <TextInput
@@ -480,8 +478,8 @@ export default function CreatePlanScreen() {
 
             {/* Edad minima */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                    Limite de edad
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                        Age limit
                 </ThemedText>
                 <TextInput
                     value={minAge}
@@ -498,8 +496,8 @@ export default function CreatePlanScreen() {
 
             {/* Ubicación híbrida: Texto + Mapa */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                    Zona / Dirección
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                        Area / Address
                 </ThemedText>
 
                 {/* Input de texto con botón de búsqueda */}
@@ -562,10 +560,10 @@ export default function CreatePlanScreen() {
                 </View>
             </View>
 
-            {/* Imagenes */}
+            {/* Images */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                    Imagenes
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                        Images
                 </ThemedText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.imagesRow}>
@@ -590,10 +588,10 @@ export default function CreatePlanScreen() {
                 </ScrollView>
             </View>
 
-            {/* Descripcion */}
+            {/* Description */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                    Descripcion
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                        Description
                 </ThemedText>
                 <TextInput
                     value={description}
@@ -615,7 +613,7 @@ export default function CreatePlanScreen() {
 
                 <View style={styles.infoInputGroup}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Categoria
+                        Category
                     </ThemedText>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <View style={styles.categoryRow}>
@@ -644,7 +642,7 @@ export default function CreatePlanScreen() {
                 <View style={styles.row}>
                     <View style={styles.halfInput}>
                         <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                            Max participantes
+                            Max participants
                         </ThemedText>
                         <TextInput
                             value={maxParticipants}
@@ -660,7 +658,7 @@ export default function CreatePlanScreen() {
                     </View>
                     <View style={styles.halfInput}>
                         <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                            Presupuesto (opcional)
+                            Budget (optional)
                         </ThemedText>
                         <TextInput
                             value={budget}
@@ -680,7 +678,7 @@ export default function CreatePlanScreen() {
             {/* Error */}
             {error && (
                 <View style={styles.errorContainer}>
-                    <ThemedText type="body" style={{ color: '#ef4444' }}>{error}</ThemedText>
+                                    <ThemedText type="body" style={{ color: '#ef4444' }}>{error}</ThemedText>
                 </View>
             )}
 
@@ -698,8 +696,8 @@ export default function CreatePlanScreen() {
                 {saving ? (
                     <ActivityIndicator size="small" color={tintText} />
                 ) : (
-                    <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                        CREAR PLAN
+                        <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
+                        CREATE PLAN
                     </ThemedText>
                 )}
             </Pressable>

@@ -30,9 +30,9 @@ export default function LandingScreen() {
           resizeMode="contain"
         />
 
-        <ThemedText type="heading" style={styles.titleContainer}>Bienvenido</ThemedText>
+        <ThemedText type="heading" style={styles.titleContainer}>Welcome</ThemedText>
         <ThemedText type="body" style={styles.subtitle}>
-          Iniciá sesión o creá una cuenta para continuar.
+          Sign in or create an account to continue.
         </ThemedText>
       </View>
 
@@ -45,7 +45,7 @@ export default function LandingScreen() {
             pressed && styles.pressed,
           ]}
         >
-          <ThemedText type="buttonLarge" lightColor={tintText} darkColor={tintText} style={styles.buttonPrimaryText}>Iniciar sesión</ThemedText>
+          <ThemedText type="buttonLarge" lightColor={tintText} darkColor={tintText} style={styles.buttonPrimaryText}>Sign in</ThemedText>
         </Pressable>
 
         <Pressable
@@ -56,7 +56,7 @@ export default function LandingScreen() {
             pressed && styles.pressed,
           ]}
         >
-          <ThemedText type="buttonMedium" style={styles.buttonSecondaryText}>Registrarme</ThemedText>
+          <ThemedText type="buttonMedium" style={styles.buttonSecondaryText}>Register</ThemedText>
         </Pressable>
       </View>
     </AppScreen>

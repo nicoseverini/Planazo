@@ -18,12 +18,12 @@ export default function ForgotPasswordScreen() {
 
   const handleSendRecoveryEmail = async () => {
     if (!email.trim()) {
-      setError('El email es obligatorio');
+      setError('Email is required');
       return;
     }
 
     if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
-      setError('Ingresá un email válido');
+      setError('Enter a valid email');
       return;
     }
 
@@ -33,14 +33,14 @@ export default function ForgotPasswordScreen() {
     try {
       await forgotPassword({ email: email.trim() });
 
-      Alert.alert('Email enviado', 'Revisa tu correo para recuperar tu contraseña.');
+      Alert.alert('Email sent', 'Check your email to recover your password.');
       setSuccess(true);
 
       setTimeout(() => {
         router.back();
       }, 2000);
     } catch (requestError) {
-      const message = requestError instanceof Error ? requestError.message : 'No se pudo enviar el email';
+      const message = requestError instanceof Error ? requestError.message : 'Could not send the email';
       setError(message);
     } finally {
       setLoading(false);
@@ -51,8 +51,8 @@ export default function ForgotPasswordScreen() {
     return (
       <AppScreen centered scrollable>
         <View style={styles.shell}>
-          <AuthCard kicker="Recuperación" title="Email enviado" body="Revisa tu correo electrónico para obtener las instrucciones de recuperación.">
-            <AuthButton label="Volver al login" onPress={() => router.back()} />
+          <AuthCard kicker="Recovery" title="Email sent" body="Check your email for recovery instructions.">
+            <AuthButton label="Back to login" onPress={() => router.back()} />
           </AuthCard>
         </View>
       </AppScreen>
@@ -63,12 +63,12 @@ export default function ForgotPasswordScreen() {
     <AppScreen centered scrollable>
       <View style={styles.shell}>
         <AuthCard
-          kicker="Recuperación"
-          title="Recuperar contraseña"
-          body="Ingresá tu email y te enviaremos un enlace para recuperar tu contraseña."
+          kicker="Recovery"
+          title="Recover password"
+          body="Enter your email and we will send you a link to recover your password."
         >
           <AuthInput label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
-          <AuthButton label={loading ? 'Enviando...' : 'Enviar enlace'} onPress={handleSendRecoveryEmail} disabled={loading} />
+          <AuthButton label={loading ? 'Sending...' : 'Send link'} onPress={handleSendRecoveryEmail} disabled={loading} />
           {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
         </AuthCard>
       </View>

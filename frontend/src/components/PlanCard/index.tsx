@@ -109,7 +109,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
                             <ActivityIndicator size="small" color={tintText} />
                         ) : (
                             <ThemedText type="label" style={[styles.subscribeButtonText, { color: tintText }]}>
-                                SUSCRIBIRSE
+                                SUBSCRIBE
                             </ThemedText>
                         )}
                     </Pressable>

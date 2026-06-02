@@ -71,7 +71,7 @@ export async function loginUser(req: LoginRequest): Promise<AuthTokenResponse> {
 
   if (!response.ok) {
     if (response.status === 401) {
-      throw new Error('Verificá tu email para activar la cuenta');
+      throw new Error('Check your email to activate your account');
     }
     const errorText = await response.text();
     throw new Error(`Login failed: ${errorText}`);
