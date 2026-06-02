@@ -15,7 +15,7 @@ import { PlanFilters, PlanSummary, usePlans } from '@/services/plan';
 import { styles } from './styles';
 
 const INTERESTS = [
-    'FOOD','CULTURE','NATURE','BEACH','ADVENTURE',
+    'FOOD','CULTURE','NATURE','BEACH','ADVENTURE','SPORTS',
     'NIGHTLIFE','SHOPPING','HISTORY','MOUNTAINS', 'OTHER',
 ];
 const INTEREST_LABELS: Record<string, string> = {
@@ -96,7 +96,7 @@ export function SearchPlansScreen() {
         setFilteredPlans(plans.filter(p =>
             p.title.toLowerCase().includes(q) ||
             p.location?.toLowerCase().includes(q) ||
-            p.interest.toLowerCase().includes(q)
+            (p.interests ?? []).some((interest) => interest.toLowerCase().includes(q))
         ));
     }, [searchQuery, plans]);
 
@@ -129,7 +129,7 @@ export function SearchPlansScreen() {
     const activeChipStyle = { backgroundColor: tint, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 };
 
     return (
-        <AppScreen>
+        <AppScreen contentStyle={styles.appScreenContent}>
             {/* Header */}
             <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
                 <ThemedText type="title">Plans</ThemedText>

@@ -116,7 +116,7 @@ export default function EditPlanScreen() {
     const [pinLocation, setPinLocation] = useState<{latitude: number, longitude: number} | null>(null);
     const [minAge, setMinAge] = useState('');
     const [maxParticipants, setMaxParticipants] = useState('');
-    const [category, setCategory] = useState('');
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [budget, setBudget] = useState('');
     const [images, setImages] = useState<string[]>([]);
 
@@ -134,10 +134,10 @@ export default function EditPlanScreen() {
                 setMaxParticipants(plan.maxSubscribers ? plan.maxSubscribers.toString() : '');
                 if (plan.images) setImages(plan.images);
 
-                const categoryKey = Object.keys(INTEREST_BY_CATEGORY).find(
-                    key => INTEREST_BY_CATEGORY[key] === plan.interest
+                const categoriesFromInterests = Object.keys(INTEREST_BY_CATEGORY).filter(
+                    key => plan.interests?.includes(INTEREST_BY_CATEGORY[key])
                 );
-                if (categoryKey) setCategory(categoryKey);
+                setSelectedCategories(categoriesFromInterests);
 
                 if (plan.latitude && plan.longitude) {
                     const coords = { latitude: plan.latitude, longitude: plan.longitude };
@@ -214,6 +214,10 @@ export default function EditPlanScreen() {
         }
         if (!location.trim()) {
             setError('Location is required');
+            return false;
+        }
+        if (selectedCategories.length === 0) {
+            setError('Selecciona al menos una categoría');
             return false;
         }
         return true;
@@ -333,6 +337,10 @@ export default function EditPlanScreen() {
                 finalLng = geocodedLocation[0].longitude;
             }
 
+            const mappedInterests = selectedCategories
+                .map((cat) => INTEREST_BY_CATEGORY[cat])
+                .filter(Boolean);
+
             const payload: PlanUpdateRequest = {
                 title: title.trim(),
                 description: description.trim(),
@@ -343,7 +351,7 @@ export default function EditPlanScreen() {
                 visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
                 maxSubscribers: Number.isNaN(parsedMaxSubscribers) ? 10 : parsedMaxSubscribers,
                 minAge: Number.isNaN(parsedMinAge) ? undefined : parsedMinAge,
-                interest: INTEREST_BY_CATEGORY[category] ?? DEFAULT_INTEREST,
+                interests: mappedInterests.length > 0 ? mappedInterests : [DEFAULT_INTEREST],
                 travelType: DEFAULT_TRAVEL_TYPE,
                 location: location.trim(),
                 images: images.length > 0 ? images : undefined,
@@ -652,16 +660,16 @@ export default function EditPlanScreen() {
                             {CATEGORY_OPTIONS.map((cat) => (
                                 <Pressable
                                     key={cat}
-                                    onPress={() => setCategory(cat)}
+                                    onPress={() => setSelectedCategories(selectedCategories.includes(cat) ? selectedCategories.filter((entry) => entry !== cat) : [...selectedCategories, cat])}
                                     style={[
                                         styles.categoryChip,
                                         { borderColor: border },
-                                        category === cat && { backgroundColor: tint, borderColor: tint },
+                                        selectedCategories.includes(cat) && { backgroundColor: tint, borderColor: tint },
                                     ]}
                                 >
                                     <ThemedText
                                         type="label"
-                                        style={{ color: category === cat ? tintText : text }}
+                                        style={{ color: selectedCategories.includes(cat) ? tintText : text }}
                                     >
                                         {cat}
                                     </ThemedText>

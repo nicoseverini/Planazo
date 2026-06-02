@@ -101,6 +101,10 @@ export default function PlanDetailScreen() {
         OTHER:     'Other',
     };
 
+    const interestLabel = (plan?.interests ?? [])
+        .map((interest) => CATEGORY_BY_INTEREST[interest] || interest)
+        .join(' · ');
+
     const loadPlan = useCallback(async () => {
         const planId = parsePlanId(id);
         if (!planId) {

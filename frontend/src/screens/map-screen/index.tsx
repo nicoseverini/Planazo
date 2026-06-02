@@ -84,11 +84,14 @@ export default function MapScreen() {
 
     const filteredPlans = plans.filter((plan) => {
         if (selectedCategory === 'Todos') return true;
-        return plan.interest === CATEGORY_MAP[selectedCategory];
+        return plan.interests?.includes(CATEGORY_MAP[selectedCategory]);
     });
 
     return (
-        <AppScreen>
+        <AppScreen
+            contentStyle={styles.appScreenContent}
+            safeAreaEdges={['top', 'bottom']}
+        >
         <View style={styles.container}>
             <MapView
                 ref={mapRef}

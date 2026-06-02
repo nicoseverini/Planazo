@@ -27,7 +27,7 @@ public record PlanDetailDTO(
 
         Integer maxAge,
 
-        Interest interest,
+        List<Interest> interests,
 
         TravelType travelType,
 

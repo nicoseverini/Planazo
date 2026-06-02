@@ -14,6 +14,7 @@ import { useToken } from '@/context/token-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
 import { styles } from './styles';
+import React from "react";
 
 type AppScreenProps = {
   children: ReactNode;
@@ -22,6 +23,7 @@ type AppScreenProps = {
   contentStyle?: StyleProp<ViewStyle>;
   style?: StyleProp<ViewStyle>;
   showNavBar?: boolean;
+  safeAreaEdges?: Array<'top' | 'bottom' | 'left' | 'right'>;
 };
 
 export function AppScreen({
@@ -31,6 +33,7 @@ export function AppScreen({
   contentStyle,
   style,
   showNavBar,
+  safeAreaEdges,
 }: AppScreenProps) {
   const { tokenData } = useToken();
   const backgroundColor = useThemeColor({}, 'background');
@@ -38,7 +41,10 @@ export function AppScreen({
 
   if (scrollable) {
     return (
-      <SafeAreaView style={[styles.safeArea, { backgroundColor }, style]}>
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor }, style]}
+        edges={safeAreaEdges}
+      >
         <View style={styles.screen}>
           <KeyboardAvoidingView
             style={styles.flex}
@@ -65,7 +71,10 @@ export function AppScreen({
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor }, style]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor }, style]}
+      edges={safeAreaEdges}
+    >
       <View style={styles.screen}>
         <View
           style={[

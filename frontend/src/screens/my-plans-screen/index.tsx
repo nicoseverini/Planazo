@@ -28,6 +28,7 @@ export function MyPlansScreen() {
     const [filteredCreatedPlans, setFilteredCreatedPlans] = useState<PlanSummary[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [refreshing, setRefreshing] = useState(false);
+    const [visibilityFilter, setVisibilityFilter] = useState<'ALL' | 'PUBLIC' | 'PRIVATE'>('ALL');
 
     const surface = useThemeColor({}, 'surface');
     const border = useThemeColor({}, 'border');
@@ -54,18 +55,22 @@ export function MyPlansScreen() {
     useEffect(() => {
         let filtered = createdPlans;
 
+        if (visibilityFilter !== 'ALL') {
+            filtered = filtered.filter((plan) => plan.visibility === visibilityFilter);
+        }
+
         if (searchQuery.trim() !== '') {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(
                 (plan) =>
                     plan.title.toLowerCase().includes(query) ||
                     plan.location.toLowerCase().includes(query) ||
-                    plan.interest.toLowerCase().includes(query)
+                    (plan.interests ?? []).some((interest) => interest.toLowerCase().includes(query))
             );
         }
 
         setFilteredCreatedPlans(filtered);
-    }, [searchQuery, createdPlans]);
+    }, [searchQuery, createdPlans, visibilityFilter]);
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
@@ -85,18 +90,22 @@ export function MyPlansScreen() {
         router.push('/search-plans' as any);
     };
 
+    const filteredSubscribedPlans = visibilityFilter === 'ALL'
+        ? subscribedPlans
+        : subscribedPlans.filter((plan) => plan.visibility === visibilityFilter);
+
     const renderSubscribedSection = () => (
         <View style={styles.section}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>
                 Subscribed Plans
             </ThemedText>
-            {subscribedPlans.length > 0 ? (
+            {filteredSubscribedPlans.length > 0 ? (
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.subscribedList}
                 >
-                    {subscribedPlans.map((plan) => (
+                    {filteredSubscribedPlans.map((plan) => (
                         <SubscribedPlanCard key={plan.id} plan={plan} onPress={handlePlanPress} />
                     ))}
                 </ScrollView>
@@ -123,10 +132,35 @@ export function MyPlansScreen() {
     );
 
     return (
-        <AppScreen>
+        <AppScreen contentStyle={styles.appScreenContent}>
             {/* Header */}
             <View style={styles.header}>
                 <ThemedText type="title">My Plans</ThemedText>
+            </View>
+
+            <View style={styles.tabsContainer}>
+                <View style={styles.tabs}>
+                    {['ALL', 'PUBLIC', 'PRIVATE'].map((value) => {
+                        const isActive = visibilityFilter === value;
+                        return (
+                            <Pressable
+                                key={value}
+                                onPress={() => setVisibilityFilter(value as 'ALL' | 'PUBLIC' | 'PRIVATE')}
+                                style={[
+                                    styles.tab,
+                                    { backgroundColor: isActive ? tint : surface, borderColor: border, borderWidth: 1 },
+                                ]}
+                            >
+                                <ThemedText
+                                    type="label"
+                                    style={[styles.tabText, { color: isActive ? tintText : textColor }]}
+                                >
+                                    {value === 'ALL' ? 'Todos' : value === 'PUBLIC' ? 'Públicos' : 'Privados'}
+                                </ThemedText>
+                            </Pressable>
+                        );
+                    })}
+                </View>
             </View>
 
             <ScrollView

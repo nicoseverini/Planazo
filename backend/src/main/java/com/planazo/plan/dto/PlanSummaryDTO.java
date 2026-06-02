@@ -21,7 +21,7 @@ public record PlanSummaryDTO(
 
         Double longitude,
 
-        Interest interest,
+        List<Interest> interests,
 
         TravelType travelType,
 

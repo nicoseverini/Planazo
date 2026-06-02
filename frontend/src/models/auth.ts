@@ -4,6 +4,7 @@ const interestValues = [
   'NATURE',
   'BEACH',
   'ADVENTURE',
+  'SPORTS',
   'NIGHTLIFE',
   'SHOPPING',
   'HISTORY',
