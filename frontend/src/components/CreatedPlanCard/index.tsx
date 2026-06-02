@@ -59,7 +59,7 @@ export function CreatedPlanCard({ plan, onPress }: CreatedPlanCardProps) {
                         type="label"
                         style={[styles.visibilityText, { color: isPrivate ? mutedText : tint }]}
                     >
-                        {isPrivate ? 'Privado' : 'Publico'}
+                        {isPrivate ? 'Private' : 'Public'}
                     </ThemedText>
                 </View>
             </View>

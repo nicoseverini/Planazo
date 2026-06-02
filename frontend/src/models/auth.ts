@@ -50,15 +50,15 @@ export const travelTypeOptions = travelTypeValues;
 
 export function validateLoginForm(values: LoginRequest) {
   if (!values.email.trim()) {
-    return 'El email es obligatorio';
+    return 'Email is required';
   }
 
   if (!/^\S+@\S+\.\S+$/.test(values.email.trim())) {
-    return 'Ingresá un email válido';
+    return 'Enter a valid email';
   }
 
   if (!values.password) {
-    return 'La contraseña es obligatoria';
+    return 'Password is required';
   }
 
   return null;
@@ -66,7 +66,7 @@ export function validateLoginForm(values: LoginRequest) {
 
 export function validateSignupForm(values: SignupFormState) {
   if (!values.email.trim()) {
-    return 'El email es obligatorio';
+    return 'Email is required';
   }
 
   if (!/^\S+@\S+\.\S+$/.test(values.email.trim())) {
@@ -74,27 +74,27 @@ export function validateSignupForm(values: SignupFormState) {
   }
 
   if (values.password.length < 8) {
-    return 'La contraseña debe tener al menos 8 caracteres';
+    return 'Password must be at least 8 characters';
   }
 
   if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(values.password)) {
-    return 'La contraseña debe incluir mayúscula, minúscula y número';
+    return 'Password must include uppercase, lowercase and number';
   }
 
   if (!values.name.trim()) {
-    return 'El nombre es obligatorio';
+    return 'Name is required';
   }
 
   if (!values.lastname.trim()) {
-    return 'El apellido es obligatorio';
+    return 'Last name is required';
   }
 
   if (!values.gender.trim()) {
-    return 'El género es obligatorio';
+    return 'Gender is required';
   }
 
   if (!values.birthDate.trim()) {
-    return 'La fecha de nacimiento es obligatoria';
+    return 'Birth date is required';
   }
 
   return null;

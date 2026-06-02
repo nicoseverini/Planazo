@@ -130,7 +130,7 @@ export default function PlanDetailScreen() {
         if (!plan) return;
 
         if (plan.isFull && !isSubscribed) {
-            Alert.alert('Plan completo', 'Este plan ya alcanzo el maximo de participantes.');
+            Alert.alert('Plan full', 'This plan already reached the maximum number of participants.');
             return;
         }
 
@@ -153,7 +153,7 @@ export default function PlanDetailScreen() {
             }
         } catch (err) {
             console.error('[PlanDetailScreen] Error subscribing:', err);
-            Alert.alert('Error', 'No se pudo procesar la suscripcion');
+            Alert.alert('Error', 'Could not process the subscription');
         } finally {
             setSubscribing(false);
         }
@@ -181,13 +181,13 @@ export default function PlanDetailScreen() {
                 <View style={styles.loadingContainer}>
                     <Ionicons name="alert-circle-outline" size={48} color={mutedText} />
                     <ThemedText type="body" style={{ color: mutedText, marginTop: 12 }}>
-                        Plan no encontrado
+                        Plan not found
                     </ThemedText>
                     <Pressable
                         onPress={() => router.back()}
                         style={[styles.backButton, { backgroundColor: tint, marginTop: 24 }]}
                     >
-                        <ThemedText type="body" style={{ color: tintText }}>Volver</ThemedText>
+                        <ThemedText type="body" style={{ color: tintText }}>Back</ThemedText>
                     </Pressable>
                 </View>
             </AppScreen>
@@ -254,7 +254,7 @@ export default function PlanDetailScreen() {
                     <ThemedText type="title" numberOfLines={1}>{plan.title}</ThemedText>
                     <View style={[styles.visibilityBadge, { backgroundColor: isPublic ? '#dcfce7' : '#fef3c7' }]}>
                         <ThemedText type="label" style={{ color: isPublic ? '#166534' : '#92400e', fontSize: 11 }}>
-                            {isPublic ? 'Publico' : 'Privado'}
+                            {isPublic ? 'Public' : 'Private'}
                         </ThemedText>
                     </View>
                 </View>
@@ -269,7 +269,7 @@ export default function PlanDetailScreen() {
                 </ThemedText>
                 <Pressable onPress={() => setActiveTab('reviews')}>
                     <ThemedText type="body" style={{ color: tint, marginLeft: 8 }}>
-                        Ver reviews
+                        View reviews
                     </ThemedText>
                 </Pressable>
             </View>
@@ -428,9 +428,9 @@ export default function PlanDetailScreen() {
             {/* Contenido de tabs */}
             {activeTab === 'description' && (
                 <View style={styles.tabContent}>
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Descripcion</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Description</ThemedText>
                     <ThemedText type="body" style={{ color: mutedText, lineHeight: 22 }}>
-                        {plan.description || 'Sin descripcion disponible'}
+                        {plan.description || 'No description available'}
                     </ThemedText>
 
                     {/* Info adicional */}
@@ -439,18 +439,18 @@ export default function PlanDetailScreen() {
                         <View style={styles.infoList}>
                             <View style={styles.infoListItem}>
                                 <View style={[styles.infoDot, { backgroundColor: tint }]} />
-                                <ThemedText type="body">Interes: {CATEGORY_BY_INTEREST[plan.interest] || plan.interest}</ThemedText>
+                                <ThemedText type="body">Interest: {CATEGORY_BY_INTEREST[plan.interest] || plan.interest}</ThemedText>
                             </View>
                             <View style={styles.infoListItem}>
                                 <View style={[styles.infoDot, { backgroundColor: tint }]} />
                                 <ThemedText type="body">
-                                    Participantes: {plan.subscribersCount}/{plan.maxSubscribers}
+                                    Participants: {plan.subscribersCount}/{plan.maxSubscribers}
                                 </ThemedText>
                             </View>
                             {plan.maxAge !== null && (
                                 <View style={styles.infoListItem}>
                                     <View style={[styles.infoDot, { backgroundColor: tint }]} />
-                                    <ThemedText type="body">Edad maxima: {plan.maxAge}</ThemedText>
+                                    <ThemedText type="body">Max age: {plan.maxAge}</ThemedText>
                                 </View>
                             )}
                         </View>
@@ -460,11 +460,11 @@ export default function PlanDetailScreen() {
 
             {activeTab === 'subscribe' && (
                 <View style={styles.tabContent}>
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Suscripcion</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Subscription</ThemedText>
                     <ThemedText type="body" style={{ color: mutedText, marginBottom: 24 }}>
                         {isSubscribed
-                            ? 'Ya estas suscrito a este plan. Podes cancelar tu suscripcion en cualquier momento.'
-                            : 'Unite a este plan y conecta con otras personas que comparten tus intereses.'}
+                            ? 'You are already subscribed to this plan. You can cancel your subscription at any time.'
+                            : 'Join this plan and connect with others who share your interests.'}
                     </ThemedText>
 
                     <View style={[styles.subscribeInfo, { backgroundColor: surface, borderColor: border }]}>
@@ -507,7 +507,7 @@ export default function PlanDetailScreen() {
                             ]}
                         >
                             <ThemedText type="body" style={{ color: tint, fontWeight: '600' }}>
-                                EDITAR
+                                EDIT
                             </ThemedText>
                         </Pressable>
 
@@ -521,7 +521,7 @@ export default function PlanDetailScreen() {
                             ]}
                         >
                             <ThemedText type="body" style={{ color: '#ffffff', fontWeight: '600' }}>
-                                ELIMINAR
+                                DELETE
                             </ThemedText>
                         </Pressable>
                     </View>
@@ -536,12 +536,12 @@ export default function PlanDetailScreen() {
                             (subscribing || !canSubscribe) && styles.disabled,
                         ]}
                     >
-                        {subscribing ? (
+                                {subscribing ? (
                             <ActivityIndicator size="small" color={tintText} />
                         ) : (
-                            <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                                {isSubscribed ? 'CANCELAR SUSCRIPCION' : (plan.isFull ? 'PLAN COMPLETO' : 'SUSCRIBIRSE')}
-                            </ThemedText>
+                                    <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
+                                        {isSubscribed ? 'CANCEL SUBSCRIPTION' : (plan.isFull ? 'PLAN FULL' : 'SUBSCRIBE')}
+                                    </ThemedText>
                         )}
                     </Pressable>
                 )}

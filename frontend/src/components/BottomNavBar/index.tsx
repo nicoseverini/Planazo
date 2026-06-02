@@ -30,13 +30,13 @@ const NAV_ITEMS: NavItem[] = [
     {
         icon: 'calendar-outline',
         iconFocused: 'calendar',
-        label: 'Planes',
+        label: 'Plans',
         route: '/search-plans',
     },
     {
         icon: 'bookmark-outline',
         iconFocused: 'bookmark',
-        label: 'Mis Planes',
+        label: 'My Plans',
         route: '/my-plans',
     },
     {
@@ -92,6 +92,10 @@ export function BottomNavBar() {
     const mutedText = useThemeColor({}, 'mutedText');
 
     const handleNavigation = (route: string) => {
+        if (pathname === route || pathname.startsWith(route + '/')) {
+            return;
+        }
+
         router.push(route as any);
     };
 

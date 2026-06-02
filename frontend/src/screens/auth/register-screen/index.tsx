@@ -103,7 +103,7 @@ function SelectField({
           })}
 
           <Pressable onPress={() => setOpen(false)} style={styles.modalCancelButton}>
-            <ThemedText style={styles.modalCancelText}>Cancelar</ThemedText>
+            <ThemedText style={styles.modalCancelText}>Cancel</ThemedText>
           </Pressable>
         </View>
       </Modal>
@@ -203,10 +203,10 @@ export default function RegisterScreen() {
 
     try {
       const response = await signupUser(buildSignupRequest(values));
-      Alert.alert('Cuenta creada', response.message || 'Revisá tu email para verificar la cuenta.');
+      Alert.alert('Account created', response.message || 'Check your email to verify your account.');
       router.replace('/login');
     } catch (requestError) {
-      const message = requestError instanceof Error ? requestError.message : 'No se pudo crear la cuenta';
+      const message = requestError instanceof Error ? requestError.message : 'Could not create account';
       setError(message);
     } finally {
       setLoading(false);
@@ -215,9 +215,9 @@ export default function RegisterScreen() {
 
   return (
     <AppScreen scrollable contentStyle={styles.wrapper}>
-      <AuthCard kicker="Registro" title="Crear cuenta" body="Completá los datos para crear tu cuenta y generar una sesión nueva.">
+      <AuthCard kicker="Registration" title="Create account" body="Fill in the details to create your account and start a new session.">
         <AuthInput label="Email" value={values.email} onChangeText={(value) => update('email', value)} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
-        <AuthInput label="Contraseña" value={values.password} onChangeText={(value) => update('password', value)} secureTextEntry autoCapitalize="none" autoComplete="password" />
+        <AuthInput label="Password" value={values.password} onChangeText={(value) => update('password', value)} secureTextEntry autoCapitalize="none" autoComplete="password" />
         <AuthInput label="Nombre" value={values.name} onChangeText={(value) => update('name', value)} autoCapitalize="words" />
         <AuthInput label="Apellido" value={values.lastname} onChangeText={(value) => update('lastname', value)} autoCapitalize="words" />
         <ChoiceGroup
@@ -239,7 +239,7 @@ export default function RegisterScreen() {
           value={values.interests}
           onChange={(value) => update('interests', value as typeof values.interests)}
         />
-        <AuthInput label="Presupuesto (opcional)" value={values.budget} onChangeText={(value) => update('budget', value)} keyboardType="numeric" />
+        <AuthInput label="Budget (optional)" value={values.budget} onChangeText={(value) => update('budget', value)} keyboardType="numeric" />
         <ChoiceGroup
           label="Tipo de viaje (opcional)"
           options={TRAVEL_TYPE_OPTIONS.map((value) => ({
@@ -256,7 +256,7 @@ export default function RegisterScreen() {
           options={LANGUAGE_OPTIONS.map((value) => ({ label: value, value }))}
           onChange={(value) => update('language', value)}
         />
-        <AuthButton label={loading ? 'Registrando...' : 'Crear cuenta'} onPress={handleSignup} disabled={loading} />
+        <AuthButton label={loading ? 'Registering...' : 'Create account'} onPress={handleSignup} disabled={loading} />
         {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
       </AuthCard>
     </AppScreen>

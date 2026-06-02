@@ -67,7 +67,7 @@ export function SearchPlansScreen() {
 
     const buildFilters = useCallback((): PlanFilters => {
         const f: PlanFilters = {};
-        if (selectedInterest) f.interest = selectedInterest;
+        if (selectedInterest)  f.interest = selectedInterest;
         if (locationFilter)   f.location = locationFilter;
         if (dateFrom)         f.dateFrom = `${fmt(dateFrom)}T00:00:00`;
         if (dateTo)           f.dateTo   = `${fmt(dateTo)}T23:59:59`;
@@ -132,7 +132,7 @@ export function SearchPlansScreen() {
         <AppScreen>
             {/* Header */}
             <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-                <ThemedText type="title">Planes</ThemedText>
+                <ThemedText type="title">Plans</ThemedText>
                 <Pressable onPress={() => setShowFilters(true)} style={{ padding: 4 }}>
                     <Ionicons
                         name={hasActiveFilters ? 'filter' : 'filter-outline'}
@@ -168,7 +168,7 @@ export function SearchPlansScreen() {
                         </View>
                     )}
                     <Pressable onPress={clearFilters} style={{ justifyContent: 'center' }}>
-                        <ThemedText type="label" style={{ color: mutedText }}>✕ Limpiar</ThemedText>
+                            <ThemedText type="label" style={{ color: mutedText }}>✕ Clear</ThemedText>
                     </Pressable>
                 </View>
             )}
@@ -176,9 +176,9 @@ export function SearchPlansScreen() {
             {/* Search bar */}
             <View style={[styles.searchContainer, { backgroundColor: surface, borderColor: border }]}>
                 <Ionicons name="search-outline" size={20} color={mutedText} />
-                <TextInput
+                    <TextInput
                     style={[styles.searchInput, { color: textColor }]}
-                    placeholder="Buscar por nombre"
+                    placeholder="Search by name"
                     placeholderTextColor={mutedText}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
@@ -361,13 +361,13 @@ export function SearchPlansScreen() {
                             onPress={() => { setShowFilters(false); loadPlans(); }}
                             style={{ backgroundColor: tint, borderRadius: 12, padding: 16, alignItems: 'center' }}
                         >
-                            <ThemedText type="subtitle" style={{ color: tintText }}>Aplicar filtros</ThemedText>
+                            <ThemedText type="subtitle" style={{ color: tintText }}>Apply filters</ThemedText>
                         </Pressable>
                         <Pressable
                             onPress={() => { clearFilters(); setShowFilters(false); }}
                             style={{ borderWidth: 1, borderColor: border, borderRadius: 12, padding: 16, alignItems: 'center' }}
                         >
-                            <ThemedText type="subtitle">Limpiar todo</ThemedText>
+                            <ThemedText type="subtitle">Clear all</ThemedText>
                         </Pressable>
                     </View>
                 </ScrollView>

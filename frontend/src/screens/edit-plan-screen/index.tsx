@@ -162,7 +162,7 @@ export default function EditPlanScreen() {
                 }
 
             } catch (error) {
-                Alert.alert('Error', 'No se pudo cargar la información del plan.');
+                Alert.alert('Error', 'Could not load plan information.');
                 router.back();
             } finally {
                 setLoadingData(false);
@@ -175,7 +175,7 @@ export default function EditPlanScreen() {
     const handleAddImage = async () => {
         const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (permission.status !== 'granted') {
-            Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería para elegir imágenes.');
+            Alert.alert('Permission required', 'We need access to your gallery to choose images.');
             return;
         }
 
@@ -190,7 +190,7 @@ export default function EditPlanScreen() {
 
         const asset = result.assets[0];
         if (!asset.base64) {
-            setError('No se pudo leer la imagen seleccionada.');
+            setError('Could not read selected image.');
             return;
         }
 
@@ -205,15 +205,15 @@ export default function EditPlanScreen() {
 
     const validateForm = (): boolean => {
         if (!title.trim()) {
-            setError('El título es requerido');
+            setError('Title is required');
             return false;
         }
         if (!date.trim() || !time.trim()) {
-            setError('La fecha y hora son requeridas');
+            setError('Date and time are required');
             return false;
         }
         if (!location.trim()) {
-            setError('La ubicación es requerida');
+            setError('Location is required');
             return false;
         }
         return true;
@@ -235,10 +235,10 @@ export default function EditPlanScreen() {
                     longitudeDelta: 0.02,
                 }, 1000);
             } else {
-                Alert.alert('No encontrada', 'Intenta ser más específico (ej: agregar ciudad).');
+                Alert.alert('Not found', 'Try being more specific (e.g., add city).');
             }
         } catch (e) {
-            Alert.alert('Error', 'Hubo un problema buscando la dirección.');
+            Alert.alert('Error', 'There was a problem searching the address.');
         } finally {
             setIsSearchingLoc(false);
         }
@@ -307,7 +307,7 @@ export default function EditPlanScreen() {
 
         const dateTime = buildDateTime(date, time);
         if (!dateTime) {
-            setError('La fecha o la hora no tienen un formato válido.');
+            setError('Date or time has an invalid format.');
             return;
         }
 
@@ -350,12 +350,12 @@ export default function EditPlanScreen() {
             };
 
             await update(Number(id), payload);
-            Alert.alert('Éxito', 'Plan actualizado correctamente', [
+            Alert.alert('Success', 'Plan updated successfully', [
                 { text: 'OK', onPress: () => router.back() },
             ]);
         } catch (err) {
             console.error('[EditPlanScreen] Error updating plan:', err);
-            setError('No se pudo actualizar el plan. Intenta de nuevo.');
+            setError('Could not update the plan. Please try again.');
         } finally {
             setSaving(false);
         }
@@ -383,7 +383,7 @@ export default function EditPlanScreen() {
                 >
                     <Ionicons name="arrow-back" size={24} color={text} />
                 </Pressable>
-                <ThemedText type="title">Editar Plan</ThemedText>
+                <ThemedText type="title">Edit Plan</ThemedText>
             </View>
 
             {/* Título y visibilidad */}
@@ -419,7 +419,7 @@ export default function EditPlanScreen() {
                                 type="label"
                                 style={{ color: !isPublic ? tintText : mutedText, fontSize: 11 }}
                             >
-                                Privado
+                                Private
                             </ThemedText>
                         </Pressable>
                         <Pressable
@@ -592,10 +592,10 @@ export default function EditPlanScreen() {
                 </View>
             </View>
 
-            {/* Imagenes */}
+            {/* Images */}
             <View style={styles.inputGroup}>
                 <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                    Imágenes
+                    Images
                 </ThemedText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.imagesRow}>
@@ -620,10 +620,10 @@ export default function EditPlanScreen() {
                 </ScrollView>
             </View>
 
-            {/* Descripcion */}
+            {/* Description */}
             <View style={styles.inputGroup}>
                 <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                    Descripción
+                    Description
                 </ThemedText>
                 <TextInput
                     value={description}
@@ -690,7 +690,7 @@ export default function EditPlanScreen() {
                     </View>
                     <View style={styles.halfInput}>
                         <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                            Presupuesto (opcional)
+                            Budget (optional)
                         </ThemedText>
                         <TextInput
                             value={budget}
