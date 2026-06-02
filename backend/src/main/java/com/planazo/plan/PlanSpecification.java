@@ -29,7 +29,7 @@ public class PlanSpecification {
             predicates.add(cb.isTrue(root.get("active")));
 
             if (interest != null) {
-                predicates.add(cb.equal(root.get("interest"), interest));
+                predicates.add(cb.isMember(interest, root.get("interests")));
             }
 
             if (dateFrom != null) {

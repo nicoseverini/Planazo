@@ -24,29 +24,29 @@ import { PlanUpdateRequest, usePlans } from '@/services/plan';
 import { styles } from './styles';
 
 const CATEGORY_OPTIONS = [
-    'Gastronomia',
-    'Cultura',
-    'Naturaleza',
-    'Playa',
-    'Aventura',
-    'Fiesta',
+    'Gastronomy',
+    'Culture',
+    'Nature',
+    'Beach',
+    'Adventure',
+    'Nightlife',
     'Shopping',
-    'Historia',
-    'Montañas',
-    'Otro',
+    'History',
+    'Mountains',
+    'Other',
 ];
 
 const INTEREST_BY_CATEGORY: Record<string, string> = {
-    Gastronomia:      'FOOD',
-    Cultura:   'CULTURE',
-    Naturaleza:    'NATURE',
-    Playa:     'BEACH',
-    Aventura: 'ADVENTURE',
-    Fiesta: 'NIGHTLIFE',
+    Gastronomy:      'FOOD',
+    Culture:   'CULTURE',
+    Nature:    'NATURE',
+    Beach:     'BEACH',
+    Adventure: 'ADVENTURE',
+    Nightlife: 'NIGHTLIFE',
     Shopping:  'SHOPPING',
-    Historia:   'HISTORY',
-    Montañas: 'MOUNTAINS',
-    Otro:     'OTHER',
+    History:   'HISTORY',
+    Mountains: 'MOUNTAINS',
+    Other:     'OTHER',
 };
 
 const DEFAULT_INTEREST = 'ADVENTURE';
@@ -116,7 +116,7 @@ export default function EditPlanScreen() {
     const [pinLocation, setPinLocation] = useState<{latitude: number, longitude: number} | null>(null);
     const [minAge, setMinAge] = useState('');
     const [maxParticipants, setMaxParticipants] = useState('');
-    const [category, setCategory] = useState('');
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [budget, setBudget] = useState('');
     const [images, setImages] = useState<string[]>([]);
 
@@ -134,10 +134,10 @@ export default function EditPlanScreen() {
                 setMaxParticipants(plan.maxSubscribers ? plan.maxSubscribers.toString() : '');
                 if (plan.images) setImages(plan.images);
 
-                const categoryKey = Object.keys(INTEREST_BY_CATEGORY).find(
-                    key => INTEREST_BY_CATEGORY[key] === plan.interest
+                const categoriesFromInterests = Object.keys(INTEREST_BY_CATEGORY).filter(
+                    key => plan.interests?.includes(INTEREST_BY_CATEGORY[key])
                 );
-                if (categoryKey) setCategory(categoryKey);
+                setSelectedCategories(categoriesFromInterests);
 
                 if (plan.latitude && plan.longitude) {
                     const coords = { latitude: plan.latitude, longitude: plan.longitude };
@@ -162,7 +162,7 @@ export default function EditPlanScreen() {
                 }
 
             } catch (error) {
-                Alert.alert('Error', 'No se pudo cargar la información del plan.');
+                Alert.alert('Error', 'Could not load plan information.');
                 router.back();
             } finally {
                 setLoadingData(false);
@@ -175,7 +175,7 @@ export default function EditPlanScreen() {
     const handleAddImage = async () => {
         const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (permission.status !== 'granted') {
-            Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería para elegir imágenes.');
+            Alert.alert('Permission required', 'We need access to your gallery to choose images.');
             return;
         }
 
@@ -190,7 +190,7 @@ export default function EditPlanScreen() {
 
         const asset = result.assets[0];
         if (!asset.base64) {
-            setError('No se pudo leer la imagen seleccionada.');
+            setError('Could not read selected image.');
             return;
         }
 
@@ -205,15 +205,19 @@ export default function EditPlanScreen() {
 
     const validateForm = (): boolean => {
         if (!title.trim()) {
-            setError('El título es requerido');
+            setError('Title is required');
             return false;
         }
         if (!date.trim() || !time.trim()) {
-            setError('La fecha y hora son requeridas');
+            setError('Date and time are required');
             return false;
         }
         if (!location.trim()) {
-            setError('La ubicación es requerida');
+            setError('Location is required');
+            return false;
+        }
+        if (selectedCategories.length === 0) {
+            setError('Selecciona al menos una categoría');
             return false;
         }
         return true;
@@ -235,10 +239,10 @@ export default function EditPlanScreen() {
                     longitudeDelta: 0.02,
                 }, 1000);
             } else {
-                Alert.alert('No encontrada', 'Intenta ser más específico (ej: agregar ciudad).');
+                Alert.alert('Not found', 'Try being more specific (e.g., add city).');
             }
         } catch (e) {
-            Alert.alert('Error', 'Hubo un problema buscando la dirección.');
+            Alert.alert('Error', 'There was a problem searching the address.');
         } finally {
             setIsSearchingLoc(false);
         }
@@ -307,7 +311,7 @@ export default function EditPlanScreen() {
 
         const dateTime = buildDateTime(date, time);
         if (!dateTime) {
-            setError('La fecha o la hora no tienen un formato válido.');
+            setError('Date or time has an invalid format.');
             return;
         }
 
@@ -325,13 +329,17 @@ export default function EditPlanScreen() {
             if (!finalLat || !finalLng) {
                 const geocodedLocation = await Location.geocodeAsync(location.trim());
                 if (!geocodedLocation || geocodedLocation.length === 0) {
-                    setError('No pudimos encontrar la ubicación en el mapa. Intenta agregar la ciudad.');
+                    setError('We could not find the location on the map. Try adding the city.');
                     setSaving(false);
                     return;
                 }
                 finalLat = geocodedLocation[0].latitude;
                 finalLng = geocodedLocation[0].longitude;
             }
+
+            const mappedInterests = selectedCategories
+                .map((cat) => INTEREST_BY_CATEGORY[cat])
+                .filter(Boolean);
 
             const payload: PlanUpdateRequest = {
                 title: title.trim(),
@@ -343,19 +351,19 @@ export default function EditPlanScreen() {
                 visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
                 maxSubscribers: Number.isNaN(parsedMaxSubscribers) ? 10 : parsedMaxSubscribers,
                 minAge: Number.isNaN(parsedMinAge) ? undefined : parsedMinAge,
-                interest: INTEREST_BY_CATEGORY[category] ?? DEFAULT_INTEREST,
+                interests: mappedInterests.length > 0 ? mappedInterests : [DEFAULT_INTEREST],
                 travelType: DEFAULT_TRAVEL_TYPE,
                 location: location.trim(),
                 images: images.length > 0 ? images : undefined,
             };
 
             await update(Number(id), payload);
-            Alert.alert('Éxito', 'Plan actualizado correctamente', [
+            Alert.alert('Success', 'Plan updated successfully', [
                 { text: 'OK', onPress: () => router.back() },
             ]);
         } catch (err) {
             console.error('[EditPlanScreen] Error updating plan:', err);
-            setError('No se pudo actualizar el plan. Intenta de nuevo.');
+            setError('Could not update the plan. Please try again.');
         } finally {
             setSaving(false);
         }
@@ -383,19 +391,19 @@ export default function EditPlanScreen() {
                 >
                     <Ionicons name="arrow-back" size={24} color={text} />
                 </Pressable>
-                <ThemedText type="title">Editar Plan</ThemedText>
+                <ThemedText type="title">Edit Plan</ThemedText>
             </View>
 
             {/* Título y visibilidad */}
             <View style={styles.titleRow}>
                 <View style={styles.titleInput}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Título
+                        Title
                     </ThemedText>
                     <TextInput
                         value={title}
                         onChangeText={setTitle}
-                        placeholder="Nombre del plan"
+                        placeholder="Plan name"
                         placeholderTextColor={mutedText}
                         style={[
                             styles.input,
@@ -419,7 +427,7 @@ export default function EditPlanScreen() {
                                 type="label"
                                 style={{ color: !isPublic ? tintText : mutedText, fontSize: 11 }}
                             >
-                                Privado
+                                Private
                             </ThemedText>
                         </Pressable>
                         <Pressable
@@ -445,7 +453,7 @@ export default function EditPlanScreen() {
                 {/* Input de Fecha */}
                 <View style={styles.halfInput}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Fecha
+                        Date
                     </ThemedText>
                     <View style={[styles.input, { backgroundColor: surface, borderColor: border, flexDirection: 'row', alignItems: 'center', padding: 0, overflow: 'hidden' }]}>
                         <TextInput
@@ -592,10 +600,10 @@ export default function EditPlanScreen() {
                 </View>
             </View>
 
-            {/* Imagenes */}
+            {/* Images */}
             <View style={styles.inputGroup}>
                 <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                    Imágenes
+                    Images
                 </ThemedText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.imagesRow}>
@@ -620,10 +628,10 @@ export default function EditPlanScreen() {
                 </ScrollView>
             </View>
 
-            {/* Descripcion */}
+            {/* Description */}
             <View style={styles.inputGroup}>
                 <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                    Descripción
+                    Description
                 </ThemedText>
                 <TextInput
                     value={description}
@@ -645,23 +653,23 @@ export default function EditPlanScreen() {
 
                 <View style={styles.infoInputGroup}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Categoría
+                        Category
                     </ThemedText>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <View style={styles.categoryRow}>
                             {CATEGORY_OPTIONS.map((cat) => (
                                 <Pressable
                                     key={cat}
-                                    onPress={() => setCategory(cat)}
+                                    onPress={() => setSelectedCategories(selectedCategories.includes(cat) ? selectedCategories.filter((entry) => entry !== cat) : [...selectedCategories, cat])}
                                     style={[
                                         styles.categoryChip,
                                         { borderColor: border },
-                                        category === cat && { backgroundColor: tint, borderColor: tint },
+                                        selectedCategories.includes(cat) && { backgroundColor: tint, borderColor: tint },
                                     ]}
                                 >
                                     <ThemedText
                                         type="label"
-                                        style={{ color: category === cat ? tintText : text }}
+                                        style={{ color: selectedCategories.includes(cat) ? tintText : text }}
                                     >
                                         {cat}
                                     </ThemedText>
@@ -674,7 +682,7 @@ export default function EditPlanScreen() {
                 <View style={styles.row}>
                     <View style={styles.halfInput}>
                         <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                            Máx participantes
+                            Max Participants
                         </ThemedText>
                         <TextInput
                             value={maxParticipants}
@@ -690,7 +698,7 @@ export default function EditPlanScreen() {
                     </View>
                     <View style={styles.halfInput}>
                         <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                            Presupuesto (opcional)
+                            Budget (optional)
                         </ThemedText>
                         <TextInput
                             value={budget}
@@ -729,7 +737,7 @@ export default function EditPlanScreen() {
                     <ActivityIndicator size="small" color={tintText} />
                 ) : (
                     <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                        GUARDAR CAMBIOS
+                        SAVE CHANGES
                     </ThemedText>
                 )}
             </Pressable>

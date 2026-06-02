@@ -41,9 +41,11 @@ public class Plan {
     @Column
     private Integer maxAge;
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "plan_interests", joinColumns = @JoinColumn(name = "plan_id"))
+    @Column(name = "interest", nullable = false)
     @Enumerated(EnumType.STRING)
-    @Column
-    private Interest interest;
+    private List<Interest> interests = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column
@@ -81,7 +83,7 @@ public class Plan {
 
     public Plan(String title, String description, LocalDateTime dateTime, Integer durationMinutes,
                 PlanVisibility visibility, Integer maxSubscribers, Integer minAge, Integer maxAge,
-                Interest interest, TravelType travelType, String location,Double latitude, Double longitude, List<String> images, User creator) {
+                List<Interest> interests, TravelType travelType, String location,Double latitude, Double longitude, List<String> images, User creator) {
         this.title = title;
         this.description = description;
         this.dateTime = dateTime;
@@ -90,7 +92,7 @@ public class Plan {
         this.maxSubscribers = maxSubscribers;
         this.minAge = minAge;
         this.maxAge = maxAge;
-        this.interest = interest;
+        this.interests = interests == null ? new ArrayList<>() : new ArrayList<>(interests);
         this.travelType = travelType;
         this.location = location;
         this.latitude = latitude;
@@ -117,8 +119,10 @@ public class Plan {
     public void setMinAge(Integer minAge) { this.minAge = minAge; }
     public Integer getMaxAge() { return maxAge; }
     public void setMaxAge(Integer maxAge) { this.maxAge = maxAge; }
-    public Interest getInterest() { return interest; }
-    public void setInterest(Interest interest) { this.interest = interest; }
+    public List<Interest> getInterests() { return interests; }
+    public void setInterests(List<Interest> interests) {
+        this.interests = interests == null ? new ArrayList<>() : new ArrayList<>(interests);
+    }
     public TravelType getTravelType() { return travelType; }
     public void setTravelType(TravelType travelType) { this.travelType = travelType; }
     public String getLocation() { return location; }

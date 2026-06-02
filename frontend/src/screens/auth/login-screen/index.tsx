@@ -38,10 +38,10 @@ export default function LoginScreen() {
         refreshToken: response.refreshToken,
         role,
       });
-      Alert.alert('Sesión iniciada', 'Tus credenciales fueron aceptadas.');
+      Alert.alert('Signed in', 'Your credentials were accepted.');
       router.replace('/home');
     } catch (requestError) {
-      const message = requestError instanceof Error ? requestError.message : 'No se pudo iniciar sesión';
+      const message = requestError instanceof Error ? requestError.message : 'Unable to sign in';
       setError(message);
     } finally {
       setLoading(false);
@@ -51,13 +51,13 @@ export default function LoginScreen() {
   return (
     <AppScreen centered scrollable>
       <View style={styles.shell}>
-        <AuthCard kicker="Acceso" title="Iniciar sesión" body="Ingresá con tu correo y contraseña para continuar.">
+        <AuthCard kicker="Sign in" title="Sign in" body="Enter your verified email and password to continue.">
           <AuthInput label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
-          <AuthInput label="Contraseña" value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" autoComplete="password" />
-          <AuthButton label={loading ? 'Ingresando...' : 'Entrar'} onPress={handleLogin} disabled={loading} />
+          <AuthInput label="Password" value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" autoComplete="password" />
+          <AuthButton label={loading ? 'Signing in...' : 'Sign in'} onPress={handleLogin} disabled={loading} />
           <Pressable onPress={() => router.push('/forgot-password')} style={styles.forgotPasswordLink}>
             <ThemedText lightColor="#000000" darkColor="#ffffff" style={styles.forgotPasswordText}>
-              Me olvidé la contraseña
+              Forgot password
             </ThemedText>
           </Pressable>
 

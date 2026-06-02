@@ -28,6 +28,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
         NATURE:    'Naturaleza',
         BEACH:     'Playa',
         ADVENTURE: 'Aventura',
+        SPORTS:    'Deporte',
         NIGHTLIFE: 'Fiesta',
         SHOPPING:  'Shopping',
         HISTORY:   'Historia',
@@ -51,6 +52,10 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
         });
     };
 
+    const interestLabel = (plan.interests ?? [])
+        .map((interest) => CATEGORY_BY_INTEREST[interest] || interest)
+        .join(' · ');
+
     return (
         <Pressable
             onPress={() => onPress(plan.id)}
@@ -66,7 +71,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
                         {plan.title}
                     </ThemedText>
                     <ThemedText type="label" style={[styles.planDescription, { color: tint }]}>
-                        {CATEGORY_BY_INTEREST[plan.interest] || plan.interest}
+                        {interestLabel}
                     </ThemedText>
                     <View style={styles.planMeta}>
                         <View style={styles.metaRow}>
@@ -104,7 +109,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
                             <ActivityIndicator size="small" color={tintText} />
                         ) : (
                             <ThemedText type="label" style={[styles.subscribeButtonText, { color: tintText }]}>
-                                SUSCRIBIRSE
+                                SUBSCRIBE
                             </ThemedText>
                         )}
                     </Pressable>

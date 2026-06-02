@@ -11,7 +11,7 @@ export type PlanSummary = {
     location: string;
     latitude: number;
     longitude: number;
-    interest: string;
+    interests: string[];
     travelType: string;
     visibility: PlanVisibility;
     subscribersCount: number;
@@ -32,7 +32,7 @@ export type PlanDetail = {
     maxSubscribers: number;
     minAge: number | null;
     maxAge: number | null;
-    interest: string;
+    interests: string[];
     travelType: string;
     location: string;
     latitude: number;
@@ -53,7 +53,7 @@ export type PlanCreateRequest = {
     maxSubscribers: number;
     minAge?: number;
     maxAge?: number;
-    interest: string;
+    interests: string[];
     travelType: string;
     location: string;
     latitude: number;
