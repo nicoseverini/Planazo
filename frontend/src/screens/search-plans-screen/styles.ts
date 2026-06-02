@@ -15,7 +15,7 @@ export const styles = StyleSheet.create({
     },
     header: {
         paddingHorizontal: 20,
-        paddingTop: 60,
+        paddingTop: 24,
         paddingBottom: 16,
     },
     searchContainer: {
