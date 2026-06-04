@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -52,36 +53,51 @@ class TuristicPlaceRestController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(value = "/me", produces = "application/json")
+    @Operation(summary = "List turistic places created by me")
+    List<TuristicPlaceSummaryDTO> getMyTuristicPlaces(
+            @AuthenticationPrincipal(expression = "username") String email
+    ) {
+        return turisticPlaceService.getMyTuristicPlaces(email);
+    }
+
+    @PreAuthorize("isAuthenticated()")
     @PostMapping(produces = "application/json")
     @Operation(summary = "Create a new turistic place")
     @ResponseStatus(HttpStatus.CREATED)
-    ResponseEntity<TuristicPlaceDetailDTO> createTuristicPlace(@Valid @RequestBody TuristicPlaceCreateDTO data) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(turisticPlaceService.createTuristicPlace(data));
+    ResponseEntity<TuristicPlaceDetailDTO> createTuristicPlace(
+            @Valid @RequestBody TuristicPlaceCreateDTO data,
+            @AuthenticationPrincipal(expression = "username") String email
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(turisticPlaceService.createTuristicPlace(data, email));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @PatchMapping(value = "/{id}", produces = "application/json")
-    @Operation(summary = "Update a turistic place")
-    @ApiResponse(responseCode = "404", description = "Turistic place not found", content = @Content)
+    @Operation(summary = "Update a turistic place (creator or admin)")
+    @ApiResponse(responseCode = "403", description = "Not the creator", content = @Content)
     ResponseEntity<TuristicPlaceDetailDTO> updateTuristicPlace(
             @PathVariable Long id,
-            @RequestBody TuristicPlaceUpdateDTO data
+            @RequestBody TuristicPlaceUpdateDTO data,
+            @AuthenticationPrincipal(expression = "username") String email
     ) {
-        return turisticPlaceService.updateTuristicPlace(id, data)
+        return turisticPlaceService.updateTuristicPlace(id, data, email)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @DeleteMapping(value = "/{id}", produces = "application/json")
-    @Operation(summary = "Delete a turistic place")
-    @ApiResponse(responseCode = "404", description = "Turistic place not found", content = @Content)
-    ResponseEntity<Void> deleteTuristicPlace(@PathVariable Long id) {
-        if (turisticPlaceService.deleteTuristicPlace(id)) {
+    @Operation(summary = "Delete a turistic place (creator or admin)")
+    @ApiResponse(responseCode = "403", description = "Not the creator", content = @Content)
+    ResponseEntity<Void> deleteTuristicPlace(
+            @PathVariable Long id,
+            @AuthenticationPrincipal(expression = "username") String email
+    ) {
+        if (turisticPlaceService.deleteTuristicPlace(id, email).isPresent()) {
             return ResponseEntity.ok().build();
         }
-
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 }

@@ -300,7 +300,7 @@ export default function PlanDetailScreen() {
                 <View style={styles.infoItem}>
                     <Ionicons name="person-outline" size={16} color={mutedText} />
                     <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>
-                        Edad minima: {plan.minAge ?? 18}
+                        Minimum age: {plan.minAge ?? 18}
                     </ThemedText>
                 </View>
             </View>
@@ -492,7 +492,7 @@ export default function PlanDetailScreen() {
                 <View style={styles.tabContent}>
                     <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Reviews</ThemedText>
                     <ThemedText type="body" style={{ color: mutedText }}>
-                        Aun no hay reviews para este plan
+                        No reviews yet. Be the first to leave one!
                     </ThemedText>
                 </View>
             )}

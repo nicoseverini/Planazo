@@ -1,5 +1,6 @@
 package com.planazo.plan;
 
+import com.planazo.common.exception.InvalidAgeRangeException;
 import com.planazo.plan.dto.PlanCreateDTO;
 import com.planazo.plan.dto.PlanDetailDTO;
 import com.planazo.plan.dto.PlanSummaryDTO;
@@ -34,6 +35,8 @@ public class PlanService {
     // ── Create ───────────────────────────────────────────────────────────────
 
     public PlanDetailDTO createPlan(PlanCreateDTO data, String creatorEmail) {
+        validateAgeRange(data.minAge(), data.maxAge());
+
         User creator = userRepository.findByEmail(creatorEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
@@ -146,6 +149,10 @@ public class PlanService {
     }
 
     private Plan saveUpdatedPlan(Plan plan, PlanUpdateDTO data) {
+        Integer effectiveMin = data.minAge() != null ? data.minAge() : plan.getMinAge();
+        Integer effectiveMax = data.maxAge() != null ? data.maxAge() : plan.getMaxAge();
+        validateAgeRange(effectiveMin, effectiveMax);
+
         if (data.title() != null)           plan.setTitle(data.title());
         if (data.description() != null)     plan.setDescription(data.description());
         if (data.dateTime() != null)        plan.setDateTime(data.dateTime());
@@ -161,6 +168,12 @@ public class PlanService {
         if (data.longitude() != null)       plan.setLongitude(data.longitude());
         if (data.images() != null)          plan.setImages(data.images());
         return planRepository.save(plan);
+    }
+
+    private void validateAgeRange(Integer minAge, Integer maxAge) {
+        if (minAge != null && maxAge != null && maxAge != 0 && minAge >= maxAge) {
+            throw new InvalidAgeRangeException();
+        }
     }
 
     // ── Subscribe / Unsubscribe ──────────────────────────────────────────────

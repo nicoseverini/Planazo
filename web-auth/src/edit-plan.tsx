@@ -14,6 +14,7 @@ import {
 	isFutureDateTime,
 	parseOptionalNumber,
 	splitDateTime,
+	validateAgeRange,
 } from './plan-shared'
 
 type PlanDetailResponse = {
@@ -153,6 +154,13 @@ export function EditPlanPage({ planId }: { planId: number }) {
 		if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
 			setStatus('error')
 			setMessage('Las coordenadas deben ser números válidos.')
+			return
+		}
+
+		const ageError = validateAgeRange(form.minAge, form.maxAge)
+		if (ageError) {
+			setStatus('error')
+			setMessage(ageError)
 			return
 		}
 

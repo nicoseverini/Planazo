@@ -60,6 +60,15 @@ export const defaultPlanFormState: PlanFormState = {
 	longitude: '-58.3816',
 }
 
+export function validateAgeRange(minAge: string, maxAge: string): string | null {
+	const min = parseOptionalNumber(minAge)
+	const max = parseOptionalNumber(maxAge)
+	if (min != null && max != null && max !== 0 && min >= max) {
+		return 'Minimum age must be less than maximum age'
+	}
+	return null
+}
+
 export function parseOptionalNumber(value: string) {
 	const trimmed = value.trim()
 	if (!trimmed) {

@@ -5,7 +5,6 @@ import com.planazo.turistic_place.TuristicPlace;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public record TuristicPlaceCreateDTO(
@@ -17,10 +16,11 @@ public record TuristicPlaceCreateDTO(
         String location,
         Double latitude,
         Double longitude,
-        List<String> images
+        List<String> images,
+        String description
 ) {
     public TuristicPlace asTuristicPlace() {
-        return new TuristicPlace(
+        TuristicPlace place = new TuristicPlace(
                 name,
                 cost,
                 minAge,
@@ -31,5 +31,7 @@ public record TuristicPlaceCreateDTO(
                 longitude,
                 images
         );
+        place.setDescription(description);
+        return place;
     }
 }

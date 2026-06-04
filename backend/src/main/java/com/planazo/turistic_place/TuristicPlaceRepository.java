@@ -9,4 +9,7 @@ public interface TuristicPlaceRepository extends JpaRepository<TuristicPlace, Lo
 
     @EntityGraph(attributePaths = "images")
     List<TuristicPlace> findAllByOrderByNameAsc();
+
+    @EntityGraph(attributePaths = "images")
+    List<TuristicPlace> findAllByCreatorIdOrderByNameAsc(Long creatorId);
 }

@@ -1,6 +1,7 @@
 package com.planazo.turistic_place;
 
 import com.planazo.common.constants.Interest;
+import com.planazo.user.User;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -11,6 +12,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +40,9 @@ public class TuristicPlace {
     @Column(nullable = false)
     private Interest interest;
 
+    @Column(length = 1000)
+    private String description;
+
     @Column
     private String location;
 
@@ -49,6 +54,10 @@ public class TuristicPlace {
     @CollectionTable(name = "turistic_place_images", joinColumns = @JoinColumn(name = "id_place"))
     @Column(name = "image", columnDefinition = "TEXT")
     private List<String> images = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "creator_id")
+    private User creator;
 
     public TuristicPlace() {
     }
@@ -110,6 +119,14 @@ public class TuristicPlace {
         this.interest = interest;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public String getLocation() {
         return location;
     }
@@ -140,5 +157,13 @@ public class TuristicPlace {
 
     public void setImages(List<String> images) {
         this.images = images == null ? new ArrayList<>() : new ArrayList<>(images);
+    }
+
+    public User getCreator() {
+        return creator;
+    }
+
+    public void setCreator(User creator) {
+        this.creator = creator;
     }
 }

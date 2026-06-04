@@ -44,6 +44,11 @@ export function TuristicPlaceFormFields({ form, onChange }: TuristicPlaceFormFie
 				<input value={form.location} onChange={(event) => onChange('location', event.target.value)} required />
 			</label>
 
+			<label className="field field--wide">
+				Descripción
+				<textarea rows={4} value={form.description} onChange={(event) => onChange('description', event.target.value)} />
+			</label>
+
 			<label className="field">
 				Latitud
 				<input type="number" step="any" value={form.latitude} onChange={(event) => onChange('latitude', event.target.value)} required />

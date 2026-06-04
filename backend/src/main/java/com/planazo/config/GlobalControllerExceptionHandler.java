@@ -1,5 +1,6 @@
 package com.planazo.config;
 
+import com.planazo.common.exception.InvalidAgeRangeException;
 import com.planazo.common.exception.ItemNotFoundException;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,6 +14,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalControllerExceptionHandler {
+
+    @ExceptionHandler(InvalidAgeRangeException.class)
+    @ApiResponse(responseCode = "400", description = "Invalid age range", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
+    public ResponseEntity<String> handleInvalidAgeRange(InvalidAgeRangeException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class, produces = "text/plain")
     @ApiResponse(

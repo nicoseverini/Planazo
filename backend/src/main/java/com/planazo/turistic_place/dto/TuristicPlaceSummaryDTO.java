@@ -2,7 +2,6 @@ package com.planazo.turistic_place.dto;
 
 import com.planazo.common.constants.Interest;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public record TuristicPlaceSummaryDTO(
@@ -15,6 +14,7 @@ public record TuristicPlaceSummaryDTO(
         Integer minAge,
         Integer maxAge,
         Interest interest,
-        List<String> images
+        List<String> images,
+        Long creatorId
 ) {
 }

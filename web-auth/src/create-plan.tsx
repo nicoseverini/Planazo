@@ -10,6 +10,7 @@ import {
 	defaultPlanFormState,
 	isFutureDateTime,
 	parseOptionalNumber,
+	validateAgeRange,
 } from './plan-shared'
 
 type CreatePlanResponse = {
@@ -66,6 +67,13 @@ export function CreatePlanPage() {
 		if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
 			setStatus('error')
 			setMessage('Las coordenadas deben ser números válidos.')
+			return
+		}
+
+		const ageError = validateAgeRange(form.minAge, form.maxAge)
+		if (ageError) {
+			setStatus('error')
+			setMessage(ageError)
 			return
 		}
 

@@ -11,6 +11,7 @@ import {
 	type TuristicPlaceDetailResponse,
 	type TuristicPlaceFormState,
 } from './turistic-place-shared'
+import { validateAgeRange } from './plan-shared'
 
 export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 	const [form, setForm] = useState<TuristicPlaceFormState>({ ...defaultTuristicPlaceFormState })
@@ -105,6 +106,13 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 			return
 		}
 
+		const ageError = validateAgeRange(form.minAge, form.maxAge)
+		if (ageError) {
+			setStatus('error')
+			setMessage(ageError)
+			return
+		}
+
 		setStatus('saving')
 		setMessage('')
 
@@ -128,6 +136,7 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 					latitude,
 					longitude,
 					images,
+					description: form.description.trim() || null,
 				}),
 			})
 

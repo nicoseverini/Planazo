@@ -9,6 +9,7 @@ export type TuristicPlaceFormState = {
 	location: string
 	latitude: string
 	longitude: string
+	description: string
 }
 
 export type TuristicPlaceSummaryResponse = {
@@ -26,6 +27,7 @@ export type TuristicPlaceSummaryResponse = {
 
 export type TuristicPlaceDetailResponse = TuristicPlaceSummaryResponse & {
 	images: string[]
+	description: string | null
 }
 
 export const turisticPlaceInterestOptions = interestOptions
@@ -39,6 +41,7 @@ export const defaultTuristicPlaceFormState: TuristicPlaceFormState = {
 	location: '',
 	latitude: '-34.6037',
 	longitude: '-58.3816',
+	description: '',
 }
 
 export function toTuristicPlaceFormState(place: TuristicPlaceDetailResponse): TuristicPlaceFormState {
@@ -51,6 +54,7 @@ export function toTuristicPlaceFormState(place: TuristicPlaceDetailResponse): Tu
 		location: place.location,
 		latitude: place.latitude?.toString() ?? '',
 		longitude: place.longitude?.toString() ?? '',
+		description: place.description ?? '',
 	}
 }
 

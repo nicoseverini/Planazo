@@ -114,6 +114,7 @@ export default function CreatePlanScreen() {
     const [isFetchingAddress, setIsFetchingAddress] = useState(false);
     const [pinLocation, setPinLocation] = useState<{latitude: number, longitude: number} | null>(null);
     const [minAge, setMinAge] = useState('18');
+    const [maxAge, setMaxAge] = useState('');
     const [maxParticipants, setMaxParticipants] = useState('10');
     const [selectedCategories, setSelectedCategories] = useState<Array<(typeof CATEGORY_OPTIONS)[number]>>(['Aventura']);
     const [budget, setBudget] = useState('');
@@ -171,6 +172,12 @@ export default function CreatePlanScreen() {
         }
         if (selectedCategories.length === 0) {
             setError('Selecciona al menos una categoria');
+            return false;
+        }
+        const parsedMin = minAge.trim() ? parseInt(minAge, 10) : null;
+        const parsedMax = maxAge.trim() ? parseInt(maxAge, 10) : null;
+        if (parsedMin !== null && parsedMax !== null && parsedMax !== 0 && parsedMin >= parsedMax) {
+            setError('Minimum age must be less than maximum age');
             return false;
         }
         return true;
@@ -288,6 +295,7 @@ export default function CreatePlanScreen() {
         }
 
         const parsedMinAge = Number.parseInt(minAge, 10);
+        const parsedMaxAge = Number.parseInt(maxAge, 10);
         const parsedMaxSubscribers = Number.parseInt(maxParticipants, 10);
 
         setSaving(true);
@@ -319,6 +327,7 @@ export default function CreatePlanScreen() {
                 visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
                 maxSubscribers: Number.isNaN(parsedMaxSubscribers) ? 10 : parsedMaxSubscribers,
                 minAge: Number.isNaN(parsedMinAge) ? undefined : parsedMinAge,
+                maxAge: Number.isNaN(parsedMaxAge) ? undefined : parsedMaxAge,
                 interests: mappedInterests.length > 0 ? mappedInterests : [DEFAULT_INTEREST],
                 travelType: DEFAULT_TRAVEL_TYPE,
                 location: location.trim(),
@@ -476,28 +485,40 @@ export default function CreatePlanScreen() {
                 />
             )}
 
-            {/* Edad minima */}
-            <View style={styles.inputGroup}>
+            {/* Restricciones de edad */}
+            <View style={styles.row}>
+                <View style={styles.halfInput}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Age limit
-                </ThemedText>
-                <TextInput
-                    value={minAge}
-                    onChangeText={setMinAge}
-                    placeholder="18"
-                    placeholderTextColor={mutedText}
-                    keyboardType="numeric"
-                    style={[
-                        styles.input,
-                        { backgroundColor: surface, borderColor: border, color: text },
-                    ]}
-                />
+                        Min Age
+                    </ThemedText>
+                    <TextInput
+                        value={minAge}
+                        onChangeText={setMinAge}
+                        placeholder="0"
+                        placeholderTextColor={mutedText}
+                        keyboardType="numeric"
+                        style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
+                    />
+                </View>
+                <View style={styles.halfInput}>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                        Max Age
+                    </ThemedText>
+                    <TextInput
+                        value={maxAge}
+                        onChangeText={setMaxAge}
+                        placeholder="0 = no limit"
+                        placeholderTextColor={mutedText}
+                        keyboardType="numeric"
+                        style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
+                    />
+                </View>
             </View>
 
             {/* Ubicación híbrida: Texto + Mapa */}
             <View style={styles.inputGroup}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Area / Address
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                    Area / Address
                 </ThemedText>
 
                 {/* Input de texto con botón de búsqueda */}
@@ -532,7 +553,7 @@ export default function CreatePlanScreen() {
                 </View>
 
                 <ThemedText type="label" style={{ color: mutedText, marginBottom: 8, fontSize: 12 }}>
-                    También puedes tocar el mapa o arrastrar el pin para ser más preciso.
+                    Tap the map or drag the pin to set coordinates.
                 </ThemedText>
 
                 {/* El mapa interactivo */}
@@ -596,7 +617,7 @@ export default function CreatePlanScreen() {
                 <TextInput
                     value={description}
                     onChangeText={setDescription}
-                    placeholder="Describe tu plan..."
+                    placeholder="Describe this plan..."
                     placeholderTextColor={mutedText}
                     multiline
                     numberOfLines={4}

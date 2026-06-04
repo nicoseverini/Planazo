@@ -2,7 +2,6 @@ package com.planazo.turistic_place.dto;
 
 import com.planazo.common.constants.Interest;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public record TuristicPlaceUpdateDTO(
@@ -14,6 +13,7 @@ public record TuristicPlaceUpdateDTO(
         String location,
         Double latitude,
         Double longitude,
-        List<String> images
+        List<String> images,
+        String description
 ) {
 }

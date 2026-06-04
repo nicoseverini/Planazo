@@ -9,6 +9,7 @@ import {
 	parseTuristicPlaceOptionalNumber,
 	type TuristicPlaceFormState,
 } from './turistic-place-shared'
+import { validateAgeRange } from './plan-shared'
 
 type CreateTuristicPlaceResponse = {
 	id: number
@@ -58,6 +59,13 @@ export function CreateTuristicPlacePage() {
 			return
 		}
 
+		const ageError = validateAgeRange(form.minAge, form.maxAge)
+		if (ageError) {
+			setStatus('error')
+			setMessage(ageError)
+			return
+		}
+
 		setStatus('loading')
 		setMessage('')
 
@@ -81,6 +89,7 @@ export function CreateTuristicPlacePage() {
 					latitude,
 					longitude,
 					images,
+					description: form.description.trim() || null,
 				}),
 			})
 

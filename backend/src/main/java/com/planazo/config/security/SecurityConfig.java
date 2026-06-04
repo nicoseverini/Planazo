@@ -62,7 +62,6 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/plans", "/api/v1/plans/filter", "/api/v1/plans/nearby").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/turistic-places", "/api/v1/turistic-places/**").permitAll()
-                        .requestMatchers("/api/v1/turistic-places/**").hasRole("ADMIN")
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
                         .anyRequest().authenticated())

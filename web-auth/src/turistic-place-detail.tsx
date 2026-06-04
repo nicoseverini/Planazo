@@ -4,6 +4,15 @@ import { getBackendUrl } from './config'
 import { toTitleCase } from './plan-utils'
 import type { TuristicPlaceDetailResponse } from './turistic-place-shared'
 
+function formatAgeRestriction(minAge: number | null, maxAge: number | null): string {
+	const hasMin = minAge != null
+	const hasMax = maxAge != null && maxAge !== 0
+	if (hasMin && hasMax) return `Allowed age range: ${minAge}–${maxAge} years.`
+	if (hasMin) return `Only visitors aged ${minAge} or older are allowed.`
+	if (hasMax) return `Visitors must be ${maxAge} years old or younger.`
+	return 'No age restrictions.'
+}
+
 type TuristicPlaceDetailPageProps = {
 	placeId: number
 }
@@ -136,7 +145,7 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 								<span className="plan-badge plan-badge--muted">{place.location}</span>
 							</div>
 							<h2>{place.name}</h2>
-							<p className="plan-description">Lugar turístico con coordenadas, rango etario e imágenes asociadas.</p>
+							{place.description && <p className="plan-description">{place.description}</p>}
 						</div>
 						<div className="plan-detail-summary">
 							<div>
@@ -162,12 +171,8 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 								<dd>{toTitleCase(place.interest)}</dd>
 							</div>
 							<div>
-								<dt>Edad mínima</dt>
-								<dd>{place.minAge ?? 'No definida'}</dd>
-							</div>
-							<div>
-								<dt>Edad máxima</dt>
-								<dd>{place.maxAge ?? 'No definida'}</dd>
+								<dt>Age restrictions</dt>
+								<dd>{formatAgeRestriction(place.minAge, place.maxAge)}</dd>
 							</div>
 							<div>
 								<dt>Coordenadas</dt>

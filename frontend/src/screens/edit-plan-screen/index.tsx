@@ -115,6 +115,7 @@ export default function EditPlanScreen() {
     const [isFetchingAddress, setIsFetchingAddress] = useState(false);
     const [pinLocation, setPinLocation] = useState<{latitude: number, longitude: number} | null>(null);
     const [minAge, setMinAge] = useState('');
+    const [maxAge, setMaxAge] = useState('');
     const [maxParticipants, setMaxParticipants] = useState('');
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [budget, setBudget] = useState('');
@@ -131,6 +132,7 @@ export default function EditPlanScreen() {
                 setLocation(plan.location || '');
                 setIsPublic(plan.visibility === 'PUBLIC');
                 setMinAge(plan.minAge ? plan.minAge.toString() : '');
+                setMaxAge(plan.maxAge ? plan.maxAge.toString() : '');
                 setMaxParticipants(plan.maxSubscribers ? plan.maxSubscribers.toString() : '');
                 if (plan.images) setImages(plan.images);
 
@@ -218,6 +220,12 @@ export default function EditPlanScreen() {
         }
         if (selectedCategories.length === 0) {
             setError('Selecciona al menos una categoría');
+            return false;
+        }
+        const parsedMin = minAge.trim() ? parseInt(minAge, 10) : null;
+        const parsedMax = maxAge.trim() ? parseInt(maxAge, 10) : null;
+        if (parsedMin !== null && parsedMax !== null && parsedMax !== 0 && parsedMin >= parsedMax) {
+            setError('Minimum age must be less than maximum age');
             return false;
         }
         return true;
@@ -316,6 +324,7 @@ export default function EditPlanScreen() {
         }
 
         const parsedMinAge = Number.parseInt(minAge, 10);
+        const parsedMaxAge = Number.parseInt(maxAge, 10);
         const parsedMaxSubscribers = Number.parseInt(maxParticipants, 10);
 
         setSaving(true);
@@ -351,6 +360,7 @@ export default function EditPlanScreen() {
                 visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
                 maxSubscribers: Number.isNaN(parsedMaxSubscribers) ? 10 : parsedMaxSubscribers,
                 minAge: Number.isNaN(parsedMinAge) ? undefined : parsedMinAge,
+                maxAge: Number.isNaN(parsedMaxAge) ? undefined : parsedMaxAge,
                 interests: mappedInterests.length > 0 ? mappedInterests : [DEFAULT_INTEREST],
                 travelType: DEFAULT_TRAVEL_TYPE,
                 location: location.trim(),
@@ -516,22 +526,34 @@ export default function EditPlanScreen() {
                 />
             )}
 
-            {/* Edad minima */}
-            <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                    Límite de edad
-                </ThemedText>
-                <TextInput
-                    value={minAge}
-                    onChangeText={setMinAge}
-                    placeholder="18"
-                    placeholderTextColor={mutedText}
-                    keyboardType="numeric"
-                    style={[
-                        styles.input,
-                        { backgroundColor: surface, borderColor: border, color: text },
-                    ]}
-                />
+            {/* Restricciones de edad */}
+            <View style={styles.row}>
+                <View style={styles.halfInput}>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                        Min Age
+                    </ThemedText>
+                    <TextInput
+                        value={minAge}
+                        onChangeText={setMinAge}
+                        placeholder="0"
+                        placeholderTextColor={mutedText}
+                        keyboardType="numeric"
+                        style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
+                    />
+                </View>
+                <View style={styles.halfInput}>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                        Max Age
+                    </ThemedText>
+                    <TextInput
+                        value={maxAge}
+                        onChangeText={setMaxAge}
+                        placeholder="0 = no limit"
+                        placeholderTextColor={mutedText}
+                        keyboardType="numeric"
+                        style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
+                    />
+                </View>
             </View>
 
             {/* Ubicación híbrida: Texto + Mapa */}
@@ -572,7 +594,7 @@ export default function EditPlanScreen() {
                 </View>
 
                 <ThemedText type="label" style={{ color: mutedText, marginBottom: 8, fontSize: 12 }}>
-                    También puedes tocar el mapa o arrastrar el pin para ser más preciso.
+                    Tap the map or drag the pin to set coordinates.
                 </ThemedText>
 
                 {/* El mapa interactivo */}

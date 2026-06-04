@@ -40,6 +40,12 @@ const NAV_ITEMS: NavItem[] = [
         route: '/my-plans',
     },
     {
+        icon: 'location-outline',
+        iconFocused: 'location',
+        label: 'Places',
+        route: '/turistic-places',
+    },
+    {
         icon: 'person-outline',
         iconFocused: 'person',
         label: 'User',
