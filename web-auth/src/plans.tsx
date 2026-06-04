@@ -79,6 +79,9 @@ export function PlansPage() {
 				<a className="button button--secondary" href="/create-plan">
 					Crear plan
 				</a>
+				<a className="button button--goto" href="/turistic-places">
+					Ir a Lugares turísticos
+				</a>
 			</div>
 
 			{loading && <div className="message">Cargando planes...</div>}

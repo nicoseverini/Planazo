@@ -65,6 +65,9 @@ export function TuristicPlacesPage() {
 						Crear lugar turístico
 					</a>
 				)}
+				<a className="button button--goto" href="/plans">
+						Ir a Planes
+				</a>
 			</div>
 
 			{loading && <div className="message">Cargando lugares turísticos...</div>}

@@ -11,6 +11,7 @@ import * as Location from 'expo-location';
 
 import { styles } from './styles';
 import {AppScreen} from "@/components/ui";
+import { TuristicPlaceSummary } from "@/services/turistic-place";
 
 const CATEGORY_MAP: Record<string, string> = {
     'All':         'ALL',
@@ -28,7 +29,7 @@ const CATEGORY_MAP: Record<string, string> = {
 
 export default function MapScreen() {
     const router = useRouter();
-    const { fetchPublicPlans, loading } = usePlans();
+    const { fetchPublicPlans, loading, fetchTouristicPlaces } = usePlans();
     const mapRef = useRef<MapView>(null);
 
     const tint = useThemeColor({}, 'tint');
@@ -38,6 +39,7 @@ export default function MapScreen() {
     const text = useThemeColor({}, 'text');
 
     const [plans, setPlans] = useState<PlanSummary[]>([]);
+    const [places, setPlaces] = useState<TuristicPlaceSummary[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
     const [mapRegion, setMapRegion] = useState({
         latitude: -34.6037,
@@ -76,15 +78,25 @@ export default function MapScreen() {
 
     useFocusEffect(
         useCallback(() => {
-            fetchPublicPlans()
-                .then(setPlans)
-                .catch(console.error);
-        }, [fetchPublicPlans])
+            Promise.all([
+                fetchPublicPlans(),
+                fetchTouristicPlaces()
+            ])
+            .then(([plansData, placesData]) => {
+                setPlans(plansData);
+                setPlaces(placesData);
+            })
+            .catch(console.error);
+        }, [])
     );
 
     const filteredPlans = plans.filter((plan) => {
         if (selectedCategory === 'Todos') return true;
         return plan.interests?.includes(CATEGORY_MAP[selectedCategory]);
+    });
+     const filteredTuristicPlaces = places.filter((place) => {
+        if (selectedCategory === 'Todos') return true;
+        return place.interest?.includes(CATEGORY_MAP[selectedCategory]);
     });
 
     return (
@@ -127,8 +139,19 @@ export default function MapScreen() {
                                 </View>
                             </Callout>
                         </Marker>
+                        
                     );
                 })}
+                {filteredTuristicPlaces.map(place => (
+                    <Marker
+                        key={`place-${place.id}`}
+                        coordinate={{
+                            latitude: place.latitude,
+                            longitude: place.longitude
+                        }}
+                        pinColor="green"
+                    />
+                ))}
             </MapView>
 
             <View style={styles.filterContainer}>

@@ -115,6 +115,18 @@ body {
   color: #0f5f93;
   border: 1px solid #c2d2e1;
 }
+.button--goto {
+  margin-top: 0.75rem;
+  background: #fff4e6;
+  color: #c96a00;
+  border: 1px solid #ffd1a3;
+}
+.button--secondary {
+  margin-top: 0.75rem;
+  background: #eef3f7;
+  color: #0f5f93;
+  border: 1px solid #c2d2e1;
+}
 
 .button--secondary:visited {
   color: #17212b;
