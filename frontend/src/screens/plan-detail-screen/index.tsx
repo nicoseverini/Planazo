@@ -1,3 +1,4 @@
+import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -8,16 +9,16 @@ import {
     Image,
     Pressable,
     ScrollView,
-    View,
     StyleSheet,
+    View,
 } from 'react-native';
-import { useToken, decodeJwt } from '@/context/token-context';
 import MapView, { Marker } from 'react-native-maps';
 
-import { ThemedText } from '@/components/ThemedText';
+import { decodeJwt, useToken } from '@/context/token-context';
 import { AppScreen } from '@/components/ui';
+import { ThemedText } from '@/components/ThemedText';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { PlanDetail, usePlans } from '@/services/plan';
+import { PendingSubscriber, PlanDetail, usePlans } from '@/services/plan';
 
 import { styles } from './styles';
 
@@ -32,17 +33,11 @@ function StarRating({ rating }: { rating: number }) {
 
     for (let i = 0; i < 5; i++) {
         if (i < fullStars) {
-            stars.push(
-                <Ionicons key={i} name="star" size={16} color="#22c55e" />
-            );
+            stars.push(<Ionicons key={i} name="star" size={16} color="#22c55e" />);
         } else if (i === fullStars && hasHalfStar) {
-            stars.push(
-                <Ionicons key={i} name="star-half" size={16} color="#22c55e" />
-            );
+            stars.push(<Ionicons key={i} name="star-half" size={16} color="#22c55e" />);
         } else {
-            stars.push(
-                <Ionicons key={i} name="star-outline" size={16} color="#22c55e" />
-            );
+            stars.push(<Ionicons key={i} name="star-outline" size={16} color="#22c55e" />);
         }
     }
 
@@ -71,7 +66,7 @@ const formatDateTime = (value: string) => {
 export default function PlanDetailScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
-    const { fetchPlanDetail, subscribe, unsubscribe, remove } = usePlans();
+    const { fetchPlanDetail, fetchMyJoinedPlans, fetchPendingSubscribers, subscribe, unsubscribe, remove, accept, reject} = usePlans();
     const { getAccessToken } = useToken();
 
     const tint = useThemeColor({}, 'tint');
@@ -87,18 +82,20 @@ export default function PlanDetailScreen() {
     const [activeTab, setActiveTab] = useState<TabType>('description');
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isSubscribed, setIsSubscribed] = useState(false);
+    const [pendingSubscribers, setPendingSubscribers] = useState<PendingSubscriber[]>([]);
+    const [pendingLoading, setPendingLoading] = useState(false);
 
     const CATEGORY_BY_INTEREST: Record<string, string> = {
-        FOOD:      'Gastronomy',
-        CULTURE:   'Culture',
-        NATURE:    'Nature',
-        BEACH:     'Beach',
+        FOOD: 'Gastronomy',
+        CULTURE: 'Culture',
+        NATURE: 'Nature',
+        BEACH: 'Beach',
         ADVENTURE: 'Adventure',
         NIGHTLIFE: 'Nightlife',
-        SHOPPING:  'Shopping',
-        HISTORY:   'History',
+        SHOPPING: 'Shopping',
+        HISTORY: 'History',
         MOUNTAINS: 'Mountains',
-        OTHER:     'Other',
+        OTHER: 'Other',
     };
 
     const interestLabel = (plan?.interests ?? [])
@@ -116,19 +113,59 @@ export default function PlanDetailScreen() {
         try {
             const data = await fetchPlanDetail(planId);
             setPlan(data);
+
+            const token = getAccessToken();
+            if (token) {
+                const joinedPlans = await fetchMyJoinedPlans();
+                setIsSubscribed(joinedPlans.some((joinedPlan) => joinedPlan.id === planId));
+            } else {
+                setIsSubscribed(false);
+            }
         } catch (err) {
             console.error('[PlanDetailScreen] Error loading plan:', err);
             Alert.alert('Error', 'No se pudo cargar el plan');
         } finally {
             setLoading(false);
         }
-    }, [id, fetchPlanDetail]);
+    }, [id, fetchMyJoinedPlans, fetchPlanDetail, getAccessToken]);
 
     useFocusEffect(
         useCallback(() => {
             loadPlan();
         }, [loadPlan])
     );
+
+    const token = getAccessToken();
+    let isCreator = false;
+    let isPrivatePlan = plan?.visibility === 'PRIVATE';
+    if (token && plan) {
+        const decoded = decodeJwt(token) as any;
+        isCreator = Number(decoded.id) === Number(plan.creatorId);
+    }
+
+    const loadPendingSubscribers = useCallback(async () => {
+        if (!plan || !isCreator || !isPrivatePlan) return;
+
+        try {
+            setPendingLoading(true);
+            const data = await fetchPendingSubscribers(plan.id);
+            setPendingSubscribers(data);
+        } catch (err) {
+            console.error('[PlanDetailScreen] Error loading pending subscribers:', err);
+            setPendingSubscribers([]);
+        } finally {
+            setPendingLoading(false);
+        }
+    }, [fetchPendingSubscribers, isCreator, plan]);
+
+    useEffect(() => {
+        if (activeTab === 'subscribe' && isCreator && plan && isPrivatePlan) {
+            loadPendingSubscribers();
+            return;
+        }
+
+        setPendingSubscribers([]);
+    }, [activeTab, isCreator, loadPendingSubscribers, plan]);
 
     const handleSubscribe = async () => {
         if (!plan) return;
@@ -169,6 +206,22 @@ export default function PlanDetailScreen() {
         setCurrentImageIndex(index);
     };
 
+    const handleAcceptUser = async (id: number) => {
+        try {
+            await accept(plan!.id, id);
+        } catch (err) {
+            console.error('[PlanDetailScreen] Error accepting subscriber:', err);
+        }
+    };
+
+    const handleRejectUser = async (id: number) => {
+        try {
+            await reject(plan!.id, id);
+        } catch (err) {
+            console.error('[PlanDetailScreen] Error rejecting subscriber:', err);
+        }
+    };
+
     if (loading) {
         return (
             <AppScreen>
@@ -205,14 +258,6 @@ export default function PlanDetailScreen() {
     const isPublic = plan.visibility === 'PUBLIC';
     const canSubscribe = !plan.isFull || isSubscribed;
 
-    let isCreator = false;
-    const token = getAccessToken();
-
-    if(token && plan ){
-        const decoded = decodeJwt(token) as any;
-        isCreator = Number(decoded.id) === Number(plan.creatorId);
-    }
-
     const handleDelete = () => {
         Alert.alert(
             'Delete Plan',
@@ -227,22 +272,21 @@ export default function PlanDetailScreen() {
                             setLoading(true);
                             await remove(plan.id);
                             Alert.alert('Success', 'Plan deleted successfully.', [
-                                { text: 'OK', onPress: () => router.back() }
+                                { text: 'OK', onPress: () => router.back() },
                             ]);
                         } catch (err) {
                             console.error('[PlanDetailScreen] Error deleting plan:', err);
                             Alert.alert('Error', 'Could not delete the plan. Check your connection.');
                             setLoading(false);
                         }
-                    }
-                }
+                    },
+                },
             ]
         );
     };
 
     return (
         <AppScreen scrollable>
-            {/* Header con boton volver */}
             <View style={styles.header}>
                 <Pressable
                     onPress={() => router.back()}
@@ -264,7 +308,6 @@ export default function PlanDetailScreen() {
                 </View>
             </View>
 
-            {/* Rating y reviews */}
             <View style={styles.ratingRow}>
                 <ThemedText type="body" style={{ fontWeight: '600' }}>{averageRating.toFixed(1)}</ThemedText>
                 <StarRating rating={averageRating} />
@@ -278,7 +321,6 @@ export default function PlanDetailScreen() {
                 </Pressable>
             </View>
 
-            {/* Info basica */}
             <View style={styles.infoRow}>
                 <View style={styles.infoItem}>
                     <Ionicons name="calendar-outline" size={16} color={mutedText} />
@@ -306,7 +348,6 @@ export default function PlanDetailScreen() {
             </View>
 
             <View style={[styles.locationCard, { backgroundColor: surface, borderColor: border, flexDirection: 'column', alignItems: 'stretch', padding: 0, overflow: 'hidden' }]}>
-                {/* Cabecera con la dirección de texto */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12 }}>
                     <Ionicons name="location-outline" size={20} color={tint} />
                     <ThemedText type="body" style={{ flex: 1, marginLeft: 8, fontWeight: '500' }}>
@@ -314,7 +355,6 @@ export default function PlanDetailScreen() {
                     </ThemedText>
                 </View>
 
-                {/* El Mini-Mapa que se dibuja solo si el objeto plan contiene coordenadas válidas */}
                 {plan.latitude && plan.longitude ? (
                     <View style={{ height: 160, width: '100%', borderTopWidth: 1, borderColor: border }}>
                         <MapView
@@ -339,7 +379,6 @@ export default function PlanDetailScreen() {
                 ) : null}
             </View>
 
-            {/* Carrusel de imagenes condicional */}
             {images.length > 0 && (
                 <View style={styles.imageSection}>
                     <ScrollView
@@ -374,7 +413,6 @@ export default function PlanDetailScreen() {
                 </View>
             )}
 
-            {/* Tabs */}
             <View style={[styles.tabContainer, { borderColor: border }]}>
                 <Pressable
                     onPress={() => setActiveTab('description')}
@@ -385,10 +423,7 @@ export default function PlanDetailScreen() {
                 >
                     <ThemedText
                         type="body"
-                        style={[
-                            styles.tabText,
-                            { color: activeTab === 'description' ? tint : mutedText },
-                        ]}
+                        style={[styles.tabText, { color: activeTab === 'description' ? tint : mutedText }]}
                     >
                         DESCRIPCION
                     </ThemedText>
@@ -402,10 +437,7 @@ export default function PlanDetailScreen() {
                 >
                     <ThemedText
                         type="body"
-                        style={[
-                            styles.tabText,
-                            { color: activeTab === 'subscribe' ? tint : mutedText },
-                        ]}
+                        style={[styles.tabText, { color: activeTab === 'subscribe' ? tint : mutedText }]}
                     >
                         SUBSCRIBE
                     </ThemedText>
@@ -419,17 +451,13 @@ export default function PlanDetailScreen() {
                 >
                     <ThemedText
                         type="body"
-                        style={[
-                            styles.tabText,
-                            { color: activeTab === 'reviews' ? tint : mutedText },
-                        ]}
+                        style={[styles.tabText, { color: activeTab === 'reviews' ? tint : mutedText }]}
                     >
                         REVIEWS
                     </ThemedText>
                 </Pressable>
             </View>
 
-            {/* Contenido de tabs */}
             {activeTab === 'description' && (
                 <View style={styles.tabContent}>
                     <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Description</ThemedText>
@@ -437,13 +465,12 @@ export default function PlanDetailScreen() {
                         {plan.description || 'No description available'}
                     </ThemedText>
 
-                    {/* Info adicional */}
                     <View style={[styles.infoSection, { backgroundColor: surface, borderColor: border }]}>
                         <ThemedText type="subtitle" style={{ marginBottom: 12 }}>INFO</ThemedText>
                         <View style={styles.infoList}>
                             <View style={styles.infoListItem}>
                                 <View style={[styles.infoDot, { backgroundColor: tint }]} />
-                                <ThemedText type="body">Interest: {CATEGORY_BY_INTEREST[plan.interest] || plan.interest}</ThemedText>
+                                <ThemedText type="body">Interests: {interestLabel || 'No interests'}</ThemedText>
                             </View>
                             <View style={styles.infoListItem}>
                                 <View style={[styles.infoDot, { backgroundColor: tint }]} />
@@ -465,11 +492,63 @@ export default function PlanDetailScreen() {
             {activeTab === 'subscribe' && (
                 <View style={styles.tabContent}>
                     <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Subscription</ThemedText>
-                    <ThemedText type="body" style={{ color: mutedText, marginBottom: 24 }}>
-                        {isSubscribed
-                            ? 'You are already subscribed to this plan. You can cancel your subscription at any time.'
-                            : 'Join this plan and connect with others who share your interests.'}
-                    </ThemedText>
+
+                    {isCreator && isPrivatePlan ? (
+                        <ThemedText type="body" style={{ color: mutedText, marginBottom: 16 }}>
+                            Pending requests for your private plan are listed below.
+                        </ThemedText>
+                    ) : (
+                        <ThemedText type="body" style={{ color: mutedText, marginBottom: 24 }}>
+                            {isSubscribed
+                                ? 'You are already subscribed to this plan. You can cancel your subscription at any time.'
+                                : 'Join this plan and connect with others who share your interests.'}
+                        </ThemedText>
+                    )}
+
+                    {isCreator && isPrivatePlan ? (
+                        <View style={[styles.pendingSection, { backgroundColor: surface, borderColor: border }]}>
+                            <ThemedText type="subtitle" style={{ marginBottom: 12 }}>
+                                Pending subscriptions
+                            </ThemedText>
+                            {pendingLoading ? (
+                                <ActivityIndicator size="small" color={tint} />
+                            ) : pendingSubscribers.length > 0 ? (
+                                <View style={styles.pendingList}>
+                                    {pendingSubscribers.map((subscriber) => (
+                                        <View key={subscriber.id} style={[styles.pendingCard, { borderColor: border }]}>
+                                            <Ionicons name="person-outline" size={16} color={tint} />
+                                            <View style={styles.pendingTextBlock}>
+                                                <ThemedText type="body" style={{ fontWeight: '600' }}>
+                                                    {subscriber.name} {subscriber.lastname}
+                                                </ThemedText>
+                                                
+                                                <Pressable 
+                                                    onPress={() => handleAcceptUser(subscriber.id)}>
+                                                    <ThemedText
+                                                        type="body"
+                                                        style={{ color: tint, fontWeight: '600' }}>
+                                                        Accept
+                                                    </ThemedText>
+                                                </Pressable>
+                                                <Pressable 
+                                                    onPress={() => handleRejectUser(subscriber.id)}>
+                                                    <ThemedText
+                                                        type="body"
+                                                        style={{ color: '#ef4444', fontWeight: '600' }}>
+                                                        Reject
+                                                    </ThemedText>
+                                                </Pressable>
+                                            </View>
+                                        </View>
+                                    ))}
+                                </View>
+                            ) : (
+                                <ThemedText type="body" style={{ color: mutedText }}>
+                                    No pending subscriptions yet.
+                                </ThemedText>
+                            )}
+                        </View>
+                    ) : null}
 
                     <View style={[styles.subscribeInfo, { backgroundColor: surface, borderColor: border }]}>
                         <View style={styles.subscribeInfoRow}>
@@ -497,11 +576,9 @@ export default function PlanDetailScreen() {
                 </View>
             )}
 
-            {/* Boton inferior dinamico */}
             <View style={styles.subscribeButtonContainer}>
                 {isCreator ? (
                     <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-                        {/* Botón Editar */}
                         <Pressable
                             onPress={() => router.push(`/plan/edit/${plan.id}`)}
                             style={({ pressed }) => [
@@ -515,12 +592,11 @@ export default function PlanDetailScreen() {
                             </ThemedText>
                         </Pressable>
 
-                        {/* Botón Eliminar */}
                         <Pressable
                             onPress={handleDelete}
                             style={({ pressed }) => [
                                 styles.subscribeButton,
-                                { flex: 1, backgroundColor: '#ef4444' }, // Rojo destructivo
+                                { flex: 1, backgroundColor: '#ef4444' },
                                 pressed && styles.pressed,
                             ]}
                         >
@@ -540,12 +616,12 @@ export default function PlanDetailScreen() {
                             (subscribing || !canSubscribe) && styles.disabled,
                         ]}
                     >
-                                {subscribing ? (
+                        {subscribing ? (
                             <ActivityIndicator size="small" color={tintText} />
                         ) : (
-                                    <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                                        {isSubscribed ? 'CANCEL SUBSCRIPTION' : (plan.isFull ? 'PLAN FULL' : 'SUBSCRIBE')}
-                                    </ThemedText>
+                            <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
+                                {isSubscribed ? 'CANCEL SUBSCRIPTION' : (plan.isFull ? 'PLAN FULL' : 'SUBSCRIBE')}
+                            </ThemedText>
                         )}
                     </Pressable>
                 )}
@@ -553,4 +629,3 @@ export default function PlanDetailScreen() {
         </AppScreen>
     );
 }
-

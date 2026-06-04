@@ -68,13 +68,8 @@ public class Plan {
     @JoinColumn(name = "creator_id", nullable = false)
     private User creator;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "plan_subscribers",
-            joinColumns = @JoinColumn(name = "plan_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private List<User> subscribers = new ArrayList<>();
+        @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
+        private List<PlanSubscriber> subscribers = new ArrayList<>();
 
     @Column(nullable = false)
     private Boolean active = true;
@@ -134,12 +129,28 @@ public class Plan {
     public List<String> getImages() { return images; }
     public void setImages(List<String> images) { this.images = images == null ? new ArrayList<>() : new ArrayList<>(images); }
     public User getCreator() { return creator; }
-    public List<User> getSubscribers() { return subscribers; }
-    public void setSubscribers(List<User> subscribers) { this.subscribers = subscribers; }
+    public List<PlanSubscriber> getSubscribers() { return subscribers; }
+    public void setSubscribers(List<PlanSubscriber> subscribers) {
+        this.subscribers = subscribers == null ? new ArrayList<>() : subscribers;
+    }
+    public boolean hasSubscriber(Long userId) {
+        return subscribers.stream().anyMatch(subscription -> subscription.matchesUserId(userId));
+    }
+    public boolean addSubscriber(User user, Boolean accepted) {
+        if (user == null || user.getId() == null || hasSubscriber(user.getId())) return false;
+        subscribers.add(new PlanSubscriber(this, user, accepted));
+        return true;
+    }
+    public boolean removeSubscriber(Long userId) {
+        return subscribers.removeIf(subscription -> subscription.matchesUserId(userId));
+    }
+    public int getSubscriberCount() {
+        return Math.toIntExact(subscribers.stream().filter(PlanSubscriber::countsAsSubscriber).count());
+    }
     public Boolean isActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
 
     public boolean isFull() {
-        return maxSubscribers != null && subscribers.size() >= maxSubscribers;
+        return maxSubscribers != null && getSubscriberCount() >= maxSubscribers;
     }
 }

@@ -20,6 +20,7 @@ export type PlanSummary = {
     creatorName: string;
     creatorId: number;
     images: string[];
+    accepted: null | boolean;
 };
 
 export type PlanDetail = {
@@ -42,6 +43,12 @@ export type PlanDetail = {
     creatorName: string;
     subscribersCount: number;
     isFull: boolean;
+};
+
+export type PendingSubscriber = {
+    id: number;
+    name: string;
+    lastname: string;
 };
 
 export type PlanCreateRequest = {
@@ -133,7 +140,7 @@ export async function getMyCreatedPlans(accessToken: string): Promise<PlanSummar
 
 // Get plans I joined (subscribed)
 export async function getMyJoinedPlans(accessToken: string): Promise<PlanSummary[]> {
-    const url = `${getBackendUrl()}/api/v1/plans/me/joined`;
+    const url = `${getBackendUrl()}/api/v1/plans/me/joined-all`;
     console.log('[PlanService] Fetching joined plans:', url);
 
     const response = await fetch(url, {
@@ -148,6 +155,50 @@ export async function getMyJoinedPlans(accessToken: string): Promise<PlanSummary
     if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to fetch joined plans: ${errorText}`);
+    }
+
+    return response.json();
+}
+export async function getMyJoinedPlansButNotMine(accessToken: string): Promise<PlanSummary[]> {
+    const url = `${getBackendUrl()}/api/v1/plans/me/joined-not-mine`;
+    console.log('[PlanService] Fetching joined plans:', url);
+
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch joined plans: ${errorText}`);
+    }
+
+    return response.json();
+}
+
+export async function getPendingSubscribers(
+    planId: number,
+    accessToken: string
+): Promise<PendingSubscriber[]> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/pending-subscribers`;
+    console.log('[PlanService] Fetching pending subscribers:', url);
+
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch pending subscribers: ${errorText}`);
     }
 
     return response.json();
@@ -222,6 +273,41 @@ export async function deletePlan(id: number, accessToken: string): Promise<void>
     }
 }
 
+export async function acceptSubscriber(planId: number, userId: number, accessToken: string): Promise<void> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/accept/${userId}`;
+    console.log('[PlanService] Accepting subscriber:', url);
+
+    const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to accept subscriber: ${errorText}`);
+    }
+}
+
+export async function rejectSubscriber(planId: number, userId: number, accessToken: string): Promise<void> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/reject/${userId}`;
+    console.log('[PlanService] Rejecting subscriber:', url);
+
+    const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to reject subscriber: ${errorText}`);
+    }
+}
 // Subscribe to a plan
 export async function subscribeToPlan(planId: number, accessToken: string): Promise<void> {
     const url = `${getBackendUrl()}/api/v1/plans/${planId}/subscribe`;
@@ -349,7 +435,22 @@ export function usePlans() {
         }
     }, [getAccessToken]);
 
-    const fetchMyJoinedPlans = useCallback(async () => {
+    const fetchMyJoinedPlansButNotMine = useCallback(async () => {
+        const token = getAccessToken();
+        if (!token) throw new Error('No access token');
+        setLoading(true);
+        setError(null);
+        try {
+            return await getMyJoinedPlansButNotMine(token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unknown error');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [getAccessToken]);
+
+        const fetchMyJoinedPlans = useCallback(async () => {
         const token = getAccessToken();
         if (!token) throw new Error('No access token');
         setLoading(true);
@@ -371,6 +472,21 @@ export function usePlans() {
         setError(null);
         try {
             return await getPlanById(id, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unknown error');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [getAccessToken]);
+
+    const fetchPendingSubscribers = useCallback(async (planId: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('No access token');
+        setLoading(true);
+        setError(null);
+        try {
+            return await getPendingSubscribers(planId, token);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
             throw err;
@@ -481,13 +597,45 @@ export function usePlans() {
         }
     }, [getAccessToken]);
 
+    const accept = useCallback(async (planId: number, userId: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('No access token');
+        setLoading(true);
+        setError(null);
+        try {            
+            await acceptSubscriber(planId, userId, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unknown error');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [getAccessToken]);
+
+    const reject = useCallback(async (planId: number, userId: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('No access token');
+        setLoading(true);
+        setError(null);
+        try {
+            await rejectSubscriber(planId, userId, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unknown error');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [getAccessToken]);
+
     return {
         loading,
         error,
         fetchPublicPlans,
         fetchMyCreatedPlans,
         fetchMyJoinedPlans,
+        fetchMyJoinedPlansButNotMine,
         fetchPlanDetail,
+        fetchPendingSubscribers,
         fetchNearbyPlans,
         fetchFilteredPlans,
         subscribe,
@@ -495,5 +643,7 @@ export function usePlans() {
         create,
         update,
         remove,
+        accept,
+        reject,
     };
 }

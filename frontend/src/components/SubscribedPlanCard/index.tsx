@@ -18,6 +18,11 @@ export function SubscribedPlanCard({ plan, onPress }: SubscribedPlanCardProps) {
     const tint = useThemeColor({}, 'tint');
     const mutedText = useThemeColor({}, 'mutedText');
 
+    const statusLabel =
+        plan.accepted === true ? 'Aceptado' : plan.accepted === false ? 'Pendiente' : 'Publico';
+    const statusColor =
+        plan.accepted === true ? '#1E9E63' : plan.accepted === false ? '#D9822B' : mutedText;
+
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('es-ES', {
@@ -46,6 +51,13 @@ export function SubscribedPlanCard({ plan, onPress }: SubscribedPlanCardProps) {
             <ThemedText type="subtitle" style={styles.subscribedTitle} numberOfLines={1}>
                 {plan.title}
             </ThemedText>
+            {plan.accepted !== null && (
+                <View style={[styles.statusBadge, { borderColor: statusColor, backgroundColor: statusColor + '1A' }]}>
+                    <ThemedText type="label" style={[styles.statusText, { color: statusColor }]}>
+                        {statusLabel}
+                    </ThemedText>
+                </View>
+            )}
             <View style={styles.subscribedMeta}>
                 <View style={styles.metaRow}>
                     <Ionicons name="calendar-outline" size={12} color={mutedText} />

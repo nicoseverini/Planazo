@@ -148,6 +148,28 @@ export const styles = StyleSheet.create({
         borderWidth: 1,
         gap: 12,
     },
+    pendingSection: {
+        padding: 16,
+        borderRadius: Layout.buttonRadius,
+        borderWidth: 1,
+        marginBottom: 16,
+        gap: 12,
+    },
+    pendingList: {
+        gap: 10,
+    },
+    pendingCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        padding: 12,
+        borderWidth: 1,
+        borderRadius: Layout.buttonRadius,
+    },
+    pendingTextBlock: {
+        flex: 1,
+        gap: 2,
+    },
     subscribeInfoRow: {
         flexDirection: 'row',
         alignItems: 'center',

@@ -3,12 +3,14 @@ package com.planazo.plan;
 import com.planazo.common.exception.InvalidAgeRangeException;
 import com.planazo.plan.dto.PlanCreateDTO;
 import com.planazo.plan.dto.PlanDetailDTO;
+import com.planazo.plan.dto.PendingSubscriberDTO;
 import com.planazo.plan.dto.PlanSummaryDTO;
 import com.planazo.plan.dto.PlanUpdateDTO;
 import com.planazo.user.User;
 import com.planazo.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Transactional
@@ -58,7 +61,13 @@ public class PlanService {
                 creator
         );
 
-        return toDetailDTO(planRepository.save(plan));
+        PlanDetailDTO planDetail = toDetailDTO(planRepository.save(plan));
+
+        // auto-subscribe creator 
+        Boolean isPublic = plan.getVisibility() == PlanVisibility.PUBLIC;
+        plan.addSubscriber(creator, isPublic ? null : Boolean.TRUE);
+        planRepository.save(plan);
+        return planDetail;
     }
 
     // ── Read ─────────────────────────────────────────────────────────────────
@@ -83,6 +92,13 @@ public class PlanService {
         return planRepository.findByActiveTrue(pageable)
                 .map(this::toSummaryDTO);
     }
+    @Transactional(readOnly = true)
+    public List<PlanSummaryDTO> getAllPlans() {
+        return planRepository.findByActiveTrue(Pageable.unpaged())
+                .stream()
+                .map(this::toSummaryDTO)
+                .toList();
+    }
 
     @Transactional(readOnly = true)
     public List<PlanSummaryDTO> getMyPlans(String email) {
@@ -95,14 +111,43 @@ public class PlanService {
     }
 
     @Transactional(readOnly = true)
-    public List<PlanSummaryDTO> getSubscribedPlans(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
-        return planRepository.findBySubscriberId(user.getId())
-                .stream()
-                .map(this::toSummaryDTO)
+        public List<PlanSummaryDTO> getSubscribedPlans(String email) {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new EntityNotFoundException("User not found"));
+            return planRepository.findBySubscriberId(user.getId())
+                    .stream()
+                .map(plan -> toSummaryDTO(plan, getAcceptedForUser(plan, user.getId())))
+                    .toList();
+        }
+        @Transactional(readOnly = true)
+        public List<PlanSummaryDTO> getSubscribedPlansButNotMine(String email) {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new EntityNotFoundException("User not found"));
+            return planRepository.findBySubscriberIdAndNotCreatorId(user.getId())
+                    .stream()
+                .map(plan -> toSummaryDTO(plan, getAcceptedForUser(plan, user.getId())))
+                    .toList();
+        }
+
+        @Transactional(readOnly = true)
+        public List<PendingSubscriberDTO> getPendingSubscribers(Long planId, String requesterEmail) {
+            Plan plan = planRepository.findById(planId)
+                .filter(Plan::isActive)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
+
+            if (!plan.getCreator().getUsername().equals(requesterEmail)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the creator");
+            }
+
+            return plan.getSubscribers().stream()
+                .filter(subscription -> Boolean.FALSE.equals(subscription.getAccepted()))
+                .map(subscription -> new PendingSubscriberDTO(
+                    subscription.getUser().getId(),
+                    subscription.getUser().getName(),
+                    subscription.getUser().getLastname()
+                ))
                 .toList();
-    }
+        }
 
     @Transactional(readOnly = true)
     public List<PlanSummaryDTO> getNearbyPublicPlans(double lat, double lng, double radiusKm) {
@@ -125,6 +170,49 @@ public class PlanService {
         return planRepository.findById(id)
                 .filter(Plan::isActive)
                 .map(plan -> toDetailDTO(saveUpdatedPlan(plan, data)));
+    }
+    public void acceptPendingSubscriber(Long planId, Long userId, String requesterEmail) {
+        Plan plan = planRepository.findById(planId)
+                .filter(Plan::isActive)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
+
+        if (!plan.getCreator().getUsername().equals(requesterEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the creator");
+        }
+
+        boolean updated = plan.getSubscribers().stream()
+                .filter(subscription -> subscription.matchesUserId(userId))
+                .findFirst()
+                .map(subscription -> {
+                    subscription.setAccepted(Boolean.TRUE);
+                    return true;
+                })
+                .orElse(false);
+
+        if (updated) {
+            planRepository.save(plan);
+            return;
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscriber not found");
+        }
+    }
+    public void denyPendingSubscriber(Long planId, Long userId, String requesterEmail) {
+        Plan plan = planRepository.findById(planId)
+                .filter(Plan::isActive)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
+
+        if (!plan.getCreator().getUsername().equals(requesterEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the creator");
+        }
+
+        boolean removed = plan.getSubscribers().removeIf(subscription -> subscription.matchesUserId(userId) && Boolean.FALSE.equals(subscription.getAccepted()));
+
+        if (removed) {
+            planRepository.save(plan);
+            return;
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscriber not found");
+        }
     }
 
     // ── Delete (soft) ────────────────────────────────────────────────────────
@@ -178,7 +266,7 @@ public class PlanService {
 
     // ── Subscribe / Unsubscribe ──────────────────────────────────────────────
 
-    public enum JoinResult { OK, NOT_FOUND, FULL, ALREADY_JOINED, NOT_PUBLIC }
+    public enum JoinResult { OK, NOT_FOUND, FULL, ALREADY_JOINED }
 
     public JoinResult subscribe(Long planId, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
@@ -191,11 +279,11 @@ public class PlanService {
 
         Plan plan = maybePlan.get();
 
-        if (plan.getVisibility() != PlanVisibility.PUBLIC) return JoinResult.NOT_PUBLIC;
-        if (plan.getSubscribers().contains(user))          return JoinResult.ALREADY_JOINED;
-        if (plan.isFull())                                 return JoinResult.FULL;
+        if (plan.hasSubscriber(user.getId())) return JoinResult.ALREADY_JOINED;
+        if (plan.isFull()) return JoinResult.FULL;
 
-        plan.getSubscribers().add(user);
+        Boolean accepted = plan.getVisibility() == PlanVisibility.PUBLIC ? null : Boolean.FALSE;
+        plan.addSubscriber(user, accepted);
         planRepository.save(plan);
         return JoinResult.OK;
     }
@@ -213,7 +301,7 @@ public class PlanService {
 
         Plan plan = maybePlan.get();
 
-        if (!plan.getSubscribers().remove(user)) return LeaveResult.NOT_SUBSCRIBED;
+        if (!plan.removeSubscriber(user.getId())) return LeaveResult.NOT_SUBSCRIBED;
 
         planRepository.save(plan);
         return LeaveResult.OK;
@@ -240,12 +328,16 @@ public class PlanService {
                 List.copyOf(plan.getImages()),
                 plan.getCreator().getId(),
                 plan.getCreator().getName(),
-                plan.getSubscribers().size(),
+                plan.getSubscriberCount(),
                 plan.isFull()
         );
     }
 
     private PlanSummaryDTO toSummaryDTO(Plan plan) {
+        return toSummaryDTO(plan, null);
+    }
+
+    private PlanSummaryDTO toSummaryDTO(Plan plan, Boolean accepted) {
         return new PlanSummaryDTO(
                 plan.getId(),
                 plan.getTitle(),
@@ -256,13 +348,22 @@ public class PlanService {
                 List.copyOf(plan.getInterests()),
                 plan.getTravelType(),
                 plan.getVisibility(),
-                plan.getSubscribers().size(),
+                plan.getSubscriberCount(),
                 plan.getMaxSubscribers(),
                 plan.getMinAge(),
                 plan.getCreator().getName(),
                 plan.getCreator().getId(),
-                List.copyOf(plan.getImages())
+                List.copyOf(plan.getImages()),
+                accepted
         );
+    }
+
+    private Boolean getAcceptedForUser(Plan plan, Long userId) {
+        return plan.getSubscribers().stream()
+                .filter(subscription -> subscription.matchesUserId(userId))
+                .findFirst()
+                .map(PlanSubscriber::getAccepted)
+                .orElse(null);
     }
 
     @Transactional(readOnly = true)

@@ -3,6 +3,7 @@ package com.planazo.plan;
 import com.planazo.common.constants.Interest;
 import com.planazo.plan.dto.PlanCreateDTO;
 import com.planazo.plan.dto.PlanDetailDTO;
+import com.planazo.plan.dto.PendingSubscriberDTO;
 import com.planazo.plan.dto.PlanSummaryDTO;
 import com.planazo.plan.dto.PlanUpdateDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,16 +54,15 @@ class PlanRestController {
     }
 
     // ── Read: public list ────────────────────────────────────────────────────
-
     @PreAuthorize("permitAll()")
     @GetMapping(produces = "application/json")
-    @Operation(summary = "List all public plans")
-    List<PlanSummaryDTO> getPublicPlans() {
-        return planService.getPublicPlans();
+    @Operation(summary = "List all plans")
+    List<PlanSummaryDTO> getAllPlans() {
+        return planService.getAllPlans();
     }
-    // TO DO: should we show all plans to users ?
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping(value = "/admin", produces = "application/json")
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(value="/paginated" , produces = "application/json")
     @Operation(summary = "List all plans")
     Page<PlanSummaryDTO> getAllPlans(
             @RequestParam(defaultValue = "0") int page,
@@ -71,7 +71,7 @@ class PlanRestController {
         return planService.getAllPlans(PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "title")));
     }
 
-    @PreAuthorize("permitAll()")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "/nearby", produces = "application/json")
     @Operation(summary = "List nearby public plans based on coordinates")
     List<PlanSummaryDTO> getNearbyPlans(
@@ -108,12 +108,32 @@ class PlanRestController {
     // ── Read: plans I joined ─────────────────────────────────────────────────
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping(value = "/me/joined", produces = "application/json")
+    @GetMapping(value = "/me/joined-all", produces = "application/json")
     @Operation(summary = "List plans I have joined")
     List<PlanSummaryDTO> getJoinedPlans(
             @AuthenticationPrincipal(expression = "username") String email
     ) {
         return planService.getSubscribedPlans(email);
+    }
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(value = "/me/joined-not-mine", produces = "application/json")
+    @Operation(summary = "List plans I have joined")
+    List<PlanSummaryDTO> getJoinedPlansNotMine(
+            @AuthenticationPrincipal(expression = "username") String email
+    ) {
+        return planService.getSubscribedPlansButNotMine(email);
+    }
+
+    // ── Read: pending subscriptions ────────────────────────────────────────
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(value = "/{id}/pending-subscribers", produces = "application/json")
+    @Operation(summary = "List pending subscription requests for a plan")
+    List<PendingSubscriberDTO> getPendingSubscribers(
+            @PathVariable Long id,
+            @AuthenticationPrincipal(expression = "username") String email
+    ) {
+        return planService.getPendingSubscribers(id, email);
     }
 
     // ── Update ───────────────────────────────────────────────────────────────
@@ -147,6 +167,35 @@ class PlanRestController {
                 .orElse(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @PatchMapping(value = "/{id_plan}/accept/{id_user}",
+     produces = "application/json")
+    @Operation(summary = "Creator accepts a pending subscriber")
+    @ApiResponse(responseCode = "403", description = "Not the creator", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Plan not found", content = @Content)
+    ResponseEntity<Void> acceptPendingSubscriber(
+            @PathVariable Long id_plan,
+            @PathVariable Long id_user,
+            @AuthenticationPrincipal(expression = "username") String email
+    ) {
+        planService.acceptPendingSubscriber(id_plan, id_user, email);
+    return ResponseEntity.ok().build();
+    }
+    @PreAuthorize("isAuthenticated()")
+    @PatchMapping(value = "{id_plan}/reject/{id_user}",
+     produces = "application/json")
+    @Operation(summary = "Creator denies a pending subscriber")
+    @ApiResponse(responseCode = "403", description = "Not the creator", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Plan not found", content = @Content)
+    ResponseEntity<Void> denyPendingSubscriber(
+            @PathVariable Long id_plan,
+            @PathVariable Long id_user,
+            @AuthenticationPrincipal(expression = "username") String email
+    ) {
+        planService.denyPendingSubscriber(id_plan, id_user, email);
+        return ResponseEntity.ok().build();
+    }
+
     // ── Delete (soft) ────────────────────────────────────────────────────────
 
     @PreAuthorize("isAuthenticated()")
@@ -177,9 +226,8 @@ class PlanRestController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(value = "/{id}/subscribe", produces = "application/json")
-    @Operation(summary = "Join a public plan")
+    @Operation(summary = "Join a plan")
     @ApiResponse(responseCode = "409", description = "Already joined or plan is full", content = @Content)
-    @ApiResponse(responseCode = "403", description = "Plan is not public", content = @Content)
     ResponseEntity<Void> subscribe(
             @PathVariable Long id,
             @AuthenticationPrincipal(expression = "username") String email
@@ -189,14 +237,13 @@ class PlanRestController {
             case NOT_FOUND    -> ResponseEntity.notFound().build();
             case FULL         -> ResponseEntity.status(HttpStatus.CONFLICT).build();
             case ALREADY_JOINED -> ResponseEntity.status(HttpStatus.CONFLICT).build();
-            case NOT_PUBLIC   -> ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         };
     }
 
     // ── Unsubscribe ──────────────────────────────────────────────────────────
 
     @PreAuthorize("isAuthenticated()")
-    @DeleteMapping(value = "/{id}/subscribe", produces = "application/json")
+    @DeleteMapping(value = "/{id}/unsubscribe", produces = "application/json")
     @Operation(summary = "Leave a plan")
     @ApiResponse(responseCode = "409", description = "Not subscribed to this plan", content = @Content)
     ResponseEntity<Void> unsubscribe(

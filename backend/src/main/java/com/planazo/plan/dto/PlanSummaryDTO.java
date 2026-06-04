@@ -37,6 +37,8 @@ public record PlanSummaryDTO(
 
         Long creatorId,
 
-        List<String> images
+        List<String> images,
+
+        Boolean accepted
 
 ) {}

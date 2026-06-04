@@ -32,7 +32,7 @@ export function PlansPage() {
 		async function loadPlans() {
 			try {
 				const backendUrl = getBackendUrl()
-				const response = await fetch(`${backendUrl}/api/v1/plans/admin?page=${page}&size=${pageSize}`, {
+				const response = await fetch(`${backendUrl}/api/v1/plans/paginated?page=${page}&size=${pageSize}`, {
 					headers: {
 						Accept: 'application/json',
 						Authorization: `Bearer ${sessionStorage.getItem('accessToken') || ''}`,

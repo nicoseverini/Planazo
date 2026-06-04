@@ -20,6 +20,18 @@ export const styles = StyleSheet.create({
     subscribedMeta: {
         gap: 4,
     },
+    statusBadge: {
+        alignSelf: 'flex-start',
+        borderWidth: 1,
+        borderRadius: 999,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        marginBottom: 8,
+    },
+    statusText: {
+        fontSize: 10,
+        fontWeight: '600',
+    },
     metaRow: {
         flexDirection: 'row',
         alignItems: 'center',

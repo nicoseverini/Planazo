@@ -21,7 +21,7 @@ import { styles } from './styles';
 
 export function MyPlansScreen() {
     const router = useRouter();
-    const { fetchMyCreatedPlans, fetchMyJoinedPlans, loading } = usePlans();
+    const { fetchMyCreatedPlans, fetchMyJoinedPlansButNotMine, loading } = usePlans();
 
     const [subscribedPlans, setSubscribedPlans] = useState<PlanSummary[]>([]);
     const [createdPlans, setCreatedPlans] = useState<PlanSummary[]>([]);
@@ -39,14 +39,14 @@ export function MyPlansScreen() {
 
     const loadPlans = useCallback(async () => {
         try {
-            const [joined, created] = await Promise.all([fetchMyJoinedPlans(), fetchMyCreatedPlans()]);
+            const [joined, created] = await Promise.all([fetchMyJoinedPlansButNotMine(), fetchMyCreatedPlans()]);
             setSubscribedPlans(joined);
             setCreatedPlans(created);
             setFilteredCreatedPlans(created);
         } catch (err) {
             console.error('Error loading my plans:', err);
         }
-    }, [fetchMyCreatedPlans, fetchMyJoinedPlans]);
+    }, [fetchMyCreatedPlans, fetchMyJoinedPlansButNotMine]);
 
     useEffect(() => {
         loadPlans();

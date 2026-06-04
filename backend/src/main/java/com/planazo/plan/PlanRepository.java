@@ -27,11 +27,17 @@ public interface PlanRepository extends JpaRepository<Plan, Long>, JpaSpecificat
     @EntityGraph(attributePaths = "images")
     Page<Plan> findByActiveTrue(Pageable pageable);
 
+    @EntityGraph(attributePaths = "images")
+    List<Plan> findByActiveTrue();
+
     // Plans where a user is subscribed
     @EntityGraph(attributePaths = "images")
-    @Query("SELECT p FROM plans p JOIN p.subscribers s WHERE s.id = :userId AND p.active = true")
+        @Query("SELECT p FROM plans p JOIN p.subscribers s WHERE s.user.id = :userId AND p.active = true")
     List<Plan> findBySubscriberId(@Param("userId") Long userId);
-
+        // Plans where a user is subscribed and is not the creator
+    @EntityGraph(attributePaths = "images")
+        @Query("SELECT p FROM plans p JOIN p.subscribers s WHERE s.user.id = :userId AND p.active = true AND p.creator.id != :userId")
+    List<Plan> findBySubscriberIdAndNotCreatorId(@Param("userId") Long userId);
     // Filter by interest
     @EntityGraph(attributePaths = "images")
     List<Plan> findByVisibilityAndInterestsContainingAndActiveTrue(PlanVisibility visibility, Interest interest);
