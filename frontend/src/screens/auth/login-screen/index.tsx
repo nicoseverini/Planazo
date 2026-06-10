@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
@@ -6,6 +7,7 @@ import { AuthButton, AuthCard, AuthInput } from '@/components/auth';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { useToken, decodeJwt } from '@/context/token-context';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { validateLoginForm } from '@/models/auth';
 import { loginUser } from '@/services/auth';
 
@@ -48,9 +50,21 @@ export default function LoginScreen() {
     }
   };
 
+  const textColor = useThemeColor({}, 'text');
+
+  const goBack = () => {
+    router.dismissAll();
+    router.replace('/');
+  };
+
   return (
     <AppScreen centered scrollable>
       <View style={styles.shell}>
+        <View style={styles.backButtonWrapper}>
+          <Pressable onPress={goBack} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={textColor} />
+          </Pressable>
+        </View>
         <AuthCard kicker="Sign in" title="Sign in" body="Enter your verified email and password to continue.">
           <AuthInput label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
           <AuthInput label="Password" value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" autoComplete="password" />

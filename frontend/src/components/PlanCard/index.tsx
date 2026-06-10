@@ -56,6 +56,8 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
         .map((interest) => CATEGORY_BY_INTEREST[interest] || interest)
         .join(' · ');
 
+    const isPublic = plan.visibility === 'PUBLIC';
+
     return (
         <Pressable
             onPress={() => onPress(plan.id)}
@@ -67,9 +69,19 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
         >
             <View style={styles.planCardContent}>
                 <View style={styles.planInfo}>
-                    <ThemedText type="subtitle" style={styles.planTitle}>
-                        {plan.title}
-                    </ThemedText>
+                    {/* Title row with inline visibility badge */}
+                    <View style={styles.titleRow}>
+                        <ThemedText type="subtitle" style={styles.planTitle} numberOfLines={1}>
+                            {plan.title}
+                        </ThemedText>
+                        <View style={[styles.visibilityBadge, {
+                            backgroundColor: isPublic ? '#22c55e' : '#f59e0b',
+                        }]}>
+                            <ThemedText type="label" style={styles.visibilityBadgeText}>
+                                {isPublic ? 'PÚBLICO' : 'PRIVADO'}
+                            </ThemedText>
+                        </View>
+                    </View>
                     <ThemedText type="label" style={[styles.planDescription, { color: tint }]}>
                         {interestLabel}
                     </ThemedText>

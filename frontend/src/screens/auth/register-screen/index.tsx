@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useState } from 'react';
@@ -15,6 +16,7 @@ import {
   TRAVEL_TYPE_LABELS,
   TRAVEL_TYPE_OPTIONS,
 } from '@/constants/profile-options';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import {
   buildSignupRequest,
   validateSignupForm,
@@ -213,8 +215,20 @@ export default function RegisterScreen() {
     }
   };
 
+  const textColor = useThemeColor({}, 'text');
+
+  const goBack = () => {
+    router.dismissAll();
+    router.replace('/');
+  };
+
   return (
     <AppScreen scrollable contentStyle={styles.wrapper}>
+      <View style={styles.backButtonWrapper}>
+        <Pressable onPress={goBack} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={textColor} />
+        </Pressable>
+      </View>
       <AuthCard kicker="Registration" title="Create account" body="Fill in the details to create your account and start a new session.">
         <AuthInput label="Email" value={values.email} onChangeText={(value) => update('email', value)} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
         <AuthInput label="Password" value={values.password} onChangeText={(value) => update('password', value)} secureTextEntry autoCapitalize="none" autoComplete="password" />

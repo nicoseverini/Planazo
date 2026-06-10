@@ -17,10 +17,16 @@ export const styles = StyleSheet.create({
     planInfo: {
         flex: 1,
     },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 4,
+    },
     planTitle: {
         fontSize: 18,
         fontWeight: '600',
-        marginBottom: 4,
+        flexShrink: 1,
     },
     planDescription: {
         fontSize: 14,
@@ -52,5 +58,16 @@ export const styles = StyleSheet.create({
     },
     buttonPressed: {
         opacity: 0.8,
+    },
+    visibilityBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 6,
+    },
+    visibilityBadgeText: {
+        color: '#ffffff',
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 0.5,
     },
 });

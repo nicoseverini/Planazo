@@ -6,7 +6,6 @@ import {
     Pressable,
     RefreshControl,
     ScrollView,
-    TextInput,
     View,
 } from 'react-native';
 
@@ -14,6 +13,7 @@ import { CreatedPlanCard } from '@/components/CreatedPlanCard';
 import { SubscribedPlanCard } from '@/components/SubscribedPlanCard';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
+import { useToken } from '@/context/token-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PlanSummary, usePlans } from '@/services/plan';
 
@@ -26,7 +26,6 @@ export function MyPlansScreen() {
     const [subscribedPlans, setSubscribedPlans] = useState<PlanSummary[]>([]);
     const [createdPlans, setCreatedPlans] = useState<PlanSummary[]>([]);
     const [filteredCreatedPlans, setFilteredCreatedPlans] = useState<PlanSummary[]>([]);
-    const [searchQuery, setSearchQuery] = useState('');
     const [refreshing, setRefreshing] = useState(false);
     const [visibilityFilter, setVisibilityFilter] = useState<'ALL' | 'PUBLIC' | 'PRIVATE'>('ALL');
 
@@ -37,7 +36,11 @@ export function MyPlansScreen() {
     const mutedText = useThemeColor({}, 'mutedText');
     const textColor = useThemeColor({}, 'text');
 
+    const { tokenData } = useToken();
+
     const loadPlans = useCallback(async () => {
+        // Skip loading if user is not logged in (e.g. during logout)
+        if (tokenData.state !== 'LOGGED_IN') return;
         try {
             const [joined, created] = await Promise.all([fetchMyJoinedPlansButNotMine(), fetchMyCreatedPlans()]);
             setSubscribedPlans(joined);
@@ -46,31 +49,18 @@ export function MyPlansScreen() {
         } catch (err) {
             console.error('Error loading my plans:', err);
         }
-    }, [fetchMyCreatedPlans, fetchMyJoinedPlansButNotMine]);
+    }, [tokenData.state, fetchMyCreatedPlans, fetchMyJoinedPlansButNotMine]);
 
     useEffect(() => {
         loadPlans();
     }, [loadPlans]);
 
     useEffect(() => {
-        let filtered = createdPlans;
-
-        if (visibilityFilter !== 'ALL') {
-            filtered = filtered.filter((plan) => plan.visibility === visibilityFilter);
-        }
-
-        if (searchQuery.trim() !== '') {
-            const query = searchQuery.toLowerCase();
-            filtered = filtered.filter(
-                (plan) =>
-                    plan.title.toLowerCase().includes(query) ||
-                    plan.location.toLowerCase().includes(query) ||
-                    (plan.interests ?? []).some((interest) => interest.toLowerCase().includes(query))
-            );
-        }
-
+        const filtered = visibilityFilter === 'ALL'
+            ? createdPlans
+            : createdPlans.filter((plan) => plan.visibility === visibilityFilter);
         setFilteredCreatedPlans(filtered);
-    }, [searchQuery, createdPlans, visibilityFilter]);
+    }, [createdPlans, visibilityFilter]);
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
@@ -115,19 +105,20 @@ export function MyPlansScreen() {
                     <ThemedText type="label" style={[styles.emptyText, { color: mutedText }]}>
                         You are not subscribed to any plan
                     </ThemedText>
+                    {/* Only show Search Plan button when there are no subscribed plans */}
+                    <View style={styles.sectionAction}>
+                        <Pressable
+                            onPress={goToSearchPlans}
+                            style={[styles.browseButton, { borderColor: tint }]}
+                        >
+                            <ThemedText type="label" style={[styles.browseButtonText, { color: tint }]}
+                            >
+                                Search Plan
+                            </ThemedText>
+                        </Pressable>
+                    </View>
                 </View>
             )}
-            <View style={styles.sectionAction}>
-                <Pressable
-                    onPress={goToSearchPlans}
-                    style={[styles.browseButton, { borderColor: tint }]}
-                >
-                    <ThemedText type="label" style={[styles.browseButtonText, { color: tint }]}
-                    >
-                        Search Plan
-                    </ThemedText>
-                </Pressable>
-            </View>
         </View>
     );
 
@@ -172,25 +163,6 @@ export function MyPlansScreen() {
             >
                 {/* Subscribed Plans Section */}
                 {renderSubscribedSection()}
-
-                {/* Search */}
-                <View
-                    style={[styles.searchContainer, { backgroundColor: surface, borderColor: border }]}
-                >
-                    <Ionicons name="search-outline" size={20} color={mutedText} />
-                    <TextInput
-                        style={[styles.searchInput, { color: textColor }]}
-                        placeholder="Search plan..."
-                        placeholderTextColor={mutedText}
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
-                    {searchQuery.length > 0 && (
-                        <Pressable onPress={() => setSearchQuery('')}>
-                            <Ionicons name="close-circle" size={20} color={mutedText} />
-                        </Pressable>
-                    )}
-                </View>
 
                 <ThemedText type="subtitle" style={styles.sectionTitle}>
                     Active Plans You Created

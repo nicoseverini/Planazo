@@ -301,7 +301,9 @@ export default function PlanDetailScreen() {
                     <Ionicons name="arrow-back" size={24} color={text} />
                 </Pressable>
                 <View style={styles.headerTitleContainer}>
-                    <ThemedText type="title" numberOfLines={1}>{plan.title}</ThemedText>
+                    <ThemedText type="title" numberOfLines={1} style={styles.headerTitle}>
+                        {plan.title}
+                    </ThemedText>
                     <View style={[styles.visibilityBadge, { backgroundColor: isPublic ? '#dcfce7' : '#fef3c7' }]}>
                         <ThemedText type="label" style={{ color: isPublic ? '#166534' : '#92400e', fontSize: 11 }}>
                             {isPublic ? 'Public' : 'Private'}

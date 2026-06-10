@@ -10,6 +10,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { PlanCard } from '@/components/PlanCard';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
+import { useToken } from '@/context/token-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PlanFilters, PlanSummary, usePlans } from '@/services/plan';
 import { styles } from './styles';
@@ -74,11 +75,16 @@ export function SearchPlansScreen() {
         return f;
     }, [selectedInterest, locationFilter, dateFrom, dateTo]);
 
+    const { tokenData } = useToken();
+
     const loadPlans = useCallback(async () => {
         try {
             const [publicPlans, joinedPlans] = await Promise.all([
                 hasActiveFilters ? fetchFilteredPlans(buildFilters()) : fetchPublicPlans(),
-                fetchMyJoinedPlans().catch(() => [] as PlanSummary[]),
+                // Only fetch joined plans if logged in, otherwise just return empty array
+                tokenData.state === 'LOGGED_IN'
+                    ? fetchMyJoinedPlans().catch(() => [] as PlanSummary[])
+                    : Promise.resolve([] as PlanSummary[]),
             ]);
             setPlans(publicPlans);
             setFilteredPlans(publicPlans);
@@ -86,7 +92,7 @@ export function SearchPlansScreen() {
         } catch (err) {
             console.error('Error loading plans:', err);
         }
-    }, [fetchPublicPlans, fetchFilteredPlans, fetchMyJoinedPlans, hasActiveFilters, buildFilters]);
+    }, [fetchPublicPlans, fetchFilteredPlans, fetchMyJoinedPlans, hasActiveFilters, buildFilters, tokenData.state]);
 
     useEffect(() => { loadPlans(); }, [loadPlans]);
 

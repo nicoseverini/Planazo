@@ -29,6 +29,9 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 8,
     },
+    headerTitle: {
+        flexShrink: 1,
+    },
     visibilityBadge: {
         paddingHorizontal: 8,
         paddingVertical: 4,

@@ -296,6 +296,10 @@ export default function ProfileScreen() {
                     onPress: async () => {
                         setLoggingOut(true);
                         await logout();
+                        // Clear entire navigation stack to prevent iOS back gesture going to old screens
+                        if (router.canGoBack()) {
+                            router.dismissAll();
+                        }
                         router.replace('/');
                     },
                 },
@@ -317,6 +321,10 @@ export default function ProfileScreen() {
                         try {
                             await deleteAccount();
                             await logout();
+                            // Clear entire navigation stack to prevent iOS back gesture going to old screens
+                            if (router.canGoBack()) {
+                                router.dismissAll();
+                            }
                             router.replace('/');
                         } catch (err) {
                             console.error('[ProfileScreen] Error deleting account:', err);
