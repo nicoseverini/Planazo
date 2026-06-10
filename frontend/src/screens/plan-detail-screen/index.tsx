@@ -209,6 +209,7 @@ export default function PlanDetailScreen() {
     const handleAcceptUser = async (id: number) => {
         try {
             await accept(plan!.id, id);
+            await loadPendingSubscribers();
         } catch (err) {
             console.error('[PlanDetailScreen] Error accepting subscriber:', err);
         }
@@ -217,6 +218,7 @@ export default function PlanDetailScreen() {
     const handleRejectUser = async (id: number) => {
         try {
             await reject(plan!.id, id);
+            await loadPendingSubscribers();
         } catch (err) {
             console.error('[PlanDetailScreen] Error rejecting subscriber:', err);
         }
