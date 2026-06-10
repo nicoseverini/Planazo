@@ -12,10 +12,10 @@ import { loginUser } from '@/services/auth';
 import { styles } from './styles';
 
 const LOGIN_ERROR_MESSAGES: Record<string, string> = {
-  AUTH_INVALID_CREDENTIALS: 'El correo electrónico o la contraseña son incorrectos.',
-  AUTH_ACCOUNT_NOT_VERIFIED: 'Tu cuenta aún no ha sido verificada. Por favor, revisa tu correo electrónico.',
-  AUTH_SERVER_ERROR: 'Hubo un problema en el servidor. Inténtalo de nuevo más tarde.',
-  NETWORK_ERROR: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
+  AUTH_INVALID_CREDENTIALS: 'Invalid Credentials.',
+  AUTH_ACCOUNT_NOT_VERIFIED: 'Your account hasn\'t been verified, please check your emails.',
+  AUTH_SERVER_ERROR: 'Server error. Please try again later.',
+  NETWORK_ERROR: 'Network error. Please check your internet connection.',
 };
 
 export default function LoginScreen() {
@@ -45,7 +45,7 @@ export default function LoginScreen() {
             refreshToken: response.refreshToken,
             role,
           });
-          Alert.alert('¡Bienvenido!', 'Sesión iniciada correctamente.');
+          Alert.alert('¡Welcome!', 'Session started successfully.');
           router.replace('/home');
         } catch (requestError: any) {
           if (requestError instanceof TypeError && requestError.message === 'Network request failed') {
@@ -55,7 +55,7 @@ export default function LoginScreen() {
 
           const errorKey = requestError instanceof Error ? requestError.message : '';
 
-          const friendlyMessage = LOGIN_ERROR_MESSAGES[errorKey] || 'Ocurrió un error inesperado al iniciar sesión.';
+          const friendlyMessage = LOGIN_ERROR_MESSAGES[errorKey] || 'Something went wrong, please try again later.';
 
           setError(friendlyMessage);
         } finally {
