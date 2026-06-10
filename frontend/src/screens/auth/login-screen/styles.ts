@@ -9,6 +9,8 @@ export const styles = StyleSheet.create({
   error: {
     color: '#dc2626',
     textAlign: 'center',
+    marginTop: 16,
+    fontSize: 14,
   },
   forgotPasswordLink: {
     alignItems: 'center',
@@ -18,6 +20,17 @@ export const styles = StyleSheet.create({
   forgotPasswordText: {
     textDecorationLine: 'underline',
     fontSize: 14,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 24,
+    gap: 8,
+  },
+  link: {
+    fontWeight: '700',
+    textDecorationLine: 'underline',
   },
 });
 

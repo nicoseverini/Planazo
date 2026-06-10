@@ -11,6 +11,13 @@ import { loginUser } from '@/services/auth';
 
 import { styles } from './styles';
 
+const LOGIN_ERROR_MESSAGES: Record<string, string> = {
+  AUTH_INVALID_CREDENTIALS: 'El correo electrónico o la contraseña son incorrectos.',
+  AUTH_ACCOUNT_NOT_VERIFIED: 'Tu cuenta aún no ha sido verificada. Por favor, revisa tu correo electrónico.',
+  AUTH_SERVER_ERROR: 'Hubo un problema en el servidor. Inténtalo de nuevo más tarde.',
+  NETWORK_ERROR: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
+};
+
 export default function LoginScreen() {
   const router = useRouter();
   const { setTokenData } = useToken();
@@ -30,22 +37,30 @@ export default function LoginScreen() {
     setError(null);
 
     try {
-      const response = await loginUser({ email: email.trim(), password });
-      const { role } = decodeJwt(response.accessToken);
-      setTokenData({
-        state: 'LOGGED_IN',
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-        role,
-      });
-      Alert.alert('Signed in', 'Your credentials were accepted.');
-      router.replace('/home');
-    } catch (requestError) {
-      const message = requestError instanceof Error ? requestError.message : 'Unable to sign in';
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
+          const response = await loginUser({ email: email.trim(), password });
+          const { role } = decodeJwt(response.accessToken);
+          setTokenData({
+            state: 'LOGGED_IN',
+            accessToken: response.accessToken,
+            refreshToken: response.refreshToken,
+            role,
+          });
+          Alert.alert('¡Bienvenido!', 'Sesión iniciada correctamente.');
+          router.replace('/home');
+        } catch (requestError: any) {
+          if (requestError instanceof TypeError && requestError.message === 'Network request failed') {
+            setError(LOGIN_ERROR_MESSAGES.NETWORK_ERROR);
+            return;
+          }
+
+          const errorKey = requestError instanceof Error ? requestError.message : '';
+
+          const friendlyMessage = LOGIN_ERROR_MESSAGES[errorKey] || 'Ocurrió un error inesperado al iniciar sesión.';
+
+          setError(friendlyMessage);
+        } finally {
+          setLoading(false);
+        }
   };
 
   return (
@@ -63,6 +78,12 @@ export default function LoginScreen() {
 
           {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
         </AuthCard>
+      </View>
+      <View style={styles.footer}>
+        <ThemedText>Don't have an account?</ThemedText>
+        <Pressable onPress={() => router.push('/register')}>
+          <ThemedText style={styles.link}>Sign up</ThemedText>
+        </Pressable>
       </View>
     </AppScreen>
   );

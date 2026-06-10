@@ -3,9 +3,10 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator, FlatList, Modal, Platform,
-    Pressable, RefreshControl, ScrollView, TextInput, View,
+    Pressable, RefreshControl, ScrollView, TextInput, View, Alert
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as Location from 'expo-location';
 
 import { PlanCard } from '@/components/PlanCard';
 import { ThemedText } from '@/components/ThemedText';
@@ -51,6 +52,8 @@ export function SearchPlansScreen() {
     const [locationFilter, setLocationFilter] = useState('');
     const [dateFrom, setDateFrom] = useState<Date | null>(null);
     const [dateTo, setDateTo] = useState<Date | null>(null);
+    const [radius, setRadius] = useState<number | null>(null);
+    const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
 
     // Date picker state
     const [showDateFrom, setShowDateFrom] = useState(false);
@@ -63,7 +66,7 @@ export function SearchPlansScreen() {
     const mutedText = useThemeColor({}, 'mutedText');
     const textColor = useThemeColor({}, 'text');
 
-    const hasActiveFilters = !!(selectedInterest || locationFilter || dateFrom || dateTo);
+    const hasActiveFilters = !!(selectedInterest || locationFilter || dateFrom || dateTo || radius);
 
     const buildFilters = useCallback((): PlanFilters => {
         const f: PlanFilters = {};
@@ -71,8 +74,13 @@ export function SearchPlansScreen() {
         if (locationFilter)   f.location = locationFilter;
         if (dateFrom)         f.dateFrom = `${fmt(dateFrom)}T00:00:00`;
         if (dateTo)           f.dateTo   = `${fmt(dateTo)}T23:59:59`;
+        if (radius && userLocation) {
+            f.lat = userLocation.lat;
+            f.lng = userLocation.lng;
+            f.radius = radius;
+        }
         return f;
-    }, [selectedInterest, locationFilter, dateFrom, dateTo]);
+    }, [selectedInterest, locationFilter, dateFrom, dateTo, radius, userLocation]);
 
     const loadPlans = useCallback(async () => {
         try {
@@ -105,6 +113,30 @@ export function SearchPlansScreen() {
         setLocationFilter('');
         setDateFrom(null);
         setDateTo(null);
+        setRadius(null);
+    };
+
+    const handleRadiusSelect = async (r: number | null) => {
+        if (r === null) {
+            setRadius(null);
+            return;
+        }
+        try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission denied', 'Permission to access location was denied');
+                return;
+            }
+            const location = await Location.getCurrentPositionAsync({});
+            setUserLocation({
+                lat: location.coords.latitude,
+                lng: location.coords.longitude
+            });
+            setRadius(r);
+        } catch (err) {
+            console.error('Error getting location:', err);
+            Alert.alert('Error', 'Could not get current location');
+        }
     };
 
     const onRefresh = useCallback(async () => {
@@ -165,6 +197,11 @@ export function SearchPlansScreen() {
                     {dateTo && (
                         <View style={activeChipStyle}>
                             <ThemedText type="label" style={{ color: tintText }}>Until {fmt(dateTo)}</ThemedText>
+                        </View>
+                    )}
+                    {radius && (
+                        <View style={activeChipStyle}>
+                            <ThemedText type="label" style={{ color: tintText }}>Dist: {radius}km</ThemedText>
                         </View>
                     )}
                     <Pressable onPress={clearFilters} style={{ justifyContent: 'center' }}>
@@ -342,6 +379,29 @@ export function SearchPlansScreen() {
                             }}
                         />
                     )}
+
+                    {/* Proximity Radius */}
+                    <ThemedText type="subtitle" style={{ marginTop: 24, marginBottom: 12 }}>Proximity (Distance)</ThemedText>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                        {[5, 10, 20, 50, 100].map((r) => {
+                            const active = radius === r;
+                            return (
+                                <Pressable
+                                    key={r}
+                                    onPress={() => handleRadiusSelect(active ? null : r)}
+                                    style={{
+                                        paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
+                                        backgroundColor: active ? tint : 'transparent',
+                                        borderWidth: 1, borderColor: active ? tint : border,
+                                    }}
+                                >
+                                    <ThemedText type="label" style={{ color: active ? tintText : textColor }}>
+                                        {r} km
+                                    </ThemedText>
+                                </Pressable>
+                            );
+                        })}
+                    </View>
 
                     {/* Max Price
                     <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Max Price</ThemedText>

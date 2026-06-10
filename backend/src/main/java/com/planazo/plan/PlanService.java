@@ -371,10 +371,13 @@ public class PlanService {
             Interest interest,
             LocalDateTime dateFrom,
             LocalDateTime dateTo,
-            String location
+            String location,
+            Double userLat,
+            Double userLng,
+            Double radiusKm
     ) {
         var spec = PlanSpecification.withFilters(
-                interest, dateFrom, dateTo, location, null, null, null, null
+                interest, dateFrom, dateTo, location, null, userLat, userLng, radiusKm
         );
         return planRepository.findAll(spec)
                 .stream()

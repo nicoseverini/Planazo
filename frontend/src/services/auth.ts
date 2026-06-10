@@ -70,11 +70,21 @@ export async function loginUser(req: LoginRequest): Promise<AuthTokenResponse> {
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('Check your email to activate your account');
-    }
+    const statusCode = Number(response.status);
+    console.log(statusCode, 'auth.ts')
+
     const errorText = await response.text();
-    throw new Error(`Login failed: ${errorText}`);
+    const cleanError = errorText.toUpperCase();
+
+    if (statusCode === 401 || cleanError.includes('401') || cleanError.includes('UNAUTHORIZED') || cleanError.includes('CREDENTIALS')) {
+      throw new Error('AUTH_INVALID_CREDENTIALS');
+    }
+
+    if (statusCode === 403 || cleanError.includes('403') || cleanError.includes('FORBIDDEN') || cleanError.includes('VERIFIED')) {
+      throw new Error('AUTH_ACCOUNT_NOT_VERIFIED');
+    }
+
+    throw new Error('AUTH_SERVER_ERROR');
   }
 
   return response.json();

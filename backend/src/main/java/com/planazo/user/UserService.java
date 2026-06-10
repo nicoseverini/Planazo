@@ -21,6 +21,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 
 import java.util.Optional;
@@ -84,11 +85,19 @@ public class UserService implements UserDetailsService {
     }
 
     Optional<TokenDTO> loginUser(UserCredentials data) {
+
         Optional<User> maybeUser = userRepository.findByEmail(data.email());
-        return maybeUser
-                .filter(user -> Boolean.TRUE.equals(user.isVerified()))
-                .filter(user -> passwordEncoder.matches(data.password(), user.getPassword()))
-                .map(this::generateTokens);
+
+        if (maybeUser.isEmpty() || !passwordEncoder.matches(data.password(), maybeUser.get().getPassword())) {
+            return Optional.empty();
+        }
+
+        User user = maybeUser.get();
+
+        if (!Boolean.TRUE.equals(user.isVerified())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account not verified");
+        }
+        return Optional.of(this.generateTokens(user));
     }
 
     Optional<TokenDTO> loginUserAdmin(UserCredentials data) {
