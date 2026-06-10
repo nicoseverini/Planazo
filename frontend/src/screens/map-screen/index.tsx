@@ -142,16 +142,33 @@ export default function MapScreen() {
                         
                     );
                 })}
-                {filteredTuristicPlaces.map(place => (
-                    <Marker
-                        key={`place-${place.id}`}
-                        coordinate={{
-                            latitude: place.latitude,
-                            longitude: place.longitude
-                        }}
-                        pinColor="green"
-                    />
-                ))}
+                {filteredTuristicPlaces.map((place) => {
+                    if (!place.latitude || !place.longitude) return null;
+                    return (
+                        <Marker
+                            key={`place-${place.id}`}
+                            coordinate={{ latitude: place.latitude, longitude: place.longitude }}
+                            pinColor="green"
+                        >
+                            <Callout
+                                tooltip
+                                onPress={() => router.push(`/turistic-place/${place.id}`)}
+                            >
+                                <View style={[styles.calloutContainer, { backgroundColor: surface, borderColor: border }]}>
+                                    <ThemedText type="subtitle" style={{ fontSize: 14 }} numberOfLines={1}>
+                                        {place.name}
+                                    </ThemedText>
+                                    <ThemedText type="label" style={{ fontSize: 12, marginTop: 4 }} numberOfLines={1}>
+                                        📍 {place.location}
+                                    </ThemedText>
+                                    <ThemedText type="label" style={{ fontSize: 12, color: tint, marginTop: 4, fontWeight: 'bold' }}>
+                                        View details &rarr;
+                                    </ThemedText>
+                                </View>
+                            </Callout>
+                        </Marker>
+                    );
+                })}
             </MapView>
 
             <View style={styles.filterContainer}>
