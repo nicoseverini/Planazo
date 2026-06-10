@@ -1,6 +1,6 @@
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useCallback, useState, useEffect, useRef} from 'react';
-import { View, ScrollView, Pressable, ActivityIndicator, StyleSheet, Dimensions } from 'react-native';
+import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
+import { View, Pressable, ActivityIndicator } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 
 import { Ionicons } from '@expo/vector-icons';
@@ -10,21 +10,15 @@ import { usePlans, PlanSummary } from '@/services/plan';
 import * as Location from 'expo-location';
 
 import { styles } from './styles';
-import {AppScreen} from "@/components/ui";
-import { TuristicPlaceSummary } from "@/services/turistic-place";
+import { AppScreen } from '@/components/ui';
+import { TuristicPlaceSummary } from '@/services/turistic-place';
+import { MapFilterModal, MapFilters, DEFAULT_MAP_FILTERS } from './MapFilterModal';
 
-const CATEGORY_MAP: Record<string, string> = {
-    'All':         'ALL',
-    'Gastronomy':   'FOOD',
-    'Culture':       'CULTURE',
-    'Nature':    'NATURE',
-    'Beach':         'BEACH',
-    'Adventure':      'ADVENTURE',
-    'Nightlife': 'NIGHTLIFE',
-    'Shopping':      'SHOPPING',
-    'History':      'HISTORY',
-    'Mountains':      'MOUNTAINS',
-    'Other':          'OTHER',
+const MAP_INITIAL_REGION = {
+    latitude: -34.6037,
+    longitude: -58.3816,
+    latitudeDelta: 0.1,
+    longitudeDelta: 0.1,
 };
 
 export default function MapScreen() {
@@ -40,35 +34,25 @@ export default function MapScreen() {
 
     const [plans, setPlans] = useState<PlanSummary[]>([]);
     const [places, setPlaces] = useState<TuristicPlaceSummary[]>([]);
-    const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
-    const [mapRegion, setMapRegion] = useState({
-        latitude: -34.6037,
-        longitude: -58.3816,
-        latitudeDelta: 0.1,
-        longitudeDelta: 0.1,
-    });
+    const [filters, setFilters] = useState<MapFilters>(DEFAULT_MAP_FILTERS);
+    const [showFilters, setShowFilters] = useState(false);
 
     const centerOnUser = async () => {
         try {
-
-            let { status } = await Location.requestForegroundPermissionsAsync();
-
-            if (status !== 'granted') {
-                console.log('El usuario denegó el permiso de ubicación');
-                return;
-            }
-
-            let location = await Location.getCurrentPositionAsync({});
-
-            mapRef.current?.animateToRegion({
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-                latitudeDelta: 0.05,
-                longitudeDelta: 0.05,
-            }, 1000);
-
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') return;
+            const location = await Location.getCurrentPositionAsync({});
+            mapRef.current?.animateToRegion(
+                {
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                    latitudeDelta: 0.05,
+                    longitudeDelta: 0.05,
+                },
+                1000
+            );
         } catch (error) {
-            console.log("Error al centrar en el usuario:", error);
+            console.log('Error al centrar en el usuario:', error);
         }
     };
 
@@ -78,45 +62,56 @@ export default function MapScreen() {
 
     useFocusEffect(
         useCallback(() => {
-            Promise.all([
-                fetchPublicPlans(),
-                fetchTouristicPlaces()
-            ])
-            .then(([plansData, placesData]) => {
-                setPlans(plansData);
-                setPlaces(placesData);
-            })
-            .catch(console.error);
+            Promise.all([fetchPublicPlans(), fetchTouristicPlaces()])
+                .then(([plansData, placesData]) => {
+                    setPlans(plansData);
+                    setPlaces(placesData);
+                })
+                .catch(console.error);
         }, [])
     );
 
-    const filteredPlans = plans.filter((plan) => {
-        if (selectedCategory === 'Todos') return true;
-        return plan.interests?.includes(CATEGORY_MAP[selectedCategory]);
-    });
-     const filteredTuristicPlaces = places.filter((place) => {
-        if (selectedCategory === 'Todos') return true;
-        return place.interest?.includes(CATEGORY_MAP[selectedCategory]);
-    });
+    const visiblePlans = useMemo(() => {
+        if (filters.activity === 'PLACES') return [];
+        return plans.filter((plan) => {
+            if (!plan.latitude || !plan.longitude) return false;
+            if (filters.category && !plan.interests?.includes(filters.category)) return false;
+            if (filters.visibility !== 'ANY' && plan.visibility !== filters.visibility) return false;
+            return true;
+        });
+    }, [plans, filters]);
+
+    const visiblePlaces = useMemo(() => {
+        if (filters.activity === 'PLANS') return [];
+        return places.filter((place) => {
+            if (!place.latitude || !place.longitude) return false;
+            if (filters.category && place.interest !== filters.category) return false;
+            return true;
+        });
+    }, [places, filters]);
+
+    const activeFilterCount = useMemo(() => {
+        let count = 0;
+        if (filters.activity !== 'ALL') count++;
+        if (filters.category !== null) count++;
+        if (filters.visibility !== 'ANY') count++;
+        return count;
+    }, [filters]);
 
     return (
         <AppScreen
             contentStyle={styles.appScreenContent}
             safeAreaEdges={['top', 'bottom']}
         >
-        <View style={styles.container}>
-            <MapView
-                ref={mapRef}
-                style={styles.map}
-                initialRegion={mapRegion}
-                showsUserLocation={true}
-                showsMyLocationButton={false}
-            >
-                {filteredPlans.map((plan) => {
-
-                    if (!plan.latitude || !plan.longitude) return null;
-
-                    return (
+            <View style={styles.container}>
+                <MapView
+                    ref={mapRef}
+                    style={styles.map}
+                    initialRegion={MAP_INITIAL_REGION}
+                    showsUserLocation={true}
+                    showsMyLocationButton={false}
+                >
+                    {visiblePlans.map((plan) => (
                         <Marker
                             key={plan.id}
                             coordinate={{ latitude: plan.latitude, longitude: plan.longitude }}
@@ -139,15 +134,12 @@ export default function MapScreen() {
                                 </View>
                             </Callout>
                         </Marker>
-                        
-                    );
-                })}
-                {filteredTuristicPlaces.map((place) => {
-                    if (!place.latitude || !place.longitude) return null;
-                    return (
+                    ))}
+
+                    {visiblePlaces.map((place) => (
                         <Marker
                             key={`place-${place.id}`}
-                            coordinate={{ latitude: place.latitude, longitude: place.longitude }}
+                            coordinate={{ latitude: place.latitude!, longitude: place.longitude! }}
                             pinColor="green"
                         >
                             <Callout
@@ -167,58 +159,50 @@ export default function MapScreen() {
                                 </View>
                             </Callout>
                         </Marker>
-                    );
-                })}
-            </MapView>
+                    ))}
+                </MapView>
 
-            <View style={styles.filterContainer}>
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.filterScroll}
+                {/* Floating filter button — bottom-left */}
+                <Pressable
+                    style={[styles.filtersButton, { backgroundColor: surface, borderColor: border }]}
+                    onPress={() => setShowFilters(true)}
                 >
-                    {Object.keys(CATEGORY_MAP).map((catName) => {
-                        const isSelected = selectedCategory === catName;
-                        return (
-                            <Pressable
-                                key={catName}
-                                onPress={() => setSelectedCategory(catName)}
-                                style={[
-                                    styles.filterChip,
-                                    { backgroundColor: surface, borderColor: border },
-                                    isSelected && { backgroundColor: tint, borderColor: tintText }
-                                ]}
-                            >
-                                <ThemedText
-                                    type="label"
-                                    style={{ color: isSelected ? tintText : text }}
-                                >
-                                    {catName}
-                                </ThemedText>
-                            </Pressable>
-                        );
-                    })}
-                </ScrollView>
+                    <Ionicons
+                        name={activeFilterCount > 0 ? 'options' : 'options-outline'}
+                        size={24}
+                        color={activeFilterCount > 0 ? tint : text}
+                    />
+                    {activeFilterCount > 0 && (
+                        <View style={[styles.filterBadge, { backgroundColor: tint }]}>
+                            <ThemedText style={{ color: tintText, fontSize: 10, fontWeight: '700', lineHeight: 14 }}>
+                                {activeFilterCount}
+                            </ThemedText>
+                        </View>
+                    )}
+                </Pressable>
+
+                {/* Floating location button — bottom-right */}
+                <Pressable
+                    style={[styles.myLocationButton, { backgroundColor: surface, borderColor: border }]}
+                    onPress={centerOnUser}
+                >
+                    <Ionicons name="locate" size={24} color={tint} />
+                </Pressable>
+
+                {loading && (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color={tint} />
+                    </View>
+                )}
             </View>
 
-            <Pressable
-                style={[
-                    styles.myLocationButton,
-                    { backgroundColor: surface, borderColor: border }
-                ]}
-                onPress={centerOnUser}
-            >
-                <Ionicons name="locate" size={24} color={tint} />
-            </Pressable>
-
-            {loading && (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={tint} />
-                </View>
-            )}
-
-        </View>
+            <MapFilterModal
+                visible={showFilters}
+                filters={filters}
+                onFiltersChange={setFilters}
+                onReset={() => setFilters(DEFAULT_MAP_FILTERS)}
+                onClose={() => setShowFilters(false)}
+            />
         </AppScreen>
-
     );
 }
