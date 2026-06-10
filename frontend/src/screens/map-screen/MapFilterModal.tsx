@@ -32,8 +32,7 @@ const VISIBILITY_OPTIONS: { label: string; value: VisibilityFilter }[] = [
     { label: 'Private', value: 'PRIVATE' },
 ];
 
-// SPORTS is not part of the map category set (consistent with the original CATEGORY_MAP)
-const CATEGORY_OPTIONS = INTEREST_OPTIONS.filter((o) => o.value !== 'SPORTS');
+const CATEGORY_OPTIONS = INTEREST_OPTIONS;
 
 type Props = {
     visible: boolean;
