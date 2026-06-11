@@ -36,7 +36,7 @@ public class EmailService {
         String html = loadHtmlTemplate("classpath:templates/mail/verification.html");
         html = html.replace("${verificationUrl}", url);
         
-        send(to, "Verificá tu cuenta de Planazo", html);
+        send(to, "Verify your Planazo account", html);
     }
 
     public void sendPasswordResetEmail(String to, String token) {
@@ -44,7 +44,7 @@ public class EmailService {
         String html = loadHtmlTemplate("classpath:templates/mail/change_password.html");
         html = html.replace("${resetUrl}", url);
         
-        send(to, "Recuperar contraseña de Planazo", html);
+        send(to, "Reset your Planazo password", html);
     }
 
     private void send(String to, String subject, String content) {
@@ -73,6 +73,13 @@ public class EmailService {
         html = html.replace("${planTitle}", planTitle);
         
         send(to, "Your request to join the plan has been rejected.", html);
+    }
+    public void sendRequestToPlanCreator(String to, String requesterName, String planTitle) {
+        String html = loadHtmlTemplate("classpath:templates/mail/request_to_plan_creator.html");
+        html = html.replace("${requesterName}", requesterName);
+        html = html.replace("${planTitle}", planTitle);
+        
+        send(to, "New request to join your plan: " + planTitle, html);
     }
     private String loadHtmlTemplate(String path) {
         try {
