@@ -52,7 +52,7 @@ export default function MapScreen() {
 
     const centerOnUser = async () => {
         try {
-            const { status } = await Location.requestForegroundPermissionsAsync();
+            const { status } = await Location.getForegroundPermissionsAsync();
             if (status !== 'granted') return;
             const location = await Location.getCurrentPositionAsync({});
             setUserLocation({ latitude: location.coords.latitude, longitude: location.coords.longitude });
