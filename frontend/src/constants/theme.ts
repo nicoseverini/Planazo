@@ -32,6 +32,18 @@ export const Colors = {
   },
 };
 
+/** Shared status badge colors — centralized for consistency across all screens */
+export const StatusBadgeColors = {
+  public: {
+    background: '#dcfce7',
+    text: '#166534',
+  },
+  private: {
+    background: '#fef3c7',
+    text: '#92400e',
+  },
+};
+
 export const Layout = {
   pagePadding: 16,
   sectionGap: 16,

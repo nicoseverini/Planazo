@@ -13,6 +13,7 @@ import { CreatedPlanCard } from '@/components/CreatedPlanCard';
 import { SubscribedPlanCard } from '@/components/SubscribedPlanCard';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
+import { StatusBadgeColors } from '@/constants/theme';
 import { useToken } from '@/context/token-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PlanSummary, usePlans } from '@/services/plan';

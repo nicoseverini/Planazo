@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
+import { StatusBadgeColors } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PlanSummary } from '@/services/plan';
 
@@ -15,7 +16,6 @@ export type CreatedPlanCardProps = {
 export function CreatedPlanCard({ plan, onPress }: CreatedPlanCardProps) {
     const cardBg = useThemeColor({}, 'surface');
     const border = useThemeColor({}, 'border');
-    const tint = useThemeColor({}, 'tint');
     const mutedText = useThemeColor({}, 'mutedText');
 
     const formatDate = (dateString: string) => {
@@ -52,12 +52,12 @@ export function CreatedPlanCard({ plan, onPress }: CreatedPlanCardProps) {
                 <View
                     style={[
                         styles.visibilityBadge,
-                        { backgroundColor: isPrivate ? mutedText + '20' : tint + '20' },
+                        { backgroundColor: isPrivate ? StatusBadgeColors.private.background : StatusBadgeColors.public.background },
                     ]}
                 >
                     <ThemedText
                         type="label"
-                        style={[styles.visibilityText, { color: isPrivate ? mutedText : tint }]}
+                        style={[styles.visibilityText, { color: isPrivate ? StatusBadgeColors.private.text : StatusBadgeColors.public.text }]}
                     >
                         {isPrivate ? 'Private' : 'Public'}
                     </ThemedText>

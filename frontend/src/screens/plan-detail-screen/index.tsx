@@ -17,6 +17,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { decodeJwt, useToken } from '@/context/token-context';
 import { AppScreen } from '@/components/ui';
 import { ThemedText } from '@/components/ThemedText';
+import { StatusBadgeColors } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PendingSubscriber, PlanDetail, usePlans } from '@/services/plan';
 import { formatAgeRestriction } from '@/utils/age-restriction';
@@ -310,8 +311,8 @@ export default function PlanDetailScreen() {
                         <ThemedText type="title" style={[styles.headerTitle, { flex: 1 }]}>
                             {plan.title}
                         </ThemedText>
-                        <View style={[styles.visibilityBadge, { backgroundColor: isPublic ? '#dcfce7' : '#fef3c7', marginTop: 4 }]}>
-                            <ThemedText type="label" style={{ color: isPublic ? '#166534' : '#92400e', fontSize: 11 }}>
+                        <View style={[styles.visibilityBadge, { backgroundColor: isPublic ? StatusBadgeColors.public.background : StatusBadgeColors.private.background, marginTop: 4 }]}>
+                            <ThemedText type="label" style={{ color: isPublic ? StatusBadgeColors.public.text : StatusBadgeColors.private.text, fontSize: 11 }}>
                                 {isPublic ? 'Public' : 'Private'}
                             </ThemedText>
                         </View>

@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
+import { StatusBadgeColors } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PlanSummary } from '@/services/plan';
 
@@ -73,11 +74,10 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
                     <View style={styles.titleRow}>
                         <ThemedText type="subtitle" style={styles.planTitle} numberOfLines={1}>
                             {plan.title}
-                        </ThemedText>
-                        <View style={[styles.visibilityBadge, {
-                            backgroundColor: isPublic ? '#22c55e' : '#f59e0b',
+                        </ThemedText>                            <View style={[styles.visibilityBadge, {
+                            backgroundColor: isPublic ? StatusBadgeColors.public.background : StatusBadgeColors.private.background,
                         }]}>
-                            <ThemedText type="label" style={styles.visibilityBadgeText}>
+                            <ThemedText type="label" style={[styles.visibilityBadgeText, { color: isPublic ? StatusBadgeColors.public.text : StatusBadgeColors.private.text }]}>
                                 {isPublic ? 'PUBLIC' : 'PRIVATE'}
                             </ThemedText>
                         </View>

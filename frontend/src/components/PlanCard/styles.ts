@@ -65,7 +65,6 @@ export const styles = StyleSheet.create({
         borderRadius: 6,
     },
     visibilityBadgeText: {
-        color: '#ffffff',
         fontSize: 10,
         fontWeight: '700',
         letterSpacing: 0.5,
