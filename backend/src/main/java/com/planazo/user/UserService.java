@@ -125,7 +125,6 @@ public class UserService implements UserDetailsService {
                         user.getGender(),
                         user.getBirthDate(),
                         user.getInterests(),
-                        user.getBudget(),
                         user.getTravelType(),
                         user.getLanguages()));
     }
@@ -141,7 +140,6 @@ public class UserService implements UserDetailsService {
                         user.getGender(),
                         user.getBirthDate(),
                         user.getInterests(),
-                        user.getBudget(),
                         user.getTravelType(),
                         user.getLanguages()));
     }
@@ -195,9 +193,6 @@ public class UserService implements UserDetailsService {
                     if (userDTO.interests() != null) {
                         findedUser.setInterests(userDTO.interests());
                     }
-                    if (userDTO.budget() != null) {
-                        findedUser.setBudget(userDTO.budget());
-                    }
                     if (userDTO.travelType() != null) {
                         findedUser.setTravelType(userDTO.travelType());
                     }
@@ -233,9 +228,6 @@ public class UserService implements UserDetailsService {
                     }
                     if (userDTO.interests() != null) {
                         findedUser.setInterests(userDTO.interests());
-                    }
-                    if (userDTO.budget() != null) {
-                        findedUser.setBudget(userDTO.budget());
                     }
                     if (userDTO.travelType() != null) {
                         findedUser.setTravelType(userDTO.travelType());

@@ -2,7 +2,6 @@ package com.planazo.user.dto;
 
 import com.planazo.common.constants.Interest;
 import com.planazo.common.constants.TravelType;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Past;
 
 import java.time.LocalDate;
@@ -16,7 +15,6 @@ public record UserUpdateDTO(
                 String password,
                 @Past(message = "Birth date must be in the past") LocalDate birthDate,
                 List<Interest> interests,
-                @Min(value = 0, message = "Budget must be zero or greater") Integer budget,
                 TravelType travelType,
                 List<String> languages) {
 

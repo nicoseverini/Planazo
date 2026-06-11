@@ -27,6 +27,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     const validationError = validateLoginForm({ email, password });
@@ -82,7 +83,12 @@ export default function LoginScreen() {
         </View>
         <AuthCard kicker="Sign in" title="Sign in" body="Enter your verified email and password to continue.">
           <AuthInput label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
-          <AuthInput label="Password" value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" autoComplete="password" />
+          <View style={{ position: 'relative' }}>
+            <AuthInput label="Password" value={password} onChangeText={setPassword} secureTextEntry={!showPassword} autoCapitalize="none" autoComplete="password"/>
+            <Pressable onPress={() => setShowPassword(!showPassword)} style={{position: 'absolute', right: 12, top: 42, zIndex: 1,}}>
+              <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="gray"/>
+            </Pressable>
+          </View>
           <AuthButton label={loading ? 'Signing in...' : 'Sign in'} onPress={handleLogin} disabled={loading} />
           <Pressable onPress={() => router.push('/forgot-password')} style={styles.forgotPasswordLink}>
             <ThemedText lightColor="#000000" darkColor="#ffffff" style={styles.forgotPasswordText}>

@@ -15,7 +15,6 @@ export type UserProfile = {
   zone?: string;
   role?: string;
   photo?: string;
-  budget?: number;
   travelType?: string;
   languages?: string[];
   interests?: string[];
@@ -47,7 +46,6 @@ export type UpdateProfileRequest = {
   lastname?: string;
   gender?: string;
   birthDate?: string;
-  budget?: number;
   travelType?: string;
   languages?: string[];
   interests?: string[];

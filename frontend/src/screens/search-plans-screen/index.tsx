@@ -11,7 +11,7 @@ import * as Location from 'expo-location';
 import { PlanCard } from '@/components/PlanCard';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
-import { useToken } from '@/context/token-context';
+import { decodeJwt, useToken } from '@/context/token-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PlanFilters, PlanSummary, usePlans } from '@/services/plan';
 import { styles } from './styles';
@@ -84,25 +84,42 @@ export function SearchPlansScreen() {
         return f;
     }, [selectedInterest, locationFilter, dateFrom, dateTo, radius, userLocation]);
 
-    const { tokenData } = useToken();
+    const { tokenData, getAccessToken } = useToken();
 
     const loadPlans = useCallback(async () => {
         try {
             const [publicPlans, joinedPlans] = await Promise.all([
                 hasActiveFilters ? fetchFilteredPlans(buildFilters()) : fetchPublicPlans(),
-                // Only fetch joined plans if logged in, otherwise just return empty array
                 tokenData.state === 'LOGGED_IN'
                     ? fetchMyJoinedPlans().catch(() => [] as PlanSummary[])
                     : Promise.resolve([] as PlanSummary[]),
             ]);
-            setPlans(publicPlans);
-            setFilteredPlans(publicPlans);
-            setJoinedIds(new Set(joinedPlans.map((p) => p.id)));
+
+            const myJoinedSet = new Set(joinedPlans.map((p) => p.id));
+            setJoinedIds(myJoinedSet);
+
+            // Obtener el id del usuario logueado
+            let myUserId: number | null = null;
+            if (tokenData.state === 'LOGGED_IN') {
+                const token = getAccessToken();
+                if (token) {
+                    const decoded = decodeJwt(token) as any;
+                    myUserId = Number(decoded.id);
+                }
+            }
+
+            const visiblePlans = publicPlans.filter((p) => {
+                if (myJoinedSet.has(p.id)) return false;
+                if (myUserId !== null && p.creatorId === myUserId) return false;
+                return true;
+            });
+
+            setPlans(visiblePlans);
+            setFilteredPlans(visiblePlans);
         } catch (err) {
             console.error('Error loading plans:', err);
         }
     }, [fetchPublicPlans, fetchFilteredPlans, fetchMyJoinedPlans, hasActiveFilters, buildFilters, tokenData.state]);
-
     useEffect(() => { loadPlans(); }, [loadPlans]);
 
     useEffect(() => {

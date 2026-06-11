@@ -50,9 +50,6 @@ public class User implements UserDetails, UserCredentials {
     @Column(name = "interest")
     private List<Interest> interests = new ArrayList<>();
 
-    @Column
-    private Integer budget;
-
     @Enumerated(EnumType.STRING)
     private TravelType travelType;
 
@@ -78,10 +75,9 @@ public class User implements UserDetails, UserCredentials {
     }
 
     public User(String name, String password, String gender, String email, String lastname, String photo, String role,
-            LocalDate birthDate, List<Interest> interests, Integer budget, TravelType travelType, List<String> languages) {
+            LocalDate birthDate, List<Interest> interests, TravelType travelType, List<String> languages) {
         this(name, password, gender, email, lastname, photo, role, birthDate);
         setInterests(interests);
-        this.budget = budget;
         this.travelType = travelType;
         setLanguages(languages);
         this.verified = false;
@@ -170,13 +166,6 @@ public class User implements UserDetails, UserCredentials {
         this.interests = interests == null ? new ArrayList<>() : new ArrayList<>(interests);
     }
 
-    public Integer getBudget() {
-        return budget;
-    }
-
-    public void setBudget(Integer budget) {
-        this.budget = budget;
-    }
 
     public TravelType getTravelType() {
         return travelType;

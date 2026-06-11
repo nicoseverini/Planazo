@@ -1,6 +1,6 @@
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import { View, Pressable, ActivityIndicator } from 'react-native';
+import { View, Pressable, ActivityIndicator, Platform } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 
 import { Ionicons } from '@expo/vector-icons';
@@ -33,6 +33,23 @@ const MAP_INITIAL_REGION = {
     longitudeDelta: 0.1,
 };
 
+const MAP_STYLE = [
+    {
+        featureType: 'poi',
+        stylers: [{ visibility: 'off' }],
+    },
+    {
+        featureType: 'transit',
+        stylers: [{ visibility: 'off' }],
+    },
+];
+
+const isAndroid = Platform.OS === 'android';
+
+type SelectedMapItem =
+    | { type: 'plan'; item: PlanSummary }
+    | { type: 'place'; item: TuristicPlaceSummary };
+
 export default function MapScreen() {
     const router = useRouter();
     const { fetchPublicPlans, loading, fetchTouristicPlaces } = usePlans();
@@ -49,6 +66,7 @@ export default function MapScreen() {
     const [filters, setFilters] = useState<MapFilters>(DEFAULT_MAP_FILTERS);
     const [showFilters, setShowFilters] = useState(false);
     const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+    const [selectedMapItem, setSelectedMapItem] = useState<SelectedMapItem | null>(null);
 
     const centerOnUser = async () => {
         try {
@@ -121,6 +139,69 @@ export default function MapScreen() {
         return count;
     }, [filters]);
 
+    useEffect(() => {
+        if (!selectedMapItem) return;
+
+        const isStillVisible = selectedMapItem.type === 'plan'
+            ? visiblePlans.some((plan) => plan.id === selectedMapItem.item.id)
+            : visiblePlaces.some((place) => place.id === selectedMapItem.item.id);
+
+        if (!isStillVisible) {
+            setSelectedMapItem(null);
+        }
+    }, [selectedMapItem, visiblePlans, visiblePlaces]);
+
+    const selectPlan = useCallback((plan: PlanSummary) => {
+        if (!isAndroid) return;
+
+        setSelectedMapItem({ type: 'plan', item: plan });
+        mapRef.current?.animateToRegion(
+            {
+                latitude: plan.latitude!,
+                longitude: plan.longitude!,
+                latitudeDelta: 0.03,
+                longitudeDelta: 0.03,
+            },
+            300
+        );
+    }, []);
+
+    const selectPlace = useCallback((place: TuristicPlaceSummary) => {
+        if (!isAndroid) return;
+
+        setSelectedMapItem({ type: 'place', item: place });
+        mapRef.current?.animateToRegion(
+            {
+                latitude: place.latitude!,
+                longitude: place.longitude!,
+                latitudeDelta: 0.03,
+                longitudeDelta: 0.03,
+            },
+            300
+        );
+    }, []);
+
+    const navigateToSelectedItem = useCallback(() => {
+        if (!selectedMapItem) return;
+
+        if (selectedMapItem.type === 'plan') {
+            router.push(`/plan/${selectedMapItem.item.id}`);
+            return;
+        }
+
+        router.push(`/turistic-place/${selectedMapItem.item.id}`);
+    }, [router, selectedMapItem]);
+
+    const selectedPreview = selectedMapItem
+        ? {
+            title: selectedMapItem.type === 'plan'
+                ? selectedMapItem.item.title
+                : selectedMapItem.item.name,
+            location: selectedMapItem.item.location,
+            tint: selectedMapItem.type === 'plan' ? tint : 'green',
+        }
+        : null;
+
     return (
         <AppScreen
             contentStyle={styles.appScreenContent}
@@ -133,17 +214,21 @@ export default function MapScreen() {
                     initialRegion={MAP_INITIAL_REGION}
                     showsUserLocation={true}
                     showsMyLocationButton={false}
+                    customMapStyle={MAP_STYLE}
+                    onPress={isAndroid ? () => setSelectedMapItem(null) : undefined}
                 >
                     {visiblePlans.map((plan) => (
                         <Marker
                             key={plan.id}
                             coordinate={{ latitude: plan.latitude, longitude: plan.longitude }}
                             pinColor={tint}
+                            onPress={isAndroid ? () => selectPlan(plan) : undefined}
                         >
-                            <Callout
-                                tooltip
-                                onPress={() => router.push(`/plan/${plan.id}`)}
-                            >
+                            {!isAndroid && (
+                                <Callout
+                                    tooltip
+                                    onPress={() => router.push(`/plan/${plan.id}`)}
+                                >
                                 <View style={[styles.calloutContainer, { backgroundColor: surface, borderColor: border }]}>
                                     <ThemedText type="subtitle" style={{ fontSize: 14 }} numberOfLines={1}>
                                         {plan.title}
@@ -155,7 +240,8 @@ export default function MapScreen() {
                                         View details &rarr;
                                     </ThemedText>
                                 </View>
-                            </Callout>
+                                </Callout>
+                            )}
                         </Marker>
                     ))}
 
@@ -164,11 +250,13 @@ export default function MapScreen() {
                             key={`place-${place.id}`}
                             coordinate={{ latitude: place.latitude!, longitude: place.longitude! }}
                             pinColor="green"
+                            onPress={isAndroid ? () => selectPlace(place) : undefined}
                         >
-                            <Callout
-                                tooltip
-                                onPress={() => router.push(`/turistic-place/${place.id}`)}
-                            >
+                            {!isAndroid && (
+                                <Callout
+                                    tooltip
+                                    onPress={() => router.push(`/turistic-place/${place.id}`)}
+                                >
                                 <View style={[styles.calloutContainer, { backgroundColor: surface, borderColor: border }]}>
                                     <ThemedText type="subtitle" style={{ fontSize: 14 }} numberOfLines={1}>
                                         {place.name}
@@ -180,10 +268,32 @@ export default function MapScreen() {
                                         View details &rarr;
                                     </ThemedText>
                                 </View>
-                            </Callout>
+                                </Callout>
+                            )}
                         </Marker>
                     ))}
                 </MapView>
+
+                {isAndroid && selectedPreview && (
+                    <Pressable
+                        style={[
+                            styles.calloutContainer,
+                            styles.androidPreviewCard,
+                            { backgroundColor: surface, borderColor: border },
+                        ]}
+                        onPress={navigateToSelectedItem}
+                    >
+                        <ThemedText type="subtitle" style={{ fontSize: 14 }} numberOfLines={1}>
+                            {selectedPreview.title}
+                        </ThemedText>
+                        <ThemedText type="label" style={{ fontSize: 12, marginTop: 4 }} numberOfLines={1}>
+                            📍 {selectedPreview.location}
+                        </ThemedText>
+                        <ThemedText type="label" style={{ fontSize: 12, color: selectedPreview.tint, marginTop: 4, fontWeight: 'bold' }}>
+                            View details &rarr;
+                        </ThemedText>
+                    </Pressable>
+                )}
 
                 {/* Floating filter button — bottom-left */}
                 <Pressable
