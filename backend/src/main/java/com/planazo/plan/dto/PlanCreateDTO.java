@@ -6,6 +6,8 @@ import com.planazo.common.constants.Interest;
 import com.planazo.common.constants.TravelType;
 import com.planazo.user.User;
 import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -18,8 +20,8 @@ public record PlanCreateDTO(
         Integer durationMinutes,
         @NotNull PlanVisibility visibility,
         Integer maxSubscribers,
-        Integer minAge,
-        Integer maxAge,
+        @Min(0) @Max(120) Integer minAge,
+        @Min(0) @Max(120) Integer maxAge,
         List<Interest> interests,
         TravelType travelType,
         String location,

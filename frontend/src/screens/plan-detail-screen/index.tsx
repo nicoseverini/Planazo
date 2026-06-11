@@ -19,6 +19,7 @@ import { AppScreen } from '@/components/ui';
 import { ThemedText } from '@/components/ThemedText';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PendingSubscriber, PlanDetail, usePlans } from '@/services/plan';
+import { formatAgeRestriction } from '@/utils/age-restriction';
 
 import { styles } from './styles';
 
@@ -344,9 +345,9 @@ export default function PlanDetailScreen() {
 
             <View style={styles.infoRow}>
                 <View style={styles.infoItem}>
-                    <Ionicons name="person-outline" size={16} color={mutedText} />
+                    <Ionicons name="people-outline" size={16} color={mutedText} />
                     <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>
-                        Minimum age: {plan.minAge ?? 18}
+                        {formatAgeRestriction(plan.minAge, plan.maxAge)}
                     </ThemedText>
                 </View>
             </View>
@@ -482,12 +483,6 @@ export default function PlanDetailScreen() {
                                     Participants: {plan.subscribersCount}/{plan.maxSubscribers}
                                 </ThemedText>
                             </View>
-                            {plan.maxAge !== null && (
-                                <View style={styles.infoListItem}>
-                                    <View style={[styles.infoDot, { backgroundColor: tint }]} />
-                                    <ThemedText type="body">Max age: {plan.maxAge}</ThemedText>
-                                </View>
-                            )}
                         </View>
                     </View>
                 </View>

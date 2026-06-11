@@ -3,6 +3,8 @@ package com.planazo.plan.dto;
 import com.planazo.plan.PlanVisibility;
 import com.planazo.common.constants.Interest;
 import com.planazo.common.constants.TravelType;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,9 +22,9 @@ public record PlanUpdateDTO(
 
         Integer maxSubscribers,
 
-        Integer minAge,
+        @Min(0) @Max(120) Integer minAge,
 
-        Integer maxAge,
+        @Min(0) @Max(120) Integer maxAge,
 
         List<Interest> interests,
 

@@ -20,6 +20,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PlanUpdateRequest, usePlans } from '@/services/plan';
+import { validateAgeFields, parseAge } from '@/utils/age-restriction';
 
 import { styles } from './styles';
 
@@ -222,12 +223,8 @@ export default function EditPlanScreen() {
             setError('Selecciona al menos una categoría');
             return false;
         }
-        const parsedMin = minAge.trim() ? parseInt(minAge, 10) : null;
-        const parsedMax = maxAge.trim() ? parseInt(maxAge, 10) : null;
-        if (parsedMin !== null && parsedMax !== null && parsedMax !== 0 && parsedMin >= parsedMax) {
-            setError('Minimum age must be less than maximum age');
-            return false;
-        }
+        const ageError = validateAgeFields(minAge, maxAge);
+        if (ageError) { setError(ageError); return false; }
         return true;
     };
 
@@ -323,8 +320,6 @@ export default function EditPlanScreen() {
             return;
         }
 
-        const parsedMinAge = Number.parseInt(minAge, 10);
-        const parsedMaxAge = Number.parseInt(maxAge, 10);
         const parsedMaxSubscribers = Number.parseInt(maxParticipants, 10);
 
         setSaving(true);
@@ -359,8 +354,8 @@ export default function EditPlanScreen() {
                 durationMinutes: DEFAULT_DURATION_MINUTES,
                 visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
                 maxSubscribers: Number.isNaN(parsedMaxSubscribers) ? 10 : parsedMaxSubscribers,
-                minAge: Number.isNaN(parsedMinAge) ? undefined : parsedMinAge,
-                maxAge: Number.isNaN(parsedMaxAge) ? undefined : parsedMaxAge,
+                minAge: parseAge(minAge),
+                maxAge: parseAge(maxAge),
                 interests: mappedInterests.length > 0 ? mappedInterests : [DEFAULT_INTEREST],
                 travelType: DEFAULT_TRAVEL_TYPE,
                 location: location.trim(),

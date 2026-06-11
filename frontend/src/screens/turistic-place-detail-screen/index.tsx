@@ -18,19 +18,11 @@ import { AppScreen } from '@/components/ui';
 import { useToken, decodeJwt } from '@/context/token-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { INTEREST_LABEL, TuristicPlaceDetail, useTuristicPlaces } from '@/services/turistic-place';
+import { formatAgeRestriction } from '@/utils/age-restriction';
 
 import { styles } from './styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-function formatAgeRestriction(minAge: number | null, maxAge: number | null): string {
-    const hasMin = minAge != null;
-    const hasMax = maxAge != null && maxAge !== 0;
-    if (hasMin && hasMax) return `Allowed age range: ${minAge}–${maxAge} years.`;
-    if (hasMin) return `Only visitors aged ${minAge} or older are allowed.`;
-    if (hasMax) return `Visitors must be ${maxAge} years old or younger.`;
-    return 'No age restrictions.';
-}
 
 export default function TuristicPlaceDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();

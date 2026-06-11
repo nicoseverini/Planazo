@@ -27,11 +27,17 @@ public class TuristicPlaceService {
     }
 
     public TuristicPlaceDetailDTO createTuristicPlace(TuristicPlaceCreateDTO data, String creatorEmail) {
-        validateAgeRange(data.minAge(), data.maxAge());
+        Integer normalizedMin = normalizeAge(data.minAge());
+        Integer normalizedMax = normalizeAge(data.maxAge());
+        validateAgeRange(normalizedMin, normalizedMax);
 
         User creator = userRepository.findByEmail(creatorEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
-        TuristicPlace place = data.asTuristicPlace();
+        TuristicPlace place = new TuristicPlace(
+                data.name(), data.cost(), normalizedMin, normalizedMax, data.interest(),
+                data.location(), data.latitude(), data.longitude(), data.images()
+        );
+        place.setDescription(data.description());
         place.setCreator(creator);
         return toDetailDTO(turisticPlaceRepository.save(place));
     }
@@ -80,9 +86,13 @@ public class TuristicPlaceService {
     }
 
     private void validateAgeRange(Integer minAge, Integer maxAge) {
-        if (minAge != null && maxAge != null && maxAge != 0 && minAge >= maxAge) {
+        if (minAge != null && maxAge != null && minAge > maxAge) {
             throw new InvalidAgeRangeException();
         }
+    }
+
+    private static Integer normalizeAge(Integer age) {
+        return (age == null || age == 0) ? null : age;
     }
 
     private boolean canModify(TuristicPlace place, User caller) {
@@ -93,8 +103,10 @@ public class TuristicPlaceService {
     }
 
     private TuristicPlace saveUpdatedTuristicPlace(TuristicPlace place, TuristicPlaceUpdateDTO data) {
-        Integer effectiveMin = data.minAge() != null ? data.minAge() : place.getMinAge();
-        Integer effectiveMax = data.maxAge() != null ? data.maxAge() : place.getMaxAge();
+        Integer incomingMin = data.minAge() != null ? normalizeAge(data.minAge()) : null;
+        Integer incomingMax = data.maxAge() != null ? normalizeAge(data.maxAge()) : null;
+        Integer effectiveMin = data.minAge() != null ? incomingMin : place.getMinAge();
+        Integer effectiveMax = data.maxAge() != null ? incomingMax : place.getMaxAge();
         validateAgeRange(effectiveMin, effectiveMax);
 
         if (data.name() != null) {
@@ -104,10 +116,10 @@ public class TuristicPlaceService {
             place.setCost(data.cost());
         }
         if (data.minAge() != null) {
-            place.setMinAge(data.minAge());
+            place.setMinAge(incomingMin);
         }
         if (data.maxAge() != null) {
-            place.setMaxAge(data.maxAge());
+            place.setMaxAge(incomingMax);
         }
         if (data.interest() != null) {
             place.setInterest(data.interest());

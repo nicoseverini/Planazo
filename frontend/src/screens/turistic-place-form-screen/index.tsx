@@ -21,6 +21,7 @@ import {
     INTEREST_OPTIONS,
     TuristicPlaceCreateRequest,
 } from '@/services/turistic-place';
+import { validateAgeFields, parseAge } from '@/utils/age-restriction';
 
 import { styles } from './styles';
 
@@ -175,12 +176,8 @@ export default function TuristicPlaceFormScreen({
             setError('A valid cost is required');
             return false;
         }
-        const parsedMin = minAge.trim() ? parseInt(minAge, 10) : null;
-        const parsedMax = maxAge.trim() ? parseInt(maxAge, 10) : null;
-        if (parsedMin !== null && parsedMax !== null && parsedMax !== 0 && parsedMin >= parsedMax) {
-            setError('Minimum age must be less than maximum age');
-            return false;
-        }
+        const ageError = validateAgeFields(minAge, maxAge);
+        if (ageError) { setError(ageError); return false; }
         return true;
     };
 
@@ -189,8 +186,6 @@ export default function TuristicPlaceFormScreen({
         setSaving(true);
         setError(null);
         try {
-            const parsedMinAge = minAge.trim() ? parseInt(minAge, 10) : undefined;
-            const parsedMaxAge = maxAge.trim() ? parseInt(maxAge, 10) : undefined;
             const parsedLat = latitude.trim() ? parseFloat(latitude) : undefined;
             const parsedLng = longitude.trim() ? parseFloat(longitude) : undefined;
 
@@ -198,8 +193,8 @@ export default function TuristicPlaceFormScreen({
                 name: name.trim(),
                 cost: parseFloat(cost),
                 interest,
-                minAge: parsedMinAge && !isNaN(parsedMinAge) ? parsedMinAge : undefined,
-                maxAge: parsedMaxAge && !isNaN(parsedMaxAge) ? parsedMaxAge : undefined,
+                minAge: parseAge(minAge),
+                maxAge: parseAge(maxAge),
                 location: location.trim() || undefined,
                 latitude: parsedLat && !isNaN(parsedLat) ? parsedLat : undefined,
                 longitude: parsedLng && !isNaN(parsedLng) ? parsedLng : undefined,

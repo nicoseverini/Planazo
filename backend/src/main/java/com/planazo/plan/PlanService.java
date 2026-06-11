@@ -38,7 +38,9 @@ public class PlanService {
     // ── Create ───────────────────────────────────────────────────────────────
 
     public PlanDetailDTO createPlan(PlanCreateDTO data, String creatorEmail) {
-        validateAgeRange(data.minAge(), data.maxAge());
+        Integer normalizedMin = normalizeAge(data.minAge());
+        Integer normalizedMax = normalizeAge(data.maxAge());
+        validateAgeRange(normalizedMin, normalizedMax);
 
         User creator = userRepository.findByEmail(creatorEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
@@ -50,8 +52,8 @@ public class PlanService {
                 data.durationMinutes(),
                 data.visibility(),
                 data.maxSubscribers(),
-                data.minAge(),
-                data.maxAge(),
+                normalizedMin,
+                normalizedMax,
                 data.interests(),
                 data.travelType(),
                 data.location(),
@@ -237,8 +239,11 @@ public class PlanService {
     }
 
     private Plan saveUpdatedPlan(Plan plan, PlanUpdateDTO data) {
-        Integer effectiveMin = data.minAge() != null ? data.minAge() : plan.getMinAge();
-        Integer effectiveMax = data.maxAge() != null ? data.maxAge() : plan.getMaxAge();
+        // Normalize incoming values (0 → null means "clear restriction")
+        Integer incomingMin = data.minAge() != null ? normalizeAge(data.minAge()) : null;
+        Integer incomingMax = data.maxAge() != null ? normalizeAge(data.maxAge()) : null;
+        Integer effectiveMin = data.minAge() != null ? incomingMin : plan.getMinAge();
+        Integer effectiveMax = data.maxAge() != null ? incomingMax : plan.getMaxAge();
         validateAgeRange(effectiveMin, effectiveMax);
 
         if (data.title() != null)           plan.setTitle(data.title());
@@ -247,8 +252,8 @@ public class PlanService {
         if (data.durationMinutes() != null) plan.setDurationMinutes(data.durationMinutes());
         if (data.visibility() != null)      plan.setVisibility(data.visibility());
         if (data.maxSubscribers() != null)  plan.setMaxSubscribers(data.maxSubscribers());
-        if (data.minAge() != null)          plan.setMinAge(data.minAge());
-        if (data.maxAge() != null)          plan.setMaxAge(data.maxAge());
+        if (data.minAge() != null)          plan.setMinAge(incomingMin);
+        if (data.maxAge() != null)          plan.setMaxAge(incomingMax);
         if (data.interests() != null)       plan.setInterests(data.interests());
         if (data.travelType() != null)      plan.setTravelType(data.travelType());
         if (data.location() != null)        plan.setLocation(data.location());
@@ -259,9 +264,15 @@ public class PlanService {
     }
 
     private void validateAgeRange(Integer minAge, Integer maxAge) {
-        if (minAge != null && maxAge != null && maxAge != 0 && minAge >= maxAge) {
+        // Both values are pre-normalized (0 already converted to null), so no 0-special-case needed
+        if (minAge != null && maxAge != null && minAge > maxAge) {
             throw new InvalidAgeRangeException();
         }
+    }
+
+    // Converts 0 to null so that "no restriction" is always stored as NULL, not 0
+    private static Integer normalizeAge(Integer age) {
+        return (age == null || age == 0) ? null : age;
     }
 
     // ── Subscribe / Unsubscribe ──────────────────────────────────────────────

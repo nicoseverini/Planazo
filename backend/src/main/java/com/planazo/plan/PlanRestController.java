@@ -145,7 +145,7 @@ class PlanRestController {
     @ApiResponse(responseCode = "404", description = "Plan not found", content = @Content)
     ResponseEntity<PlanDetailDTO> updatePlan(
             @PathVariable Long id,
-            @RequestBody PlanUpdateDTO data,
+            @Valid @RequestBody PlanUpdateDTO data,
             @AuthenticationPrincipal(expression = "username") String email
     ) {
         return planService.updatePlan(id, data, email)
@@ -160,7 +160,7 @@ class PlanRestController {
     @ApiResponse(responseCode = "404", description = "Plan not found", content = @Content)
     ResponseEntity<PlanDetailDTO> updatePlan(
             @PathVariable Long id,
-            @RequestBody PlanUpdateDTO data
+            @Valid @RequestBody PlanUpdateDTO data
     ) {
         return planService.updatePlanAsAdmin(id, data)
                 .map(ResponseEntity::ok)

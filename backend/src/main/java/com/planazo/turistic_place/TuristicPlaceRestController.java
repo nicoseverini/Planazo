@@ -79,7 +79,7 @@ class TuristicPlaceRestController {
     @ApiResponse(responseCode = "403", description = "Not the creator", content = @Content)
     ResponseEntity<TuristicPlaceDetailDTO> updateTuristicPlace(
             @PathVariable Long id,
-            @RequestBody TuristicPlaceUpdateDTO data,
+            @Valid @RequestBody TuristicPlaceUpdateDTO data,
             @AuthenticationPrincipal(expression = "username") String email
     ) {
         return turisticPlaceService.updateTuristicPlace(id, data, email)
