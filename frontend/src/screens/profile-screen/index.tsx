@@ -39,7 +39,6 @@ const DEFAULT_PROFILE: UserProfile = {
     gender: '',
     birthDate: '',
     interests: [],
-    budget: undefined,
     travelType: '',
     languages: [],
     photo: '',
@@ -205,14 +204,12 @@ export default function ProfileScreen() {
         setError(null);
 
         try {
-            const budgetValue = formData.budget ?? undefined;
             const payload: UpdateProfileRequest = {
                 name: formData.name,
                 lastname: formData.lastname,
                 gender: formData.gender,
                 birthDate: formData.birthDate,
                 photo: formData.photo,
-                budget: budgetValue,
                 travelType: formData.travelType || undefined,
                 languages: formData.languages ?? [],
                 interests: formData.interests ?? [],
@@ -476,15 +473,6 @@ export default function ProfileScreen() {
                                 <ThemedText type="body">{formatValue(displayUser.travelType, TRAVEL_TYPE_LABELS)}</ThemedText>
                             </View>
                         </View>
-                        <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
-                            <Ionicons name="cash-outline" size={20} color={mutedText} />
-                            <View style={styles.infoContent}>
-                                <ThemedText type="label" style={{ color: mutedText }}>Budget</ThemedText>
-                                <ThemedText type="body">
-                                    {displayUser.budget !== undefined ? `$${displayUser.budget}` : 'Not set'}
-                                </ThemedText>
-                            </View>
-                        </View>
                     </View>
 
                     {/* Menu de opciones */}
@@ -701,21 +689,6 @@ export default function ProfileScreen() {
                                 </Pressable>
                             ))}
                         </View>
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Budget</ThemedText>
-                        <TextInput
-                            style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
-                            value={formData?.budget !== undefined ? String(formData.budget) : ''}
-                            onChangeText={(value) => {
-                                const trimmed = value.replace(/[^0-9]/g, '');
-                                onChange('budget', trimmed ? Number(trimmed) : undefined);
-                            }}
-                            placeholder="0"
-                            placeholderTextColor={mutedText}
-                            keyboardType="numeric"
-                        />
                     </View>
 
                     {error && (

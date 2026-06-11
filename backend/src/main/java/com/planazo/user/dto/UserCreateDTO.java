@@ -25,7 +25,6 @@ public record UserCreateDTO(
         String gender,
         LocalDate birthDate,
         List<Interest> interests,
-        @Min(value = 0, message = "Budget must be zero or greater") Integer budget,
         TravelType travelType,
         List<String> languages,
         String role)
@@ -45,7 +44,6 @@ public record UserCreateDTO(
                 role != null ? role : "USER",
                 birthDate != null ? birthDate : LocalDate.of(2000, 1, 1),
                 interests != null ? List.copyOf(interests) : List.of(),
-                budget,
                 travelType,
                 languages != null ? List.copyOf(languages) : List.of());
     }

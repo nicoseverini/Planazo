@@ -182,7 +182,6 @@ export default function RegisterScreen() {
     gender: '',
     birthDate: '',
     interests: [],
-    budget: '',
     travelType: '',
     language: '',
   });
@@ -279,7 +278,6 @@ export default function RegisterScreen() {
           value={values.interests}
           onChange={(value) => update('interests', value as typeof values.interests)}
         />
-        <AuthInput label="Budget (optional)" value={values.budget} onChangeText={(value) => update('budget', value)} keyboardType="numeric" />
         <ChoiceGroup
           label="Tipo de viaje (opcional)"
           options={TRAVEL_TYPE_OPTIONS.map((value) => ({

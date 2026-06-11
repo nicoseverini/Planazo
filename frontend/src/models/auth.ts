@@ -28,7 +28,6 @@ export type SignupFormState = {
   gender: string;
   birthDate: string;
   interests: InterestValue[];
-  budget: string;
   travelType: TravelTypeValue | '';
   language: string;
 };
@@ -41,7 +40,6 @@ export type SignupRequest = {
   gender: string;
   birthDate: string;
   interests?: InterestValue[];
-  budget?: number;
   travelType?: TravelTypeValue;
   languages?: string[];
 };
@@ -102,9 +100,6 @@ export function validateSignupForm(values: SignupFormState) {
 }
 
 export function buildSignupRequest(values: SignupFormState): SignupRequest {
-  const budget = values.budget.trim();
-  const parsedBudget = budget.length > 0 && !Number.isNaN(Number(budget)) ? Number(budget) : undefined;
-
   return {
     email: values.email.trim(),
     password: values.password,
@@ -113,7 +108,6 @@ export function buildSignupRequest(values: SignupFormState): SignupRequest {
     gender: values.gender.trim(),
     birthDate: values.birthDate.trim(),
     interests: values.interests.length > 0 ? values.interests : undefined,
-    budget: parsedBudget,
     travelType: values.travelType || undefined,
     languages: values.language ? [values.language] : undefined,
   };

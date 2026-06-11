@@ -15,7 +15,6 @@ public record UserProfileDTO(
         String gender,
         LocalDate birthDate,
         List<Interest> interests,
-        Integer budget,
         TravelType travelType,
         List<String> languages
 ) {}
