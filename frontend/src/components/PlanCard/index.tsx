@@ -78,7 +78,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
                             backgroundColor: isPublic ? '#22c55e' : '#f59e0b',
                         }]}>
                             <ThemedText type="label" style={styles.visibilityBadgeText}>
-                                {isPublic ? 'PÚBLICO' : 'PRIVADO'}
+                                {isPublic ? 'PUBLIC' : 'PRIVATE'}
                             </ThemedText>
                         </View>
                     </View>

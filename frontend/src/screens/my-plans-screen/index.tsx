@@ -146,7 +146,7 @@ export function MyPlansScreen() {
                                     type="label"
                                     style={[styles.tabText, { color: isActive ? tintText : textColor }]}
                                 >
-                                    {value === 'ALL' ? 'Todos' : value === 'PUBLIC' ? 'Públicos' : 'Privados'}
+                                    {value === 'ALL' ? 'All' : value === 'PUBLIC' ? 'Public' : 'Private'}
                                 </ThemedText>
                             </Pressable>
                         );
