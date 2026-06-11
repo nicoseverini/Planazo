@@ -12,6 +12,18 @@ import * as Location from 'expo-location';
 import { styles } from './styles';
 import { AppScreen } from '@/components/ui';
 import { TuristicPlaceSummary } from '@/services/turistic-place';
+
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in km
+}
 import { MapFilterModal, MapFilters, DEFAULT_MAP_FILTERS } from './MapFilterModal';
 
 const MAP_INITIAL_REGION = {
@@ -36,12 +48,14 @@ export default function MapScreen() {
     const [places, setPlaces] = useState<TuristicPlaceSummary[]>([]);
     const [filters, setFilters] = useState<MapFilters>(DEFAULT_MAP_FILTERS);
     const [showFilters, setShowFilters] = useState(false);
+    const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
     const centerOnUser = async () => {
         try {
             const { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') return;
             const location = await Location.getCurrentPositionAsync({});
+            setUserLocation({ latitude: location.coords.latitude, longitude: location.coords.longitude });
             mapRef.current?.animateToRegion(
                 {
                     latitude: location.coords.latitude,
@@ -77,24 +91,33 @@ export default function MapScreen() {
             if (!plan.latitude || !plan.longitude) return false;
             if (filters.category && !plan.interests?.includes(filters.category)) return false;
             if (filters.visibility !== 'ANY' && plan.visibility !== filters.visibility) return false;
+            if (filters.radius !== null && userLocation) {
+                const distance = getDistanceFromLatLonInKm(userLocation.latitude, userLocation.longitude, plan.latitude, plan.longitude);
+                if (distance > filters.radius) return false;
+            }
             return true;
         });
-    }, [plans, filters]);
+    }, [plans, filters, userLocation]);
 
     const visiblePlaces = useMemo(() => {
         if (filters.activity === 'PLANS') return [];
         return places.filter((place) => {
             if (!place.latitude || !place.longitude) return false;
             if (filters.category && place.interest !== filters.category) return false;
+            if (filters.radius !== null && userLocation) {
+                const distance = getDistanceFromLatLonInKm(userLocation.latitude, userLocation.longitude, place.latitude!, place.longitude!);
+                if (distance > filters.radius) return false;
+            }
             return true;
         });
-    }, [places, filters]);
+    }, [places, filters, userLocation]);
 
     const activeFilterCount = useMemo(() => {
         let count = 0;
         if (filters.activity !== 'ALL') count++;
         if (filters.category !== null) count++;
         if (filters.visibility !== 'ANY') count++;
+        if (filters.radius !== null) count++;
         return count;
     }, [filters]);
 
