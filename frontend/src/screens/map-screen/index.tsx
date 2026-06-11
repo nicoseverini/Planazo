@@ -66,7 +66,7 @@ export default function MapScreen() {
                 1000
             );
         } catch (error) {
-            console.log('Error al centrar en el usuario:', error);
+            console.log('There is an error when trying to center on user location:', error);
         }
     };
 
