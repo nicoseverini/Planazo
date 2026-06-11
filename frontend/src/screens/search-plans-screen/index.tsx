@@ -17,24 +17,24 @@ import { PlanFilters, PlanSummary, usePlans } from '@/services/plan';
 import { styles } from './styles';
 
 const INTERESTS = [
-    'FOOD','CULTURE','NATURE','BEACH','ADVENTURE','SPORTS',
-    'NIGHTLIFE','SHOPPING','HISTORY','MOUNTAINS', 'OTHER',
+    'FOOD', 'CULTURE', 'NATURE', 'BEACH', 'ADVENTURE', 'SPORTS',
+    'NIGHTLIFE', 'SHOPPING', 'HISTORY', 'MOUNTAINS', 'OTHER',
 ];
 const INTEREST_LABELS: Record<string, string> = {
-    FOOD:      'Gastronomy',
-    CULTURE:   'Culture',
-    NATURE:    'Nature',
-    BEACH:     'Beach',
+    FOOD: 'Gastronomy',
+    CULTURE: 'Culture',
+    NATURE: 'Nature',
+    BEACH: 'Beach',
     ADVENTURE: 'Adventure',
     NIGHTLIFE: 'Nightlife',
-    SHOPPING:  'Shopping',
-    HISTORY:   'History',
+    SHOPPING: 'Shopping',
+    HISTORY: 'History',
     MOUNTAINS: 'Mountains',
-    OTHER:     'Other',
+    OTHER: 'Other',
 };
 
 const fmt = (d: Date) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export function SearchPlansScreen() {
     const router = useRouter();
@@ -54,7 +54,7 @@ export function SearchPlansScreen() {
     const [dateFrom, setDateFrom] = useState<Date | null>(null);
     const [dateTo, setDateTo] = useState<Date | null>(null);
     const [radius, setRadius] = useState<number | null>(null);
-    const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+    const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
 
     // Date picker state
     const [showDateFrom, setShowDateFrom] = useState(false);
@@ -71,10 +71,10 @@ export function SearchPlansScreen() {
 
     const buildFilters = useCallback((): PlanFilters => {
         const f: PlanFilters = {};
-        if (selectedInterest)  f.interest = selectedInterest;
-        if (locationFilter)   f.location = locationFilter;
-        if (dateFrom)         f.dateFrom = `${fmt(dateFrom)}T00:00:00`;
-        if (dateTo)           f.dateTo   = `${fmt(dateTo)}T23:59:59`;
+        if (selectedInterest) f.interest = selectedInterest;
+        if (locationFilter) f.location = locationFilter;
+        if (dateFrom) f.dateFrom = `${fmt(dateFrom)}T00:00:00`;
+        if (dateTo) f.dateTo = `${fmt(dateTo)}T23:59:59`;
         if (radius && userLocation) {
             f.lat = userLocation.lat;
             f.lng = userLocation.lng;
@@ -211,7 +211,7 @@ export function SearchPlansScreen() {
                         </View>
                     )}
                     <Pressable onPress={clearFilters} style={{ justifyContent: 'center' }}>
-                            <ThemedText type="label" style={{ color: mutedText }}>✕ Clear</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>✕ Clear</ThemedText>
                     </Pressable>
                 </View>
             )}
@@ -219,7 +219,7 @@ export function SearchPlansScreen() {
             {/* Search bar */}
             <View style={[styles.searchContainer, { backgroundColor: surface, borderColor: border }]}>
                 <Ionicons name="search-outline" size={20} color={mutedText} />
-                    <TextInput
+                <TextInput
                     style={[styles.searchInput, { color: textColor }]}
                     placeholder="Search by name"
                     placeholderTextColor={mutedText}
@@ -257,7 +257,7 @@ export function SearchPlansScreen() {
                         <View style={styles.emptyContainer}>
                             <Ionicons name="calendar-outline" size={48} color={mutedText} />
                             <ThemedText type="body" style={[styles.emptyText, { color: mutedText }]}>
-                                No hay planes para estos filtros
+                                There are no plans for these filters
                             </ThemedText>
                         </View>
                     }

@@ -52,7 +52,7 @@ export default function MapScreen() {
 
     const centerOnUser = async () => {
         try {
-            const { status } = await Location.requestForegroundPermissionsAsync();
+            const { status } = await Location.getForegroundPermissionsAsync();
             if (status !== 'granted') return;
             const location = await Location.getCurrentPositionAsync({});
             setUserLocation({ latitude: location.coords.latitude, longitude: location.coords.longitude });
@@ -66,7 +66,7 @@ export default function MapScreen() {
                 1000
             );
         } catch (error) {
-            console.log('Error al centrar en el usuario:', error);
+            console.log('There is an error when trying to center on user location:', error);
         }
     };
 

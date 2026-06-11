@@ -335,7 +335,7 @@ export async function subscribeToPlan(planId: number, accessToken: string): Prom
 
 // Unsubscribe from a plan
 export async function unsubscribeFromPlan(planId: number, accessToken: string): Promise<void> {
-    const url = `${getBackendUrl()}/api/v1/plans/${planId}/subscribe`;
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/unsubscribe`;
     console.log('[PlanService] Unsubscribing from plan:', url);
 
     const response = await fetch(url, {
