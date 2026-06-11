@@ -316,11 +316,13 @@ public class PlanService {
         Boolean accepted = plan.getVisibility() == PlanVisibility.PUBLIC ? null : Boolean.FALSE;
         plan.addSubscriber(user, accepted);
         planRepository.save(plan);
-        emailService.sendRequestToPlanCreator(
-            plan.getCreator().getEmail(),
-            user.getName(),
-            plan.getTitle()
-        );
+        if (plan.getVisibility() == PlanVisibility.PRIVATE) {
+            emailService.sendRequestToPlanCreator(
+                plan.getCreator().getEmail(),
+                user.getName(),
+                plan.getTitle()
+            );
+        }
         return JoinResult.OK;
     }
 
