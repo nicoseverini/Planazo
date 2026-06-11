@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 class SessionRestController {
 
     private final UserService userService;
-    
+
     @Autowired
     SessionRestController(UserService userService) {
                 this.userService = userService;

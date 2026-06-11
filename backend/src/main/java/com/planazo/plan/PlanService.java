@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.web.server.ResponseStatusException;
+import com.planazo.user.email_service.EmailService;
 
 @Service
 @Transactional
@@ -28,11 +29,13 @@ public class PlanService {
 
     private final PlanRepository planRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Autowired
-    PlanService(PlanRepository planRepository, UserRepository userRepository) {
+    PlanService(PlanRepository planRepository, UserRepository userRepository, EmailService emailService) {
         this.planRepository = planRepository;
         this.userRepository = userRepository;
+        this.emailService = emailService;
     }
 
     // ── Create ───────────────────────────────────────────────────────────────
@@ -113,43 +116,43 @@ public class PlanService {
     }
 
     @Transactional(readOnly = true)
-        public List<PlanSummaryDTO> getSubscribedPlans(String email) {
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new EntityNotFoundException("User not found"));
-            return planRepository.findBySubscriberId(user.getId())
-                    .stream()
-                .map(plan -> toSummaryDTO(plan, getAcceptedForUser(plan, user.getId())))
-                    .toList();
+    public List<PlanSummaryDTO> getSubscribedPlans(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        return planRepository.findBySubscriberId(user.getId())
+            .stream()
+            .map(plan -> toSummaryDTO(plan, getAcceptedForUser(plan, user.getId())))
+            .toList();
         }
-        @Transactional(readOnly = true)
-        public List<PlanSummaryDTO> getSubscribedPlansButNotMine(String email) {
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new EntityNotFoundException("User not found"));
-            return planRepository.findBySubscriberIdAndNotCreatorId(user.getId())
-                    .stream()
-                .map(plan -> toSummaryDTO(plan, getAcceptedForUser(plan, user.getId())))
-                    .toList();
+    @Transactional(readOnly = true)
+    public List<PlanSummaryDTO> getSubscribedPlansButNotMine(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        return planRepository.findBySubscriberIdAndNotCreatorId(user.getId())
+            .stream()
+            .map(plan -> toSummaryDTO(plan, getAcceptedForUser(plan, user.getId())))
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PendingSubscriberDTO> getPendingSubscribers(Long planId, String requesterEmail) {
+        Plan plan = planRepository.findById(planId)
+            .filter(Plan::isActive)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
+
+        if (!plan.getCreator().getUsername().equals(requesterEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the creator");
         }
 
-        @Transactional(readOnly = true)
-        public List<PendingSubscriberDTO> getPendingSubscribers(Long planId, String requesterEmail) {
-            Plan plan = planRepository.findById(planId)
-                .filter(Plan::isActive)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
-
-            if (!plan.getCreator().getUsername().equals(requesterEmail)) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the creator");
-            }
-
-            return plan.getSubscribers().stream()
-                .filter(subscription -> Boolean.FALSE.equals(subscription.getAccepted()))
-                .map(subscription -> new PendingSubscriberDTO(
-                    subscription.getUser().getId(),
-                    subscription.getUser().getName(),
-                    subscription.getUser().getLastname()
-                ))
-                .toList();
-        }
+        return plan.getSubscribers().stream()
+            .filter(subscription -> Boolean.FALSE.equals(subscription.getAccepted()))
+            .map(subscription -> new PendingSubscriberDTO(
+                subscription.getUser().getId(),
+                subscription.getUser().getName(),
+                subscription.getUser().getLastname()
+            ))
+            .toList();
+    }
 
     @Transactional(readOnly = true)
     public List<PlanSummaryDTO> getNearbyPublicPlans(double lat, double lng, double radiusKm) {
@@ -193,6 +196,14 @@ public class PlanService {
 
         if (updated) {
             planRepository.save(plan);
+            emailService.sendAcceptedToPlanEmail(
+                plan.getSubscribers().stream()
+                    .filter(subscription -> subscription.matchesUserId(userId))
+                    .findFirst()
+                    .map(subscription -> subscription.getUser().getEmail())
+                    .orElseThrow(() -> new IllegalStateException("User email not found")),
+                plan.getTitle()
+            );
             return;
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscriber not found");
@@ -206,11 +217,20 @@ public class PlanService {
         if (!plan.getCreator().getUsername().equals(requesterEmail)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the creator");
         }
+        String userEmail = plan.getSubscribers().stream()
+            .filter(subscription -> subscription.matchesUserId(userId) && Boolean.FALSE.equals(subscription.getAccepted()))
+            .findFirst()
+            .map(subscription -> subscription.getUser().getEmail())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscriber not found"));
 
         boolean removed = plan.getSubscribers().removeIf(subscription -> subscription.matchesUserId(userId) && Boolean.FALSE.equals(subscription.getAccepted()));
 
         if (removed) {
             planRepository.save(plan);
+            emailService.sendRejectedFromPlanEmail(
+                userEmail,
+                plan.getTitle()
+            );
             return;
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscriber not found");

@@ -179,8 +179,9 @@ class PlanRestController {
             @AuthenticationPrincipal(expression = "username") String email
     ) {
         planService.acceptPendingSubscriber(id_plan, id_user, email);
-    return ResponseEntity.ok().build();
+        return ResponseEntity.ok().build();
     }
+    
     @PreAuthorize("isAuthenticated()")
     @PatchMapping(value = "{id_plan}/reject/{id_user}",
      produces = "application/json")

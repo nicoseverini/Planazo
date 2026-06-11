@@ -62,6 +62,18 @@ public class EmailService {
             throw new IllegalStateException("Error sending email to: " + to, e);
         }
     }
+    public void sendAcceptedToPlanEmail(String to, String planTitle) {
+        String html = loadHtmlTemplate("classpath:templates/mail/accepted_to_plan.html");
+        html = html.replace("${planTitle}", planTitle);
+        
+        send(to, "You have been accepted to a plan!", html);
+    }
+    public void sendRejectedFromPlanEmail(String to, String planTitle) {
+        String html = loadHtmlTemplate("classpath:templates/mail/rejected_from_plan.html");
+        html = html.replace("${planTitle}", planTitle);
+        
+        send(to, "Your request to join the plan has been rejected.", html);
+    }
     private String loadHtmlTemplate(String path) {
         try {
             Resource resource = resourceLoader.getResource(path);

@@ -209,19 +209,23 @@ export default function PlanDetailScreen() {
 
     const handleAcceptUser = async (id: number) => {
         try {
+            setPendingLoading(true);
             await accept(plan!.id, id);
             await loadPendingSubscribers();
         } catch (err) {
             console.error('[PlanDetailScreen] Error accepting subscriber:', err);
+            setPendingLoading(false);
         }
     };
 
     const handleRejectUser = async (id: number) => {
         try {
+            setPendingLoading(true);
             await reject(plan!.id, id);
             await loadPendingSubscribers();
         } catch (err) {
             console.error('[PlanDetailScreen] Error rejecting subscriber:', err);
+            setPendingLoading(false);
         }
     };
 
