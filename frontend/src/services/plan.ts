@@ -381,6 +381,9 @@ export type PlanFilters = {
     dateFrom?: string;   // ISO string
     dateTo?: string;
     location?: string;
+    lat?: number;
+    lng?: number;
+    radius?: number;
 };
 
 export async function getFilteredPlans(filters: PlanFilters): Promise<PlanSummary[]> {
@@ -389,6 +392,9 @@ export async function getFilteredPlans(filters: PlanFilters): Promise<PlanSummar
     if (filters.dateFrom)  params.append('dateFrom', filters.dateFrom);
     if (filters.dateTo)    params.append('dateTo', filters.dateTo);
     if (filters.location)  params.append('location', filters.location);
+    if (filters.lat !== undefined) params.append('lat', filters.lat.toString());
+    if (filters.lng !== undefined) params.append('lng', filters.lng.toString());
+    if (filters.radius !== undefined) params.append('radius', filters.radius.toString());
 
     const url = `${getBackendUrl()}/api/v1/plans/filter?${params.toString()}`;
     const response = await fetch(url, {

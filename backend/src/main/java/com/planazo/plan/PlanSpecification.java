@@ -47,6 +47,15 @@ public class PlanSpecification {
                 ));
             }
 
+            if (userLat != null && userLng != null && radiusKm != null) {
+                // Approximate bounding box filter (1 degree latitude ≈ 111km)
+                double deltaLat = radiusKm / 111.0;
+                double deltaLng = radiusKm / (111.0 * Math.cos(Math.toRadians(userLat)));
+
+                predicates.add(cb.between(root.get("latitude"), userLat - deltaLat, userLat + deltaLat));
+                predicates.add(cb.between(root.get("longitude"), userLng - deltaLng, userLng + deltaLng));
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
