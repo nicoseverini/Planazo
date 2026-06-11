@@ -301,13 +301,15 @@ export default function PlanDetailScreen() {
                     <Ionicons name="arrow-back" size={24} color={text} />
                 </Pressable>
                 <View style={styles.headerTitleContainer}>
-                    <ThemedText type="title" numberOfLines={1} style={styles.headerTitle}>
-                        {plan.title}
-                    </ThemedText>
-                    <View style={[styles.visibilityBadge, { backgroundColor: isPublic ? '#dcfce7' : '#fef3c7' }]}>
-                        <ThemedText type="label" style={{ color: isPublic ? '#166534' : '#92400e', fontSize: 11 }}>
-                            {isPublic ? 'Public' : 'Private'}
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+                        <ThemedText type="title" style={[styles.headerTitle, { flex: 1 }]}>
+                            {plan.title}
                         </ThemedText>
+                        <View style={[styles.visibilityBadge, { backgroundColor: isPublic ? '#dcfce7' : '#fef3c7', marginTop: 4 }]}>
+                            <ThemedText type="label" style={{ color: isPublic ? '#166534' : '#92400e', fontSize: 11 }}>
+                                {isPublic ? 'Public' : 'Private'}
+                            </ThemedText>
+                        </View>
                     </View>
                 </View>
             </View>

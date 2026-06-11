@@ -6,11 +6,11 @@ type ResetStatus = 'idle' | 'loading' | 'success' | 'error' | 'invalid-token'
 
 function validatePassword(password: string) {
   if (password.length < 8) {
-    return 'La contraseña debe tener al menos 8 caracteres.'
+    return 'The password must be at least 8 characters long.'
   }
 
   if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-    return 'La contraseña debe incluir al menos una mayúscula, una minúscula y un número.'
+    return 'The password must include at least one uppercase letter, one lowercase letter, and one number.'
   }
 
   return ''
@@ -23,13 +23,15 @@ export function ResetPasswordPage() {
   const [status, setStatus] = useState<ResetStatus>('idle')
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     if (!token) {
       setStatus('invalid-token')
-      setMessage('No se puede enviar: falta token.')
+      setMessage('The token is missing from the URL. Please make sure you accessed the link from your email.')
       return
     }
 
@@ -66,17 +68,17 @@ export function ResetPasswordPage() {
 
       if (response.ok) {
         setStatus('success')
-        setMessage('¡Tu contraseña ha sido cambiada exitosamente! Ya podés iniciar sesión en la app con tu nueva contraseña.')
+        setMessage('¡Your password has been changed successfully! You can now log in to the app with your new password.')
         setPassword('')
         setConfirmPassword('')
       } else {
         const errorText = await response.text()
         setStatus('error')
-        setMessage(errorText || 'El token es inválido o ha expirado.')
+        setMessage(errorText || 'The token is invalid or has expired.')
       }
     } catch (err) {
       setStatus('error')
-      setMessage(`Error al conectar con el servidor: ${err instanceof Error ? err.message : 'Error desconocido'}`)
+      setMessage(`Error connecting with the server: ${err instanceof Error ? err.message : 'Unknown error'}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -84,41 +86,28 @@ export function ResetPasswordPage() {
 
   return (
     <main className="auth-card">
-      <h1>Restablecer Contraseña</h1>
-      <p className="subtitle">Ingresa una nueva contraseña para tu cuenta.</p>
+      <h1>Reset Password</h1>
+      <p className="subtitle">Enter a new password for your account.</p>
 
-      {!token && <div className="warning">Falta el parámetro token en la URL.</div>}
+      {!token && <div className="warning">The token parameter is missing from the URL.</div>}
 
       {token && status !== 'success' && (
         <form onSubmit={handleSubmit}>
-          <label className="field">
-            Nueva contraseña
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              autoComplete="new-password"
-              minLength={8}
-              required
-              disabled={isSubmitting}
-            />
+          <label className="field" style={{ position: 'relative' }}>
+            New password
+            <input type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" minLength={8} required disabled={isSubmitting}/>
+            <Pressable onPress={() => setShowPassword(!showPassword)} style={{position: 'absolute', right: 12, top: 42, zIndex: 1,}}>
+              <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="gray"/>
+            </Pressable>
           </label>
 
-          <label className="field">
-            Confirmar contraseña
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              autoComplete="new-password"
-              required
-              disabled={isSubmitting}
-            />
+          <label className="field" style={{ position: 'relative' }}>
+            Confirm new password
+            <input type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" required disabled={isSubmitting}/>
+            <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={{position: 'absolute', right: 12, top: 42, zIndex: 1,}}>
+              <Ionicons name={showConfirmPassword ? 'eye-off' : 'eye'} size={22} color="gray"/>
+            </Pressable>
           </label>
-
-          <button className="button" type="submit" disabled={!token || isSubmitting}>
-            {isSubmitting ? 'Guardando...' : 'Guardar nueva contraseña'}
-          </button>
         </form>
       )}
 

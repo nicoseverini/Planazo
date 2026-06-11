@@ -188,6 +188,7 @@ export default function RegisterScreen() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const update = <K extends keyof SignupFormState>(key: K, value: SignupFormState[K]) => {
     setValues((current) => ({ ...current, [key]: value }));
@@ -231,7 +232,32 @@ export default function RegisterScreen() {
       </View>
       <AuthCard kicker="Registration" title="Create account" body="Fill in the details to create your account and start a new session.">
         <AuthInput label="Email" value={values.email} onChangeText={(value) => update('email', value)} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
-        <AuthInput label="Password" value={values.password} onChangeText={(value) => update('password', value)} secureTextEntry autoCapitalize="none" autoComplete="password" />
+        <View style={{ position: 'relative' }}>
+          <AuthInput
+            label="Password"
+            value={values.password}
+            onChangeText={(value) => update('password', value)}
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            autoComplete="password"
+          />
+
+          <Pressable
+            onPress={() => setShowPassword(!showPassword)}
+            style={{
+              position: 'absolute',
+              right: 12,
+              top: 42,
+              zIndex: 1,
+            }}
+          >
+            <Ionicons
+              name={showPassword ? 'eye-off' : 'eye'}
+              size={22}
+              color="gray"
+            />
+          </Pressable>
+        </View>
         <AuthInput label="First name" value={values.name} onChangeText={(value) => update('name', value)} autoCapitalize="words" />
         <AuthInput label="Last name" value={values.lastname} onChangeText={(value) => update('lastname', value)} autoCapitalize="words" />
         <ChoiceGroup
