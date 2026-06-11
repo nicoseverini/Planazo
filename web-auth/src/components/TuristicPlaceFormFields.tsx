@@ -9,17 +9,17 @@ export function TuristicPlaceFormFields({ form, onChange }: TuristicPlaceFormFie
 	return (
 		<div className="form-grid">
 			<label className="field field--wide">
-				Nombre
+				Name
 				<input value={form.name} onChange={(event) => onChange('name', event.target.value)} required />
 			</label>
 
 			<label className="field">
-				Costo
+				Cost
 				<input type="number" min="0" step="any" value={form.cost} onChange={(event) => onChange('cost', event.target.value)} required />
 			</label>
 
 			<label className="field">
-				Interés
+				Interest
 				<select value={form.interest} onChange={(event) => onChange('interest', event.target.value as TuristicPlaceFormState['interest'])}>
 					{turisticPlaceInterestOptions.map((option) => (
 						<option key={option.value} value={option.value}>
@@ -30,32 +30,32 @@ export function TuristicPlaceFormFields({ form, onChange }: TuristicPlaceFormFie
 			</label>
 
 			<label className="field">
-				Edad mínima
+				Min Age
 				<input type="number" min="0" value={form.minAge} onChange={(event) => onChange('minAge', event.target.value)} />
 			</label>
 
 			<label className="field">
-				Edad máxima
+				Max Age
 				<input type="number" min="0" value={form.maxAge} onChange={(event) => onChange('maxAge', event.target.value)} />
 			</label>
 
 			<label className="field field--wide">
-				Ubicación
+				Location
 				<input value={form.location} onChange={(event) => onChange('location', event.target.value)} required />
 			</label>
 
 			<label className="field field--wide">
-				Descripción
+				Description
 				<textarea rows={4} value={form.description} onChange={(event) => onChange('description', event.target.value)} />
 			</label>
 
 			<label className="field">
-				Latitud
+				Latitude
 				<input type="number" step="any" value={form.latitude} onChange={(event) => onChange('latitude', event.target.value)} required />
 			</label>
 
 			<label className="field">
-				Longitud
+				Longitude
 				<input type="number" step="any" value={form.longitude} onChange={(event) => onChange('longitude', event.target.value)} required />
 			</label>
 		</div>

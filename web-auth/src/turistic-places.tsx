@@ -25,7 +25,7 @@ export function TuristicPlacesPage() {
 
 				if (!response.ok) {
 					const errorText = await response.text()
-					throw new Error(errorText || 'No se pudieron cargar los lugares turísticos.')
+					throw new Error(errorText || 'Could not load turistic places.')
 				}
 
 				const data = (await response.json()) as TuristicPlaceSummaryResponse[]
@@ -35,7 +35,7 @@ export function TuristicPlacesPage() {
 				}
 			} catch (err) {
 				if (isMounted) {
-					setError(err instanceof Error ? err.message : 'Error desconocido')
+					setError(err instanceof Error ? err.message : 'Unknown error')
 				}
 			} finally {
 				if (isMounted) {
@@ -58,19 +58,19 @@ export function TuristicPlacesPage() {
 			<div className="page-header">
 				<div>
 					<h1>Turistic Places</h1>
-					<p className="subtitle">Estos son los lugares turísticos disponibles.</p>
+					<p className="subtitle">These are the available turistic places.</p>
 				</div>
 				{hasAdminAccess && (
 					<a className="button button--secondary" href="/create-turistic-place">
-						Crear lugar turístico
+						Create turistic place
 					</a>
 				)}
 				<a className="button button--goto" href="/plans">
-						Ir a Planes
+						Go to Plans
 				</a>
 			</div>
 
-			{loading && <div className="message">Cargando lugares turísticos...</div>}
+			{loading && <div className="message">Loading turistic places...</div>}
 			{error && <div className="warning">{error}</div>}
 
 			{!loading && !error && (
@@ -82,17 +82,17 @@ export function TuristicPlacesPage() {
 									<a href={`/turistic-places/${place.id}`}>{place.name}</a>
 								</div>
 								<div className="plan-creator">{toTitleCase(place.interest)} · {place.location}</div>
-								<div className="plan-meta">Costo: {place.cost}</div>
+								<div className="plan-meta">Cost: {place.cost}</div>
 								<div className="plan-item-actions">
 									<a className="button button--secondary" href={`/turistic-places/${place.id}`}>
-										Ver detalles
+										View details
 									</a>
 								</div>
 							</li>
 						))
 					) : (
 						<li className="plan-item">
-							<div className="plan-title">No hay lugares turísticos disponibles.</div>
+							<div className="plan-title">No available turistic places.</div>
 						</li>
 					)}
 				</ul>

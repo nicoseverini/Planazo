@@ -13,7 +13,7 @@ type PlanDetailResponse = {
 	maxSubscribers: number | null
 	minAge: number | null
 	maxAge: number | null
-	interest: string
+	interests: string[]
 	travelType: string
 	location: string
 	latitude: number | null
@@ -50,12 +50,12 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 				})
 
 				if (response.status === 404) {
-					throw new Error('No se encontró el plan solicitado.')
+					throw new Error('Plan not found.')
 				}
 
 				if (!response.ok) {
 					const errorText = await response.text()
-					throw new Error(errorText || 'No se pudo cargar el detalle del plan.')
+					throw new Error(errorText || 'Could not load plan details.')
 				}
 
 				const data = (await response.json()) as PlanDetailResponse
@@ -65,7 +65,7 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 				}
 			} catch (err) {
 				if (isMounted) {
-					setError(err instanceof Error ? err.message : 'Error desconocido')
+					setError(err instanceof Error ? err.message : 'Unknown error')
 				}
 			} finally {
 				if (isMounted) {
@@ -83,11 +83,11 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 
 	const imageCountLabel = useMemo(() => {
 		const count = plan?.images.length || 0
-		return count === 1 ? '1 imagen' : `${count} imágenes`
+		return count === 1 ? '1 image' : `${count} images`
 	}, [plan?.images.length])
 
 	async function handleDeletePlan() {
-		const confirmed = window.confirm('¿Seguro que querés eliminar este plan? Esta acción no se puede deshacer.')
+		const confirmed = window.confirm('Are you sure you want to delete this plan? This action cannot be undone.')
 		if (!confirmed) {
 			return
 		}
@@ -108,12 +108,12 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 
 			if (!response.ok) {
 				const errorText = await response.text()
-				throw new Error(errorText || 'No se pudo eliminar el plan.')
+				throw new Error(errorText || 'Could not delete the plan.')
 			}
 
 			window.location.assign('/plans')
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Error desconocido')
+			setError(err instanceof Error ? err.message : 'Unknown error')
 		} finally {
 			setDeleting(false)
 		}
@@ -123,23 +123,23 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 		<main className="auth-card auth-card--xwide plan-detail-page">
 			<div className="page-header">
 				<div>
-					<h1>Detalle del plan</h1>
-					<p className="subtitle">Revisá todos los datos cargados para este plan.</p>
+					<h1>Plan Detail</h1>
+					<p className="subtitle">Review all the details loaded for this plan.</p>
 				</div>
 				<div className="plan-detail-actions">
 					<a className="button button--secondary" href="/plans">
-						Volver a plans
+						Back to Plans
 					</a>
 					<a className="button" href={`/plans/${planId}/edit`}>
-						Editar plan
+						Edit Plan
 					</a>
 					<button className="button button--danger" type="button" onClick={handleDeletePlan} disabled={deleting}>
-						{deleting ? 'Eliminando...' : 'Eliminar plan'}
+						{deleting ? 'Deleting...' : 'Delete Plan'}
 					</button>
 				</div>
 			</div>
 
-			{loading && <div className="message">Cargando detalle del plan...</div>}
+			{loading && <div className="message">Loading plan details...</div>}
 			{error && <div className="warning">{error}</div>}
 
 			{!loading && !error && plan && (
@@ -148,93 +148,93 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 						<div className="plan-detail-heading">
 							<div className="plan-badges">
 								<span className="plan-badge">{getVisibilityLabel(plan.visibility)}</span>
-								<span className="plan-badge plan-badge--muted">{plan.isFull ? 'Completo' : 'Cupo disponible'}</span>
+								<span className="plan-badge plan-badge--muted">{plan.isFull ? 'Full' : 'Open'}</span>
 							</div>
 							<h2>{plan.title}</h2>
-							<p className="plan-description">{plan.description || 'Sin descripción cargada.'}</p>
+							<p className="plan-description">{plan.description || 'No description available.'}</p>
 						</div>
 						<div className="plan-detail-summary">
 							<div>
-								<span className="summary-label">Fecha</span>
+								<span className="summary-label">Date</span>
 								<strong>{formatDateTime(plan.dateTime)}</strong>
 							</div>
 							<div>
-								<span className="summary-label">Ubicación</span>
+								<span className="summary-label">Location</span>
 								<strong>{plan.location}</strong>
 							</div>
 							<div>
-								<span className="summary-label">Participantes</span>
+								<span className="summary-label">Participants</span>
 								<strong>
 									{plan.subscriberCount}
 									{plan.maxSubscribers ? ` / ${plan.maxSubscribers}` : ''}
 								</strong>
 							</div>
 							<div>
-								<span className="summary-label">Autor</span>
+								<span className="summary-label">Creator</span>
 								<strong>{plan.creatorName}</strong>
 							</div>
 						</div>
 					</section>
 
 					<section className="detail-card">
-						<h3>Información general</h3>
+						<h3>General Information</h3>
 						<dl className="detail-list">
 							<div>
 								<dt>ID</dt>
 								<dd>{plan.id}</dd>
 							</div>
 							<div>
-								<dt>Descripción</dt>
-								<dd>{plan.description || 'Sin descripción.'}</dd>
+								<dt>Description</dt>
+								<dd>{plan.description || 'No description available.'}</dd>
 							</div>
 							<div>
-								<dt>Duración</dt>
-								<dd>{plan.durationMinutes ? `${plan.durationMinutes} minutos` : 'No definida'}</dd>
+								<dt>Duration</dt>
+								<dd>{plan.durationMinutes ? `${plan.durationMinutes} minutes` : 'Not defined'}</dd>
 							</div>
 							<div>
-								<dt>Interés</dt>
-								<dd>{toTitleCase(plan.interest)}</dd>
+								<dt>Interests</dt>
+								<dd>{plan.interests?.map((i) => toTitleCase(i)).join(', ') || 'No interests defined'}</dd>
 							</div>
 							<div>
-								<dt>Tipo de viaje</dt>
+								<dt>Travel Type</dt>
 								<dd>{toTitleCase(plan.travelType)}</dd>
 							</div>
 							<div>
-								<dt>Visibilidad</dt>
+								<dt>Visibility</dt>
 								<dd>{getVisibilityLabel(plan.visibility)}</dd>
 							</div>
 							<div>
-								<dt>Edad mínima</dt>
-								<dd>{plan.minAge ?? 'No definida'}</dd>
+								<dt>Minimum Age</dt>
+								<dd>{plan.minAge ?? 'Not defined'}</dd>
 							</div>
 							<div>
-								<dt>Edad máxima</dt>
-								<dd>{plan.maxAge ?? 'No definida'}</dd>
+								<dt>Maximum Age</dt>
+								<dd>{plan.maxAge ?? 'Not defined'}</dd>
 							</div>
 							<div>
-								<dt>Creador</dt>
+								<dt>Creator</dt>
 								<dd>{plan.creatorName}</dd>
 							</div>
 							<div>
-								<dt>Capacidad</dt>
+								<dt>Capacity</dt>
 								<dd>
 									{plan.subscriberCount}
 									{plan.maxSubscribers ? ` / ${plan.maxSubscribers}` : ''}
 								</dd>
 							</div>
 							<div>
-								<dt>Coordenadas</dt>
+								<dt>Coordinates</dt>
 								<dd>
 									{plan.latitude !== null && plan.longitude !== null
 										? `${plan.latitude}, ${plan.longitude}`
-										: 'No disponibles'}
+										: 'No coordinates provided'}
 								</dd>
 							</div>
 						</dl>
 					</section>
 
 					<section className="detail-card">
-						<h3>Imágenes</h3>
+						<h3>Images</h3>
 						<p className="hint">{imageCountLabel}</p>
 						{plan.images.length > 0 ? (
 							<div className="plan-image-grid">
@@ -245,16 +245,8 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 								))}
 							</div>
 						) : (
-							<div className="message">Este plan no tiene imágenes cargadas.</div>
+							<div className="message">This plan has no images loaded.</div>
 						)}
-					</section>
-
-					<section className="detail-card detail-card--compact">
-						<h3>Metadatos</h3>
-						<div className="token-block">
-							<div className="token-label">Creator ID: {plan.creatorId}</div>
-							<div className="token-label">Estado: {plan.isFull ? 'Lleno' : 'Abierto'}</div>
-						</div>
 					</section>
 				</div>
 			)}

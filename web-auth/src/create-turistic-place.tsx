@@ -39,7 +39,7 @@ export function CreateTuristicPlacePage() {
 
 		if (!form.name.trim() || !form.location.trim()) {
 			setStatus('error')
-			setMessage('Nombre y ubicación son obligatorios.')
+			setMessage('Name and location are required.')
 			return
 		}
 
@@ -49,13 +49,13 @@ export function CreateTuristicPlacePage() {
 
 		if (!Number.isFinite(cost) || cost < 0) {
 			setStatus('error')
-			setMessage('El costo debe ser un número válido.')
+			setMessage('The cost must be a valid number.')
 			return
 		}
 
 		if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
 			setStatus('error')
-			setMessage('Las coordenadas deben ser números válidos.')
+			setMessage('The coordinates must be valid numbers.')
 			return
 		}
 
@@ -95,17 +95,17 @@ export function CreateTuristicPlacePage() {
 
 			if (!response.ok) {
 				const errorText = await response.text()
-				throw new Error(errorText || 'No se pudo crear el lugar turístico.')
+				throw new Error(errorText || 'Failed to create turistic place.')
 			}
 
 			const data = (await response.json()) as CreateTuristicPlaceResponse
 			setStatus('success')
-			setMessage(`Lugar turístico creado correctamente: ${data.name}`)
+			setMessage(`Turistic place created successfully: ${data.name}`)
 			setForm({ ...defaultTuristicPlaceFormState })
 			setImages([])
 		} catch (err) {
 			setStatus('error')
-			setMessage(err instanceof Error ? err.message : 'Error desconocido')
+			setMessage(err instanceof Error ? err.message : 'Unknown error')
 		}
 	}
 
@@ -118,10 +118,10 @@ export function CreateTuristicPlacePage() {
 			<div className="page-header">
 				<div>
 					<h1>Create Turistic Place</h1>
-					<p className="subtitle">Formulario para que el admin cree un lugar turístico.</p>
+					<p className="subtitle">Form for admins to create a new turistic place.</p>
 				</div>
 				<a className="button button--secondary" href="/turistic-places">
-					Volver a turistic places
+					Back to Turistic Places
 				</a>
 			</div>
 
@@ -134,7 +134,7 @@ export function CreateTuristicPlacePage() {
 				{status === 'success' && <div className="message">{message}</div>}
 
 				<button className="button create-plan-submit" type="submit" disabled={status === 'loading'}>
-					{status === 'loading' ? 'Creando...' : 'Crear lugar turístico'}
+					{status === 'loading' ? 'Creating...' : 'Create Turistic Place'}
 				</button>
 			</form>
 		</main>

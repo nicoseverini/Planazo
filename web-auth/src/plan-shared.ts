@@ -1,5 +1,5 @@
 export type PlanVisibility = 'PUBLIC' | 'PRIVATE'
-export type Interest = 'OTHER' | 'BEACH' | 'NIGHTLIFE' | 'MOUNTAINS' | 'NATURE' | 'SHOPPING' | 'CULTURE' | 'ADVENTURE' | 'HISTORY' | 'FOOD'
+export type Interest = 'OTHER' | 'BEACH' | 'NIGHTLIFE' | 'MOUNTAINS' | 'NATURE' | 'SHOPPING' | 'CULTURE' | 'ADVENTURE' | 'HISTORY' | 'FOOD' | 'SPORTS'
 export type TravelType = 'SOLO' | 'COUPLE' | 'FRIENDS'
 
 export type PlanFormState = {
@@ -12,7 +12,7 @@ export type PlanFormState = {
 	maxSubscribers: string
 	minAge: string
 	maxAge: string
-	interest: Interest
+	interests: Interest[]
 	travelType: TravelType
 	location: string
 	latitude: string
@@ -25,22 +25,23 @@ export type SelectedImage = {
 }
 
 export const interestOptions: { label: string; value: Interest }[] = [
-	{ label: 'Otro', value: 'OTHER' },
-	{ label: 'Playa', value: 'BEACH' },
-	{ label: 'Vida nocturna', value: 'NIGHTLIFE' },
-	{ label: 'Montañas', value: 'MOUNTAINS' },
-	{ label: 'Naturaleza', value: 'NATURE' },
-	{ label: 'Compras', value: 'SHOPPING' },
-	{ label: 'Cultura', value: 'CULTURE' },
-	{ label: 'Aventura', value: 'ADVENTURE' },
-	{ label: 'Historia', value: 'HISTORY' },
-	{ label: 'Gastronomía', value: 'FOOD' },
+	{ label: 'Other', value: 'OTHER' },
+	{ label: 'Beach', value: 'BEACH' },
+	{ label: 'Nightlife', value: 'NIGHTLIFE' },
+	{ label: 'Mountains', value: 'MOUNTAINS' },
+	{ label: 'Nature', value: 'NATURE' },
+	{ label: 'Shopping', value: 'SHOPPING' },
+	{ label: 'Culture', value: 'CULTURE' },
+	{ label: 'Adventure', value: 'ADVENTURE' },
+	{ label: 'Sports', value: 'SPORTS' },
+	{ label: 'History', value: 'HISTORY' },
+	{ label: 'Gastronomy', value: 'FOOD' },
 ]
 
 export const travelTypeOptions: { label: string; value: TravelType }[] = [
 	{ label: 'Solo', value: 'SOLO' },
-	{ label: 'Pareja', value: 'COUPLE' },
-	{ label: 'Amigos', value: 'FRIENDS' },
+	{ label: 'Couple', value: 'COUPLE' },
+	{ label: 'Friends', value: 'FRIENDS' },
 ]
 
 export const defaultPlanFormState: PlanFormState = {
@@ -53,7 +54,7 @@ export const defaultPlanFormState: PlanFormState = {
 	maxSubscribers: '10',
 	minAge: '18',
 	maxAge: '90',
-	interest: 'ADVENTURE',
+	interests: ['OTHER'],
 	travelType: 'FRIENDS',
 	location: '',
 	latitude: '-34.6037',
@@ -119,9 +120,9 @@ export function readFileAsDataUrl(file: File) {
 				return
 			}
 
-			reject(new Error('No se pudo leer la imagen seleccionada.'))
+			reject(new Error('Unexpected result type when reading the image.'))
 		}
-		reader.onerror = () => reject(new Error('No se pudo leer la imagen seleccionada.'))
+		reader.onerror = () => reject(new Error('Could not read the selected image.'))
 		reader.readAsDataURL(file)
 	})
 }

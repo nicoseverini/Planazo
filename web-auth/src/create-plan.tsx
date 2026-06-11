@@ -45,20 +45,20 @@ export function CreatePlanPage() {
 		const accessToken = sessionStorage.getItem('accessToken')
 		if (!accessToken) {
 			setStatus('error')
-			setMessage('No hay sesión activa. Iniciá sesión como admin primero.')
+			setMessage('No access token found. Please log in again.')
 			return
 		}
 
 		const dateTime = buildDateTime(form.date, form.time)
 		if (!form.title.trim() || !dateTime || !form.location.trim()) {
 			setStatus('error')
-			setMessage('Título, fecha y ubicación son obligatorios.')
+			setMessage('Title, date and location are required.')
 			return
 		}
 
 		if (!isFutureDateTime(dateTime)) {
 			setStatus('error')
-			setMessage('La fecha y la hora deben ser futuras.')
+			setMessage('The date and time must be in the future.')
 			return
 		}
 
@@ -66,7 +66,7 @@ export function CreatePlanPage() {
 		const longitude = Number(form.longitude)
 		if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
 			setStatus('error')
-			setMessage('Las coordenadas deben ser números válidos.')
+			setMessage('The coordinates must be valid numbers.')
 			return
 		}
 
@@ -99,7 +99,7 @@ export function CreatePlanPage() {
 					maxSubscribers: Number.parseInt(form.maxSubscribers, 10) || 10,
 					minAge: parseOptionalNumber(form.minAge),
 					maxAge: parseOptionalNumber(form.maxAge),
-					interest: form.interest,
+					interests: form.interests,
 					travelType: form.travelType,
 					location: form.location.trim(),
 					latitude,
@@ -115,12 +115,12 @@ export function CreatePlanPage() {
 
 			const data = (await response.json()) as CreatePlanResponse
 			setStatus('success')
-			setMessage(`Plan creado correctamente: ${data.title}`)
+			setMessage(`Plan created successfully: ${data.title}`)
 			setForm({ ...defaultPlanFormState })
 			setImages([])
 		} catch (err) {
 			setStatus('error')
-			setMessage(err instanceof Error ? err.message : 'Error desconocido')
+			setMessage(err instanceof Error ? err.message : 'Unknown error')
 		}
 	}
 
@@ -133,10 +133,10 @@ export function CreatePlanPage() {
 			<div className="page-header">
 				<div>
 					<h1>Create Plan</h1>
-					<p className="subtitle">Formulario para que el admin cree un plan.</p>
+					<p className="subtitle">Form for admins to create a new plan.</p>
 				</div>
 				<a className="button button--secondary" href="/plans">
-					Volver a plans
+					Back to Plans
 				</a>
 			</div>
 
@@ -149,7 +149,7 @@ export function CreatePlanPage() {
 				{status === 'success' && <div className="message">{message}</div>}
 
 				<button className="button create-plan-submit" type="submit" disabled={status === 'loading'}>
-					{status === 'loading' ? 'Creando...' : 'Crear plan'}
+					{status === 'loading' ? 'Creating...' : 'Create Plan'}
 				</button>
 			</form>
 		</main>

@@ -36,14 +36,14 @@ function decodeJwt(token: string): JwtPayload {
 
 function buildMessage(role: string | undefined) {
 	if (role === 'ADMIN') {
-		return 'Sesión iniciada como administrador. Ya podés volver a la app para ver los planes.'
+		return 'Session started with admin privileges.'
 	}
 
 	if (role) {
-		return `Sesión iniciada con rol ${role}.`
+		return `Session started with role ${role}.`
 	}
 
-	return 'Sesión iniciada correctamente.'
+	return 'Session started correctly.'
 }
 
 export function LoginPage() {
@@ -76,7 +76,7 @@ export function LoginPage() {
 			if (!response.ok) {
 				const errorText = await response.text()
 				setStatus('error')
-				setMessage(errorText || 'No se pudo iniciar sesión.')
+				setMessage(errorText || 'Failed to login.')
 				return
 			}
 
@@ -93,14 +93,14 @@ export function LoginPage() {
 			window.location.assign('/plans')
 		} catch (err) {
 			setStatus('error')
-			setMessage(`Error al conectar con el servidor: ${err instanceof Error ? err.message : 'Error desconocido'}`)
+			setMessage(`Error connecting to the server: ${err instanceof Error ? err.message : 'Unknown error'}`)
 		}
 	}
 
 	return (
 		<main className="auth-card auth-card--wide">
-			<h1>Iniciar sesión</h1>
-			<p className="subtitle">Inicia sesión con la cuenta del admin.</p>
+			<h1>Log In</h1>
+			<p className="subtitle">Log in with the admin account.</p>
 
 			<form onSubmit={handleSubmit} className="form-stack">
 				<label className="field">
@@ -116,7 +116,7 @@ export function LoginPage() {
 				</label>
 
 				<label className="field">
-					Contraseña
+					Password
 					<input
 						type="password"
 						value={password}
@@ -128,7 +128,7 @@ export function LoginPage() {
 				</label>
 
 				<button className="button" type="submit" disabled={status === 'loading'}>
-					{status === 'loading' ? 'Ingresando...' : 'Entrar'}
+					{status === 'loading' ? 'Logging in...' : 'Log In'}
 				</button>
 			</form>
 

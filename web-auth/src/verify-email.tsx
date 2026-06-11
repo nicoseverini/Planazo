@@ -13,7 +13,7 @@ export function VerifyEmailPage() {
   useEffect(() => {
     if (!token) {
       setStatus('invalid-token')
-      setMessage('Falta el parámetro token en la URL.')
+      setMessage('Missing token parameter in the URL.')
       return
     }
 
@@ -37,16 +37,15 @@ export function VerifyEmailPage() {
 
         if (response.ok) {
           setStatus('success')
-          setMessage('¡Tu email ha sido verificado correctamente! Podés cerrar esta página.')
+          setMessage('Your email has been verified successfully! You can close this page.')
         } else {
-          const errorText = await response.text()
           setStatus('error')
-          setMessage(errorText || 'El token es inválido o ha expirado.')
+          setMessage('The token is invalid or has expired.')
           processedTokens.delete(tokenValue)
         }
       } catch (err) {
         setStatus('error')
-        setMessage(`Error al conectar con el servidor: ${err instanceof Error ? err.message : 'Error desconocido'}`)
+        setMessage(`Error connecting to the server: ${err instanceof Error ? err.message : 'Unknown error'}`)
         processedTokens.delete(tokenValue)
       }
     }
@@ -56,11 +55,11 @@ export function VerifyEmailPage() {
 
   return (
     <main className="auth-card">
-      <h1>Verificar Email</h1>
+      <h1>Verify Email</h1>
 
       {status === 'loading' && (
         <>
-          <div className="message">Verificando tu email...</div>
+          <div className="message">Verifying your email...</div>
         </>
       )}
 

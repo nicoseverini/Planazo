@@ -34,6 +34,7 @@ const CATEGORY_OPTIONS = [
     'Shopping',
     'History',
     'Mountains',
+    'Sports',
     'Other',
 ] as const;
 
@@ -47,6 +48,7 @@ const INTEREST_BY_CATEGORY: Record<string, string> = {
     Shopping:  'SHOPPING',
     History:   'HISTORY',
     Mountains: 'MOUNTAINS',
+    Sports:    'SPORTS',
     Other:     'OTHER',
 };
 

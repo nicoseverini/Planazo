@@ -41,12 +41,12 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 				})
 
 				if (response.status === 404) {
-					throw new Error('No se encontró el lugar turístico que querés editar.')
+					throw new Error('The turistic place you are trying to edit was not found.')
 				}
 
 				if (!response.ok) {
 					const errorText = await response.text()
-					throw new Error(errorText || 'No se pudo cargar el lugar turístico.')
+					throw new Error(errorText || 'Failed to load the turistic place.')
 				}
 
 				const data = (await response.json()) as TuristicPlaceDetailResponse
@@ -59,7 +59,7 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 			} catch (err) {
 				if (isMounted) {
 					setStatus('error')
-					setMessage(err instanceof Error ? err.message : 'Error desconocido')
+					setMessage(err instanceof Error ? err.message : 'Unknown error')
 				}
 			} finally {
 				if (isMounted) {
@@ -86,7 +86,7 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 
 		if (!form.name.trim() || !form.location.trim()) {
 			setStatus('error')
-			setMessage('Nombre y ubicación son obligatorios.')
+			setMessage('Name and location are required.')
 			return
 		}
 
@@ -96,13 +96,13 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 
 		if (!Number.isFinite(cost) || cost < 0) {
 			setStatus('error')
-			setMessage('El costo debe ser un número válido.')
+			setMessage('The cost must be a valid number.')
 			return
 		}
 
 		if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
 			setStatus('error')
-			setMessage('Las coordenadas deben ser números válidos.')
+			setMessage('The coordinates must be valid numbers.')
 			return
 		}
 
@@ -142,13 +142,13 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 
 			if (!response.ok) {
 				const errorText = await response.text()
-				throw new Error(errorText || 'No se pudo guardar el lugar turístico.')
+				throw new Error(errorText || 'Failed to save the turistic place.')
 			}
 
 			window.location.assign(`/turistic-places/${placeId}`)
 		} catch (err) {
 			setStatus('error')
-			setMessage(err instanceof Error ? err.message : 'Error desconocido')
+			setMessage(err instanceof Error ? err.message : 'Unknown error')
 		} finally {
 			setStatus((current) => (current === 'saving' ? 'idle' : current))
 		}
@@ -161,7 +161,7 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 	if (loadingPlace) {
 		return (
 			<main className="auth-card auth-card--xwide">
-				<div className="message">Cargando lugar turístico...</div>
+				<div className="message">Loading turistic place...</div>
 			</main>
 		)
 	}
@@ -171,22 +171,22 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 			<div className="page-header">
 				<div>
 					<h1>Edit Turistic Place</h1>
-					<p className="subtitle">Editá los datos del lugar turístico y administrá sus imágenes.</p>
+					<p className="subtitle">Edit the turistic place details and manage its images.</p>
 				</div>
 				<a className="button button--secondary" href={`/turistic-places/${placeId}`}>
-					Volver al detalle
+					Back to Details
 				</a>
 			</div>
 
 			<form className="form-stack create-plan-form" onSubmit={handleSubmit}>
 				<TuristicPlaceFormFields form={form} onChange={updateField} />
 
-				<PlanImagePicker images={images} onChange={setImages} hint="Las imágenes nuevas se agregarán al guardar." />
+				<PlanImagePicker images={images} onChange={setImages} hint="New images will be added when saving." />
 
 				{status === 'error' && <div className="warning">{message}</div>}
 
 				<button className="button create-plan-submit" type="submit" disabled={status === 'saving'}>
-					{status === 'saving' ? 'Guardando...' : 'Guardar cambios'}
+					{status === 'saving' ? 'Saving...' : 'Save Changes'}
 				</button>
 			</form>
 		</main>

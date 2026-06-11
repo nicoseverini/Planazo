@@ -42,7 +42,7 @@ export function PlansPage() {
 
 				if (!response.ok) {
 					const errorText = await response.text()
-					throw new Error(errorText || 'No se pudieron cargar los planes.')
+					throw new Error(errorText || 'Could not load the plans.')
 				}
 
 				const data = (await response.json()) as PaginatedPlansResponse
@@ -53,7 +53,7 @@ export function PlansPage() {
 				}
 			} catch (err) {
 				if (isMounted) {
-					setError(err instanceof Error ? err.message : 'Error desconocido')
+					setError(err instanceof Error ? err.message : 'Unknown error')
 				}
 			} finally {
 				if (isMounted) {
@@ -74,17 +74,17 @@ export function PlansPage() {
 			<div className="page-header">
 				<div>
 					<h1>Plans</h1>
-					<p className="subtitle">Estos son los nombres de los planes disponibles.</p>
+					<p className="subtitle">These are the names of the available plans.</p>
 				</div>
 				<a className="button button--secondary" href="/create-plan">
-					Crear plan
+					Create plan
 				</a>
 				<a className="button button--goto" href="/turistic-places">
-					Ir a Lugares turísticos
+					Go to Tourist Places
 				</a>
 			</div>
 
-			{loading && <div className="message">Cargando planes...</div>}
+			{loading && <div className="message">Loading plans...</div>}
 			{error && <div className="warning">{error}</div>}
 
 			{!loading && !error && (
@@ -96,16 +96,11 @@ export function PlansPage() {
 									<a href={`/plans/${plan.id}`}>{plan.title}</a>
 								</div>
 								<div className="plan-creator">{plan.creatorName}</div>
-								<div className="plan-item-actions">
-									<a className="button button--secondary" href={`/plans/${plan.id}`}>
-										Ver detalles
-									</a>
-								</div>
 							</li>
 						))
 					) : (
 						<li className="plan-item">
-							<div className="plan-title">No hay planes disponibles.</div>
+							<div className="plan-title">No available plans.</div>
 						</li>
 					)}
 				</ul>
@@ -114,10 +109,10 @@ export function PlansPage() {
 			{!loading && !error && totalPages > 1 && (
 				<div className="plans-actions">
 					<button className="button button--secondary" type="button" onClick={() => setPage((current) => Math.max(0, current - 1))} disabled={page === 0}>
-						Anterior
+						Previous
 					</button>
 					<div className="token-label">
-						Página {page + 1} de {totalPages}
+						Page {page + 1} of {totalPages}
 					</div>
 					<button
 						className="button button--secondary"
@@ -125,7 +120,7 @@ export function PlansPage() {
 						onClick={() => setPage((current) => current + 1)}
 						disabled={page + 1 >= totalPages}
 					>
-						Siguiente
+						Next
 					</button>
 				</div>
 			)}

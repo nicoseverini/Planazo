@@ -38,12 +38,12 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 				})
 
 				if (response.status === 404) {
-					throw new Error('No se encontró el lugar turístico solicitado.')
+					throw new Error('The turistic place was not found.')
 				}
 
 				if (!response.ok) {
 					const errorText = await response.text()
-					throw new Error(errorText || 'No se pudo cargar el detalle del lugar turístico.')
+					throw new Error(errorText || 'The turistic place could not be loaded.')
 				}
 
 				const data = (await response.json()) as TuristicPlaceDetailResponse
@@ -53,7 +53,7 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 				}
 			} catch (err) {
 				if (isMounted) {
-					setError(err instanceof Error ? err.message : 'Error desconocido')
+					setError(err instanceof Error ? err.message : 'Unknown error')
 				}
 			} finally {
 				if (isMounted) {
@@ -71,11 +71,11 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 
 	const imageCountLabel = useMemo(() => {
 		const count = place?.images.length || 0
-		return count === 1 ? '1 imagen' : `${count} imágenes`
+		return count === 1 ? '1 image' : `${count} images`
 	}, [place?.images.length])
 
 	async function handleDeletePlace() {
-		const confirmed = window.confirm('¿Seguro que querés eliminar este lugar turístico? Esta acción no se puede deshacer.')
+		const confirmed = window.confirm('Are you sure you want to delete this turistic place? This action cannot be undone.')
 		if (!confirmed) {
 			return
 		}
@@ -96,12 +96,12 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 
 			if (!response.ok) {
 				const errorText = await response.text()
-				throw new Error(errorText || 'No se pudo eliminar el lugar turístico.')
+				throw new Error(errorText || 'The turistic place could not be deleted.')
 			}
 
 			window.location.assign('/turistic-places')
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Error desconocido')
+			setError(err instanceof Error ? err.message : 'Unknown error')
 		} finally {
 			setDeleting(false)
 		}
@@ -113,27 +113,27 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 		<main className="auth-card auth-card--xwide plan-detail-page">
 			<div className="page-header">
 				<div>
-					<h1>Detalle del lugar turístico</h1>
-					<p className="subtitle">Revisá todos los datos cargados para este lugar turístico.</p>
+					<h1>Detail of Turistic Place</h1>
+					<p className="subtitle">Review all the loaded data for this turistic place.</p>
 				</div>
 				<div className="plan-detail-actions">
 					<a className="button button--secondary" href="/turistic-places">
-						Volver a turistic places
+						Back to Turistic Places
 					</a>
 					{hasAdminAccess && (
 						<>
 							<a className="button" href={`/turistic-places/${placeId}/edit`}>
-								Editar lugar
+								Edit Place
 							</a>
 							<button className="button button--danger" type="button" onClick={handleDeletePlace} disabled={deleting}>
-								{deleting ? 'Eliminando...' : 'Eliminar lugar'}
+								{deleting ? 'Deleting...' : 'Delete Place'}
 							</button>
 						</>
 					)}
 				</div>
 			</div>
 
-			{loading && <div className="message">Cargando detalle del lugar turístico...</div>}
+			{loading && <div className="message">Loading turistic place details...</div>}
 			{error && <div className="warning">{error}</div>}
 
 			{!loading && !error && place && (
@@ -149,25 +149,21 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 						</div>
 						<div className="plan-detail-summary">
 							<div>
-								<span className="summary-label">Costo</span>
+								<span className="summary-label">Cost</span>
 								<strong>{place.cost}</strong>
 							</div>
 							<div>
-								<span className="summary-label">Ubicación</span>
+								<span className="summary-label">Location</span>
 								<strong>{place.location}</strong>
 							</div>
 						</div>
 					</section>
 
 					<section className="detail-card">
-						<h3>Información general</h3>
+						<h3>General Information</h3>
 						<dl className="detail-list">
 							<div>
-								<dt>ID</dt>
-								<dd>{place.id}</dd>
-							</div>
-							<div>
-								<dt>Interés</dt>
+								<dt>Interest</dt>
 								<dd>{toTitleCase(place.interest)}</dd>
 							</div>
 							<div>
@@ -175,31 +171,31 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 								<dd>{formatAgeRestriction(place.minAge, place.maxAge)}</dd>
 							</div>
 							<div>
-								<dt>Coordenadas</dt>
+								<dt>Coordinates</dt>
 								<dd>
-									{place.latitude !== null && place.longitude !== null ? `${place.latitude}, ${place.longitude}` : 'No disponibles'}
+									{place.latitude !== null && place.longitude !== null ? `${place.latitude}, ${place.longitude}` : 'Not available'}
 								</dd>
 							</div>
 							<div>
-								<dt>Costo</dt>
+								<dt>Cost</dt>
 								<dd>{place.cost}</dd>
 							</div>
 						</dl>
 					</section>
 
 					<section className="detail-card">
-						<h3>Imágenes</h3>
+						<h3>Images</h3>
 						<p className="hint">{imageCountLabel}</p>
 						{place.images.length > 0 ? (
 							<div className="plan-image-grid">
 								{place.images.map((image, index) => (
 									<figure key={`${place.id}-${index}`} className="plan-image-card">
-										<img src={image} alt={`${place.name} - imagen ${index + 1}`} />
+										<img src={image} alt={`${place.name} - image ${index + 1}`} />
 									</figure>
 								))}
 							</div>
 						) : (
-							<div className="message">Este lugar turístico no tiene imágenes cargadas.</div>
+							<div className="message">This turistic place has no images loaded.</div>
 						)}
 					</section>
 				</div>

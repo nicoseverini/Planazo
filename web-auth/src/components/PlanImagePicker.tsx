@@ -42,7 +42,7 @@ export function PlanImagePicker({ images, onChange, label = 'Imágenes', hint }:
 			<div className="image-picker">
 				<input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageSelection} hidden />
 				<button type="button" className="button button--secondary image-picker-button" onClick={openImagePicker}>
-					Agregar imagen
+					Add Images
 				</button>
 				{images.length > 0 && (
 					<div className="image-preview-grid">
@@ -50,9 +50,9 @@ export function PlanImagePicker({ images, onChange, label = 'Imágenes', hint }:
 							<figure key={`${image}-${index}`} className="image-preview-card">
 								<img src={image} alt={`${label} ${index + 1}`} />
 								<figcaption className="image-preview-meta">
-									<span className="token-label">Imagen {index + 1}</span>
+									<span className="token-label">Image {index + 1}</span>
 									<button type="button" className="image-remove-button" onClick={() => removeImage(index)}>
-										Quitar
+										Remove
 									</button>
 								</figcaption>
 							</figure>

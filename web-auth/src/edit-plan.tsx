@@ -26,7 +26,7 @@ type PlanDetailResponse = {
 	maxSubscribers: number | null
 	minAge: number | null
 	maxAge: number | null
-	interest: Interest
+	interests: Interest[]
 	travelType: TravelType
 	location: string
 	latitude: number | null
@@ -47,7 +47,7 @@ function toFormState(plan: PlanDetailResponse): PlanFormState {
 		maxSubscribers: plan.maxSubscribers?.toString() ?? '',
 		minAge: plan.minAge?.toString() ?? '',
 		maxAge: plan.maxAge?.toString() ?? '',
-		interest: plan.interest,
+		interests: plan.interests,
 		travelType: plan.travelType,
 		location: plan.location,
 		latitude: plan.latitude?.toString() ?? '',
@@ -88,12 +88,12 @@ export function EditPlanPage({ planId }: { planId: number }) {
 				})
 
 				if (response.status === 404) {
-					throw new Error('No se encontró el plan que querés editar.')
+					throw new Error('The plan you are trying to edit was not found.')
 				}
 
 				if (!response.ok) {
 					const errorText = await response.text()
-					throw new Error(errorText || 'No se pudo cargar el plan.')
+					throw new Error(errorText || 'Failed to load the plan.')
 				}
 
 				const data = (await response.json()) as PlanDetailResponse
@@ -106,7 +106,7 @@ export function EditPlanPage({ planId }: { planId: number }) {
 			} catch (err) {
 				if (isMounted) {
 					setStatus('error')
-					setMessage(err instanceof Error ? err.message : 'Error desconocido')
+					setMessage(err instanceof Error ? err.message : 'Unknown error')
 				}
 			} finally {
 				if (isMounted) {
@@ -132,20 +132,20 @@ export function EditPlanPage({ planId }: { planId: number }) {
 		const accessToken = sessionStorage.getItem('accessToken')
 		if (!accessToken) {
 			setStatus('error')
-			setMessage('No hay sesión activa. Iniciá sesión como admin primero.')
+			setMessage('No active session. Please log in as an admin first.')
 			return
 		}
 
 		const dateTime = buildDateTime(form.date, form.time)
 		if (!form.title.trim() || !dateTime || !form.location.trim()) {
 			setStatus('error')
-			setMessage('Título, fecha y ubicación son obligatorios.')
+			setMessage('Title, date and location are required.')
 			return
 		}
 
 		if (!isFutureDateTime(dateTime)) {
 			setStatus('error')
-			setMessage('La fecha y la hora deben ser futuras.')
+			setMessage('The date and time must be in the future.')
 			return
 		}
 
@@ -153,7 +153,7 @@ export function EditPlanPage({ planId }: { planId: number }) {
 		const longitude = Number(form.longitude)
 		if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
 			setStatus('error')
-			setMessage('Las coordenadas deben ser números válidos.')
+			setMessage('The coordinates must be valid numbers.')
 			return
 		}
 
@@ -169,7 +169,7 @@ export function EditPlanPage({ planId }: { planId: number }) {
 
 		try {
 			const backendUrl = getBackendUrl()
-			const response = await fetch(`${backendUrl}/api/v1/plans/${planId}`, {
+			const response = await fetch(`${backendUrl}/api/v1/plans/admin/${planId}`, {
 				method: 'PATCH',
 				headers: {
 					Accept: 'application/json',
@@ -186,7 +186,7 @@ export function EditPlanPage({ planId }: { planId: number }) {
 					maxSubscribers: Number.parseInt(form.maxSubscribers, 10) || 10,
 					minAge: parseOptionalNumber(form.minAge),
 					maxAge: parseOptionalNumber(form.maxAge),
-					interest: form.interest,
+					interests: form.interests,
 					travelType: form.travelType,
 					location: form.location.trim(),
 					latitude,
@@ -197,13 +197,13 @@ export function EditPlanPage({ planId }: { planId: number }) {
 
 			if (!response.ok) {
 				const errorText = await response.text()
-				throw new Error(errorText || 'No se pudo guardar el plan.')
+				throw new Error(errorText || 'Failed to save the plan.')
 			}
 
 			window.location.assign(`/plans/${planId}`)
 		} catch (err) {
 			setStatus('error')
-			setMessage(err instanceof Error ? err.message : 'Error desconocido')
+			setMessage(err instanceof Error ? err.message : 'Unknown error')
 		} finally {
 			setStatus((current) => (current === 'saving' ? 'idle' : current))
 		}
@@ -216,7 +216,7 @@ export function EditPlanPage({ planId }: { planId: number }) {
 	if (loadingPlan) {
 		return (
 			<main className="auth-card auth-card--xwide">
-				<div className="message">Cargando plan...</div>
+				<div className="message">Loading plan...</div>
 			</main>
 		)
 	}
@@ -226,22 +226,22 @@ export function EditPlanPage({ planId }: { planId: number }) {
 			<div className="page-header">
 				<div>
 					<h1>Edit Plan</h1>
-					<p className="subtitle">Editá los datos del plan y administrá sus imágenes.</p>
+					<p className="subtitle">Edit the plan details and manage its images.</p>
 				</div>
 				<a className="button button--secondary" href={`/plans/${planId}`}>
-					Volver al detalle
+					Back to Details
 				</a>
 			</div>
 
 			<form className="form-stack create-plan-form" onSubmit={handleSubmit}>
 				<PlanFormFields form={form} onChange={updateField} />
 
-				<PlanImagePicker images={images} onChange={setImages} hint="Las imágenes nuevas se agregarán al guardar." />
+				<PlanImagePicker images={images} onChange={setImages} hint="New images will be added when saving." />
 
 				{status === 'error' && <div className="warning">{message}</div>}
 
 				<button className="button create-plan-submit" type="submit" disabled={status === 'saving'}>
-					{status === 'saving' ? 'Guardando...' : 'Guardar cambios'}
+					{status === 'saving' ? 'Saving...' : 'Save Changes'}
 				</button>
 			</form>
 		</main>

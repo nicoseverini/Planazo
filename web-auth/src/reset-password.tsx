@@ -66,17 +66,16 @@ export function ResetPasswordPage() {
 
       if (response.ok) {
         setStatus('success')
-        setMessage('¡Tu contraseña ha sido cambiada exitosamente! Ya podés iniciar sesión en la app con tu nueva contraseña.')
+        setMessage('Your password has been changed successfully! You can now log in to the app with your new password.')
         setPassword('')
         setConfirmPassword('')
       } else {
-        const errorText = await response.text()
         setStatus('error')
-        setMessage(errorText || 'El token es inválido o ha expirado.')
+        setMessage('The token is invalid or has expired.')
       }
     } catch (err) {
       setStatus('error')
-      setMessage(`Error al conectar con el servidor: ${err instanceof Error ? err.message : 'Error desconocido'}`)
+      setMessage(`Error connecting to the server: ${err instanceof Error ? err.message : 'Unknown error'}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -84,15 +83,15 @@ export function ResetPasswordPage() {
 
   return (
     <main className="auth-card">
-      <h1>Restablecer Contraseña</h1>
-      <p className="subtitle">Ingresa una nueva contraseña para tu cuenta.</p>
+      <h1>Reset Password</h1>
+      <p className="subtitle">Enter a new password for your account.</p>
 
-      {!token && <div className="warning">Falta el parámetro token en la URL.</div>}
+      {!token && <div className="warning">The token parameter is missing from the URL.</div>}
 
       {token && status !== 'success' && (
         <form onSubmit={handleSubmit}>
           <label className="field">
-            Nueva contraseña
+            New Password
             <input
               type="password"
               value={password}
@@ -105,7 +104,7 @@ export function ResetPasswordPage() {
           </label>
 
           <label className="field">
-            Confirmar contraseña
+            Confirm New Password
             <input
               type="password"
               value={confirmPassword}
@@ -117,7 +116,7 @@ export function ResetPasswordPage() {
           </label>
 
           <button className="button" type="submit" disabled={!token || isSubmitting}>
-            {isSubmitting ? 'Guardando...' : 'Guardar nueva contraseña'}
+            {isSubmitting ? 'Saving...' : 'Save New Password'}
           </button>
         </form>
       )}

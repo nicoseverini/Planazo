@@ -20,5 +20,5 @@ export function toTitleCase(value: string) {
 }
 
 export function getVisibilityLabel(value: PlanVisibility) {
-	return value === 'PUBLIC' ? 'Público' : 'Privado'
+	return value === 'PUBLIC' ? 'Public' : 'Private'
 }
