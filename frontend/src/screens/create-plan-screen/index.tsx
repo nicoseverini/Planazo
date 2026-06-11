@@ -526,7 +526,7 @@ export default function CreatePlanScreen() {
                     <TextInput
                         value={location}
                         onChangeText={setLocation}
-                        placeholder="Ej: FIUBA, Buenos Aires"
+                        placeholder="e.g. : FIUBA, Buenos Aires"
                         placeholderTextColor={mutedText}
                         style={[
                             styles.input,

@@ -559,7 +559,7 @@ export default function EditPlanScreen() {
             {/* Ubicación híbrida: Texto + Mapa */}
             <View style={styles.inputGroup}>
                 <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                    Zona / Dirección
+                    Area / Address
                 </ThemedText>
 
                 {/* Input de texto con botón de búsqueda */}
@@ -567,7 +567,7 @@ export default function EditPlanScreen() {
                     <TextInput
                         value={location}
                         onChangeText={setLocation}
-                        placeholder="Ej: FIUBA, Buenos Aires"
+                        placeholder="e.g.: FIUBA, Buenos Aires"
                         placeholderTextColor={mutedText}
                         style={[
                             styles.input,
@@ -658,7 +658,7 @@ export default function EditPlanScreen() {
                 <TextInput
                     value={description}
                     onChangeText={setDescription}
-                    placeholder="Describe tu plan..."
+                    placeholder="Describe your plan, add details or special instructions for participants."
                     placeholderTextColor={mutedText}
                     multiline
                     numberOfLines={4}
