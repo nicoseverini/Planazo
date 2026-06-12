@@ -79,7 +79,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
                             backgroundColor: isPublic ? StatusBadgeColors.public.background : StatusBadgeColors.private.background,
                         }]}>
                             <ThemedText type="label" style={[styles.visibilityBadgeText, { color: isPublic ? StatusBadgeColors.public.text : StatusBadgeColors.private.text }]}>
-                                {isPublic ? 'PUBLIC' : 'PRIVATE'}
+                                {isPublic ? 'Public' : 'Private'}
                             </ThemedText>
                         </View>
                     </View>
@@ -90,7 +90,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
                         <View style={styles.metaRow}>
                             <Ionicons name="calendar-outline" size={14} color={mutedText} />
                             <ThemedText type="label" style={[styles.metaText, { color: mutedText }]}>
-                                {formatDate(plan.dateTime)} - {formatTime(plan.dateTime)}
+                                {formatDate(plan.startDateTime)} - {formatTime(plan.startDateTime)}
                             </ThemedText>
                         </View>
                         <View style={styles.metaRow}>
@@ -102,7 +102,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
                         <View style={styles.metaRow}>
                             <Ionicons name="people-outline" size={14} color={mutedText} />
                             <ThemedText type="label" style={[styles.metaText, { color: mutedText }]}>
-                                {plan.subscribersCount}/{plan.maxSubscribers}
+                                {plan.subscriberCount}/{plan.maxSubscribers}
                             </ThemedText>
                         </View>
                     </View>

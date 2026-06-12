@@ -7,14 +7,14 @@ type PlanDetailResponse = {
 	id: number
 	title: string
 	description: string
-	dateTime: string
+	startDateTime: string
+	endDateTime: string
 	durationMinutes: number | null
 	visibility: 'PUBLIC' | 'PRIVATE'
 	maxSubscribers: number | null
 	minAge: number | null
 	maxAge: number | null
 	interests: string[]
-	travelType: string
 	location: string
 	latitude: number | null
 	longitude: number | null
@@ -156,7 +156,7 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 						<div className="plan-detail-summary">
 							<div>
 								<span className="summary-label">Date</span>
-								<strong>{formatDateTime(plan.dateTime)}</strong>
+								<strong>{formatDateTime(plan.startDateTime)}{plan.endDateTime ? ` – ${formatDateTime(plan.endDateTime)}` : ''}</strong>
 							</div>
 							<div>
 								<span className="summary-label">Location</span>
@@ -194,10 +194,6 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 							<div>
 								<dt>Interests</dt>
 								<dd>{plan.interests?.map((i) => toTitleCase(i)).join(', ') || 'No interests defined'}</dd>
-							</div>
-							<div>
-								<dt>Travel Type</dt>
-								<dd>{toTitleCase(plan.travelType)}</dd>
 							</div>
 							<div>
 								<dt>Visibility</dt>

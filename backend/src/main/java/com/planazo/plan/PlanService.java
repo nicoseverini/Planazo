@@ -1,6 +1,7 @@
 package com.planazo.plan;
 
 import com.planazo.common.exception.InvalidAgeRangeException;
+import com.planazo.common.exception.InvalidDateRangeException;
 import com.planazo.plan.dto.PlanCreateDTO;
 import com.planazo.plan.dto.PlanDetailDTO;
 import com.planazo.plan.dto.PendingSubscriberDTO;
@@ -41,6 +42,8 @@ public class PlanService {
     // ── Create ───────────────────────────────────────────────────────────────
 
     public PlanDetailDTO createPlan(PlanCreateDTO data, String creatorEmail) {
+        validateDateRange(data.startDateTime(), data.endDateTime());
+
         Integer normalizedMin = normalizeAge(data.minAge());
         Integer normalizedMax = normalizeAge(data.maxAge());
         validateAgeRange(normalizedMin, normalizedMax);
@@ -51,14 +54,13 @@ public class PlanService {
         Plan plan = new Plan(
                 data.title(),
                 data.description(),
-                data.dateTime(),
-                data.durationMinutes(),
+                data.startDateTime(),
+                data.endDateTime(),
                 data.visibility(),
                 data.maxSubscribers(),
                 normalizedMin,
                 normalizedMax,
                 data.interests(),
-                data.travelType(),
                 data.location(),
                 data.latitude(),
                 data.longitude(),
@@ -66,13 +68,14 @@ public class PlanService {
                 creator
         );
 
-        PlanDetailDTO planDetail = toDetailDTO(planRepository.save(plan));
-
-        // auto-subscribe creator 
-        Boolean isPublic = plan.getVisibility() == PlanVisibility.PUBLIC;
-        plan.addSubscriber(creator, isPublic ? null : Boolean.TRUE);
         planRepository.save(plan);
-        return planDetail;
+
+        // auto-subscribe creator — always counts
+        Boolean accepted = plan.getVisibility() == PlanVisibility.PUBLIC ? null : Boolean.TRUE;
+        plan.addSubscriber(creator, accepted);
+        plan.incrementSubscriberCount();
+
+        return toDetailDTO(planRepository.save(plan));
     }
 
     // ── Read ─────────────────────────────────────────────────────────────────
@@ -97,6 +100,7 @@ public class PlanService {
         return planRepository.findByActiveTrue(pageable)
                 .map(this::toSummaryDTO);
     }
+
     @Transactional(readOnly = true)
     public List<PlanSummaryDTO> getAllPlans() {
         return planRepository.findByActiveTrue(Pageable.unpaged())
@@ -123,7 +127,8 @@ public class PlanService {
             .stream()
             .map(plan -> toSummaryDTO(plan, getAcceptedForUser(plan, user.getId())))
             .toList();
-        }
+    }
+
     @Transactional(readOnly = true)
     public List<PlanSummaryDTO> getSubscribedPlansButNotMine(String email) {
         User user = userRepository.findByEmail(email)
@@ -176,6 +181,7 @@ public class PlanService {
                 .filter(Plan::isActive)
                 .map(plan -> toDetailDTO(saveUpdatedPlan(plan, data)));
     }
+
     public void acceptPendingSubscriber(Long planId, Long userId, String requesterEmail) {
         Plan plan = planRepository.findById(planId)
                 .filter(Plan::isActive)
@@ -185,30 +191,37 @@ public class PlanService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the creator");
         }
 
+        if (plan.isFull()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Plan is already full");
+        }
+
         boolean updated = plan.getSubscribers().stream()
                 .filter(subscription -> subscription.matchesUserId(userId))
                 .findFirst()
                 .map(subscription -> {
+                    if (!Boolean.FALSE.equals(subscription.getAccepted())) return false;
                     subscription.setAccepted(Boolean.TRUE);
                     return true;
                 })
                 .orElse(false);
 
-        if (updated) {
-            planRepository.save(plan);
-            emailService.sendAcceptedToPlanEmail(
-                plan.getSubscribers().stream()
-                    .filter(subscription -> subscription.matchesUserId(userId))
-                    .findFirst()
-                    .map(subscription -> subscription.getUser().getEmail())
-                    .orElseThrow(() -> new IllegalStateException("User email not found")),
-                plan.getTitle()
-            );
-            return;
-        } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscriber not found");
+        if (!updated) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pending subscriber not found");
         }
+
+        plan.incrementSubscriberCount();
+        planRepository.save(plan);
+
+        emailService.sendAcceptedToPlanEmail(
+            plan.getSubscribers().stream()
+                .filter(subscription -> subscription.matchesUserId(userId))
+                .findFirst()
+                .map(subscription -> subscription.getUser().getEmail())
+                .orElseThrow(() -> new IllegalStateException("User email not found")),
+            plan.getTitle()
+        );
     }
+
     public void denyPendingSubscriber(Long planId, Long userId, String requesterEmail) {
         Plan plan = planRepository.findById(planId)
                 .filter(Plan::isActive)
@@ -217,24 +230,24 @@ public class PlanService {
         if (!plan.getCreator().getUsername().equals(requesterEmail)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the creator");
         }
+
         String userEmail = plan.getSubscribers().stream()
             .filter(subscription -> subscription.matchesUserId(userId) && Boolean.FALSE.equals(subscription.getAccepted()))
             .findFirst()
             .map(subscription -> subscription.getUser().getEmail())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscriber not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pending subscriber not found"));
 
-        boolean removed = plan.getSubscribers().removeIf(subscription -> subscription.matchesUserId(userId) && Boolean.FALSE.equals(subscription.getAccepted()));
+        boolean removed = plan.getSubscribers().removeIf(
+            subscription -> subscription.matchesUserId(userId) && Boolean.FALSE.equals(subscription.getAccepted())
+        );
 
-        if (removed) {
-            planRepository.save(plan);
-            emailService.sendRejectedFromPlanEmail(
-                userEmail,
-                plan.getTitle()
-            );
-            return;
-        } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscriber not found");
+        if (!removed) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pending subscriber not found");
         }
+
+        // Pending subscriber did not count → counter unchanged
+        planRepository.save(plan);
+        emailService.sendRejectedFromPlanEmail(userEmail, plan.getTitle());
     }
 
     // ── Delete (soft) ────────────────────────────────────────────────────────
@@ -259,40 +272,33 @@ public class PlanService {
     }
 
     private Plan saveUpdatedPlan(Plan plan, PlanUpdateDTO data) {
-        // Normalize incoming values (0 → null means "clear restriction")
         Integer incomingMin = data.minAge() != null ? normalizeAge(data.minAge()) : null;
         Integer incomingMax = data.maxAge() != null ? normalizeAge(data.maxAge()) : null;
         Integer effectiveMin = data.minAge() != null ? incomingMin : plan.getMinAge();
         Integer effectiveMax = data.maxAge() != null ? incomingMax : plan.getMaxAge();
         validateAgeRange(effectiveMin, effectiveMax);
 
+        // Validate date range using the effective values (mix of incoming and existing)
+        LocalDateTime effectiveStart = data.startDateTime() != null ? data.startDateTime() : plan.getStartDateTime();
+        LocalDateTime effectiveEnd = data.endDateTime() != null ? data.endDateTime() : plan.getEndDateTime();
+        if (data.startDateTime() != null || data.endDateTime() != null) {
+            validateDateRange(effectiveStart, effectiveEnd);
+        }
+
         if (data.title() != null)           plan.setTitle(data.title());
         if (data.description() != null)     plan.setDescription(data.description());
-        if (data.dateTime() != null)        plan.setDateTime(data.dateTime());
-        if (data.durationMinutes() != null) plan.setDurationMinutes(data.durationMinutes());
+        if (data.startDateTime() != null)   plan.setStartDateTime(data.startDateTime());
+        if (data.endDateTime() != null)     plan.setEndDateTime(data.endDateTime());
         if (data.visibility() != null)      plan.setVisibility(data.visibility());
         if (data.maxSubscribers() != null)  plan.setMaxSubscribers(data.maxSubscribers());
         if (data.minAge() != null)          plan.setMinAge(incomingMin);
         if (data.maxAge() != null)          plan.setMaxAge(incomingMax);
         if (data.interests() != null)       plan.setInterests(data.interests());
-        if (data.travelType() != null)      plan.setTravelType(data.travelType());
         if (data.location() != null)        plan.setLocation(data.location());
         if (data.latitude() != null)        plan.setLatitude(data.latitude());
         if (data.longitude() != null)       plan.setLongitude(data.longitude());
         if (data.images() != null)          plan.setImages(data.images());
         return planRepository.save(plan);
-    }
-
-    private void validateAgeRange(Integer minAge, Integer maxAge) {
-        // Both values are pre-normalized (0 already converted to null), so no 0-special-case needed
-        if (minAge != null && maxAge != null && minAge > maxAge) {
-            throw new InvalidAgeRangeException();
-        }
-    }
-
-    // Converts 0 to null so that "no restriction" is always stored as NULL, not 0
-    private static Integer normalizeAge(Integer age) {
-        return (age == null || age == 0) ? null : age;
     }
 
     // ── Subscribe / Unsubscribe ──────────────────────────────────────────────
@@ -313,16 +319,25 @@ public class PlanService {
         if (plan.hasSubscriber(user.getId())) return JoinResult.ALREADY_JOINED;
         if (plan.isFull()) return JoinResult.FULL;
 
-        Boolean accepted = plan.getVisibility() == PlanVisibility.PUBLIC ? null : Boolean.FALSE;
+        boolean isPublic = plan.getVisibility() == PlanVisibility.PUBLIC;
+        Boolean accepted = isPublic ? null : Boolean.FALSE;
         plan.addSubscriber(user, accepted);
+
+        if (isPublic) {
+            // Public: immediate subscription, counts right away
+            plan.incrementSubscriberCount();
+        }
+
         planRepository.save(plan);
-        if (plan.getVisibility() == PlanVisibility.PRIVATE) {
+
+        if (!isPublic) {
             emailService.sendRequestToPlanCreator(
                 plan.getCreator().getEmail(),
                 user.getName(),
                 plan.getTitle()
             );
         }
+
         return JoinResult.OK;
     }
 
@@ -339,7 +354,18 @@ public class PlanService {
 
         Plan plan = maybePlan.get();
 
+        // Check whether the subscription was counting before removing it
+        boolean wasCounting = plan.getSubscribers().stream()
+                .filter(s -> s.matchesUserId(user.getId()))
+                .findFirst()
+                .map(PlanSubscriber::countsAsSubscriber)
+                .orElse(false);
+
         if (!plan.removeSubscriber(user.getId())) return LeaveResult.NOT_SUBSCRIBED;
+
+        if (wasCounting) {
+            plan.decrementSubscriberCount();
+        }
 
         planRepository.save(plan);
         return LeaveResult.OK;
@@ -352,14 +378,14 @@ public class PlanService {
                 plan.getId(),
                 plan.getTitle(),
                 plan.getDescription(),
-                plan.getDateTime(),
+                plan.getStartDateTime(),
+                plan.getEndDateTime(),
                 plan.getDurationMinutes(),
                 plan.getVisibility(),
                 plan.getMaxSubscribers(),
                 plan.getMinAge(),
                 plan.getMaxAge(),
                 List.copyOf(plan.getInterests()),
-                plan.getTravelType(),
                 plan.getLocation(),
                 plan.getLatitude(),
                 plan.getLongitude(),
@@ -379,12 +405,11 @@ public class PlanService {
         return new PlanSummaryDTO(
                 plan.getId(),
                 plan.getTitle(),
-                plan.getDateTime(),
+                plan.getStartDateTime(),
                 plan.getLocation(),
                 plan.getLatitude(),
                 plan.getLongitude(),
                 List.copyOf(plan.getInterests()),
-                plan.getTravelType(),
                 plan.getVisibility(),
                 plan.getSubscriberCount(),
                 plan.getMaxSubscribers(),
@@ -421,5 +446,24 @@ public class PlanService {
                 .stream()
                 .map(this::toSummaryDTO)
                 .toList();
+    }
+
+    // ── Validation helpers ───────────────────────────────────────────────────
+
+    private void validateDateRange(LocalDateTime start, LocalDateTime end) {
+        if (start == null || end == null) return;
+        if (!end.isAfter(start)) {
+            throw new InvalidDateRangeException("end_date_time must be after start_date_time");
+        }
+    }
+
+    private void validateAgeRange(Integer minAge, Integer maxAge) {
+        if (minAge != null && maxAge != null && minAge > maxAge) {
+            throw new InvalidAgeRangeException();
+        }
+    }
+
+    private static Integer normalizeAge(Integer age) {
+        return (age == null || age == 0) ? null : age;
     }
 }

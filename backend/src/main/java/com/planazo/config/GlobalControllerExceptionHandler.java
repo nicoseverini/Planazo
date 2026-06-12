@@ -1,6 +1,7 @@
 package com.planazo.config;
 
 import com.planazo.common.exception.InvalidAgeRangeException;
+import com.planazo.common.exception.InvalidDateRangeException;
 import com.planazo.common.exception.ItemNotFoundException;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,6 +23,12 @@ public class GlobalControllerExceptionHandler {
     @ExceptionHandler(InvalidAgeRangeException.class)
     @ApiResponse(responseCode = "400", description = "Invalid age range", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
     public ResponseEntity<String> handleInvalidAgeRange(InvalidAgeRangeException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidDateRangeException.class)
+    @ApiResponse(responseCode = "400", description = "Invalid date range", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
+    public ResponseEntity<String> handleInvalidDateRange(InvalidDateRangeException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 

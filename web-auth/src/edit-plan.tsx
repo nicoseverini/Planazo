@@ -8,7 +8,6 @@ import {
 	type Interest,
 	type PlanFormState,
 	type PlanVisibility,
-	type TravelType,
 	buildDateTime,
 	defaultPlanFormState,
 	isFutureDateTime,
@@ -20,14 +19,14 @@ import {
 type PlanDetailResponse = {
 	title: string
 	description: string
-	dateTime: string
+	startDateTime: string
+	endDateTime: string
 	durationMinutes: number | null
 	visibility: PlanVisibility
 	maxSubscribers: number | null
 	minAge: number | null
 	maxAge: number | null
 	interests: Interest[]
-	travelType: TravelType
 	location: string
 	latitude: number | null
 	longitude: number | null
@@ -35,20 +34,21 @@ type PlanDetailResponse = {
 }
 
 function toFormState(plan: PlanDetailResponse): PlanFormState {
-	const { date, time } = splitDateTime(plan.dateTime)
+	const { date: startDate, time: startTime } = splitDateTime(plan.startDateTime)
+	const { date: endDate, time: endTime } = splitDateTime(plan.endDateTime ?? '')
 
 	return {
 		title: plan.title,
 		description: plan.description ?? '',
-		date,
-		time,
+		startDate,
+		startTime,
+		endDate,
+		endTime,
 		visibility: plan.visibility,
-		durationMinutes: plan.durationMinutes?.toString() ?? '',
 		maxSubscribers: plan.maxSubscribers?.toString() ?? '',
 		minAge: plan.minAge?.toString() ?? '',
 		maxAge: plan.maxAge?.toString() ?? '',
 		interests: plan.interests,
-		travelType: plan.travelType,
 		location: plan.location,
 		latitude: plan.latitude?.toString() ?? '',
 		longitude: plan.longitude?.toString() ?? '',
@@ -136,16 +136,24 @@ export function EditPlanPage({ planId }: { planId: number }) {
 			return
 		}
 
-		const dateTime = buildDateTime(form.date, form.time)
-		if (!form.title.trim() || !dateTime || !form.location.trim()) {
+		const startDateTime = buildDateTime(form.startDate, form.startTime)
+		const endDateTime = buildDateTime(form.endDate, form.endTime)
+
+		if (!form.title.trim() || !startDateTime || !endDateTime || !form.location.trim()) {
 			setStatus('error')
-			setMessage('Title, date and location are required.')
+			setMessage('Title, start date/time, end date/time and location are required.')
 			return
 		}
 
-		if (!isFutureDateTime(dateTime)) {
+		if (!isFutureDateTime(startDateTime)) {
 			setStatus('error')
-			setMessage('The date and time must be in the future.')
+			setMessage('The start date and time must be in the future.')
+			return
+		}
+
+		if (endDateTime <= startDateTime) {
+			setStatus('error')
+			setMessage('End date/time must be after start date/time.')
 			return
 		}
 
@@ -180,14 +188,13 @@ export function EditPlanPage({ planId }: { planId: number }) {
 				body: JSON.stringify({
 					title: form.title.trim(),
 					description: form.description.trim() || null,
-					dateTime,
-					durationMinutes: Number.parseInt(form.durationMinutes, 10) || 60,
+					startDateTime,
+					endDateTime,
 					visibility: form.visibility,
 					maxSubscribers: Number.parseInt(form.maxSubscribers, 10) || 10,
 					minAge: parseOptionalNumber(form.minAge),
 					maxAge: parseOptionalNumber(form.maxAge),
 					interests: form.interests,
-					travelType: form.travelType,
 					location: form.location.trim(),
 					latitude,
 					longitude,

@@ -2,9 +2,9 @@ package com.planazo.plan.dto;
 
 import com.planazo.plan.PlanVisibility;
 import com.planazo.common.constants.Interest;
-import com.planazo.common.constants.TravelType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -14,21 +14,19 @@ public record PlanUpdateDTO(
 
         String description,
 
-        LocalDateTime dateTime,
+        LocalDateTime startDateTime,
 
-        Integer durationMinutes,
+        LocalDateTime endDateTime,
 
         PlanVisibility visibility,
 
-        Integer maxSubscribers,
+        @Positive @Max(999999) Integer maxSubscribers,
 
         @Min(0) @Max(120) Integer minAge,
 
         @Min(0) @Max(120) Integer maxAge,
 
         List<Interest> interests,
-
-        TravelType travelType,
 
         String location,
 

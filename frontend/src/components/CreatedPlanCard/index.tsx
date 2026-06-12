@@ -68,7 +68,7 @@ export function CreatedPlanCard({ plan, onPress }: CreatedPlanCardProps) {
                 <View style={styles.metaRow}>
                     <Ionicons name="calendar-outline" size={14} color={mutedText} />
                     <ThemedText type="label" style={[styles.metaText, { color: mutedText }]}>
-                        {formatDate(plan.dateTime)} - {formatTime(plan.dateTime)}
+                        {formatDate(plan.startDateTime)} - {formatTime(plan.startDateTime)}
                     </ThemedText>
                 </View>
                 <View style={styles.metaRow}>

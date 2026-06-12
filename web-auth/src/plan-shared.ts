@@ -1,19 +1,18 @@
 export type PlanVisibility = 'PUBLIC' | 'PRIVATE'
 export type Interest = 'OTHER' | 'BEACH' | 'NIGHTLIFE' | 'MOUNTAINS' | 'NATURE' | 'SHOPPING' | 'CULTURE' | 'ADVENTURE' | 'HISTORY' | 'FOOD' | 'SPORTS'
-export type TravelType = 'SOLO' | 'COUPLE' | 'FRIENDS'
 
 export type PlanFormState = {
 	title: string
 	description: string
-	date: string
-	time: string
+	startDate: string
+	startTime: string
+	endDate: string
+	endTime: string
 	visibility: PlanVisibility
-	durationMinutes: string
 	maxSubscribers: string
 	minAge: string
 	maxAge: string
 	interests: Interest[]
-	travelType: TravelType
 	location: string
 	latitude: string
 	longitude: string
@@ -38,24 +37,18 @@ export const interestOptions: { label: string; value: Interest }[] = [
 	{ label: 'Gastronomy', value: 'FOOD' },
 ]
 
-export const travelTypeOptions: { label: string; value: TravelType }[] = [
-	{ label: 'Solo', value: 'SOLO' },
-	{ label: 'Couple', value: 'COUPLE' },
-	{ label: 'Friends', value: 'FRIENDS' },
-]
-
 export const defaultPlanFormState: PlanFormState = {
 	title: '',
 	description: '',
-	date: '',
-	time: '',
+	startDate: '',
+	startTime: '',
+	endDate: '',
+	endTime: '',
 	visibility: 'PUBLIC',
-	durationMinutes: '60',
 	maxSubscribers: '10',
 	minAge: '18',
 	maxAge: '90',
 	interests: ['OTHER'],
-	travelType: 'FRIENDS',
 	location: '',
 	latitude: '-34.6037',
 	longitude: '-58.3816',

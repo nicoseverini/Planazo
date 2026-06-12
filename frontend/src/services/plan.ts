@@ -7,14 +7,13 @@ export type PlanVisibility = 'PUBLIC' | 'PRIVATE';
 export type PlanSummary = {
     id: number;
     title: string;
-    dateTime: string;
+    startDateTime: string;
     location: string;
     latitude: number;
     longitude: number;
     interests: string[];
-    travelType: string;
     visibility: PlanVisibility;
-    subscribersCount: number;
+    subscriberCount: number;
     maxSubscribers: number;
     minAge: number | null;
     creatorName: string;
@@ -27,21 +26,21 @@ export type PlanDetail = {
     id: number;
     title: string;
     description: string;
-    dateTime: string;
+    startDateTime: string;
+    endDateTime: string;
     durationMinutes: number;
     visibility: PlanVisibility;
     maxSubscribers: number;
     minAge: number | null;
     maxAge: number | null;
     interests: string[];
-    travelType: string;
     location: string;
     latitude: number;
     longitude: number;
     images: string[];
     creatorId: number;
     creatorName: string;
-    subscribersCount: number;
+    subscriberCount: number;
     isFull: boolean;
 };
 
@@ -54,14 +53,13 @@ export type PendingSubscriber = {
 export type PlanCreateRequest = {
     title: string;
     description: string;
-    dateTime: string;
-    durationMinutes: number;
+    startDateTime: string;
+    endDateTime: string;
     visibility: PlanVisibility;
     maxSubscribers: number;
     minAge?: number;
     maxAge?: number;
     interests: string[];
-    travelType: string;
     location: string;
     latitude: number;
     longitude: number;
@@ -631,7 +629,7 @@ export function usePlans() {
         if (!token) throw new Error('No access token');
         setLoading(true);
         setError(null);
-        try {            
+        try {
             await acceptSubscriber(planId, userId, token);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');

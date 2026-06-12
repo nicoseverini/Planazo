@@ -1,7 +1,6 @@
 package com.planazo.plan;
 
 import com.planazo.common.constants.Interest;
-import com.planazo.common.constants.TravelType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -16,7 +15,7 @@ public class PlanSpecification {
             LocalDateTime dateFrom,
             LocalDateTime dateTo,
             String location,
-            Double maxPriceOrScore,  // reservado para futuro
+            Double maxPriceOrScore,
             Double userLat,
             Double userLng,
             Double radiusKm
@@ -24,7 +23,6 @@ public class PlanSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // Siempre: solo planes públicos y activos
             predicates.add(cb.equal(root.get("visibility"), PlanVisibility.PUBLIC));
             predicates.add(cb.isTrue(root.get("active")));
 
@@ -33,11 +31,11 @@ public class PlanSpecification {
             }
 
             if (dateFrom != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("dateTime"), dateFrom));
+                predicates.add(cb.greaterThanOrEqualTo(root.get("startDateTime"), dateFrom));
             }
 
             if (dateTo != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("dateTime"), dateTo));
+                predicates.add(cb.lessThanOrEqualTo(root.get("startDateTime"), dateTo));
             }
 
             if (location != null && !location.isBlank()) {
@@ -48,7 +46,6 @@ public class PlanSpecification {
             }
 
             if (userLat != null && userLng != null && radiusKm != null) {
-                // Approximate bounding box filter (1 degree latitude ≈ 111km)
                 double deltaLat = radiusKm / 111.0;
                 double deltaLng = radiusKm / (111.0 * Math.cos(Math.toRadians(userLat)));
 

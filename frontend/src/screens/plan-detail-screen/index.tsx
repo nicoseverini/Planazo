@@ -184,14 +184,14 @@ export default function PlanDetailScreen() {
                 setIsSubscribed(false);
                 setPlan({
                     ...plan,
-                    subscribersCount: Math.max(0, plan.subscribersCount - 1),
+                    subscribersCount: Math.max(0, plan.subscriberCount - 1),
                 });
             } else {
                 await subscribe(plan.id);
                 setIsSubscribed(true);
                 setPlan({
                     ...plan,
-                    subscribersCount: plan.subscribersCount + 1,
+                    subscribersCount: plan.subscriberCount + 1,
                 });
             }
         } catch (err) {
@@ -262,7 +262,8 @@ export default function PlanDetailScreen() {
     const images = plan.images || [];
     const reviewCount = 0;
     const averageRating = 0;
-    const { dateLabel, timeLabel } = formatDateTime(plan.dateTime);
+    const { dateLabel, timeLabel } = formatDateTime(plan.startDateTime);
+    const { timeLabel: endTimeLabel } = formatDateTime(plan.endDateTime);
     const isPublic = plan.visibility === 'PUBLIC';
     const canSubscribe = !plan.isFull || isSubscribed;
 
@@ -344,7 +345,7 @@ export default function PlanDetailScreen() {
                     <View style={styles.infoItem}>
                         <Ionicons name="time-outline" size={16} color={mutedText} />
                         <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>
-                            {timeLabel}
+                            {timeLabel}{endTimeLabel ? ` – ${endTimeLabel}` : ''}
                         </ThemedText>
                     </View>
                 ) : null}
@@ -487,7 +488,7 @@ export default function PlanDetailScreen() {
                             <View style={styles.infoListItem}>
                                 <View style={[styles.infoDot, { backgroundColor: tint }]} />
                                 <ThemedText type="body">
-                                    Participants: {plan.subscribersCount}/{plan.maxSubscribers}
+                                    Participants: {plan.subscriberCount}/{plan.maxSubscribers}
                                 </ThemedText>
                             </View>
                         </View>
@@ -560,13 +561,13 @@ export default function PlanDetailScreen() {
                         <View style={styles.subscribeInfoRow}>
                             <Ionicons name="people-outline" size={20} color={mutedText} />
                             <ThemedText type="body" style={{ marginLeft: 8 }}>
-                                {plan.subscribersCount} of {plan.maxSubscribers} participants
+                                {plan.subscriberCount} of {plan.maxSubscribers} participants
                             </ThemedText>
                         </View>
                         <View style={styles.subscribeInfoRow}>
                             <Ionicons name="calendar-outline" size={20} color={mutedText} />
                             <ThemedText type="body" style={{ marginLeft: 8 }}>
-                                {dateLabel}{timeLabel ? ` a las ${timeLabel}` : ''}
+                                {dateLabel}{timeLabel ? ` a las ${timeLabel}` : ''}{endTimeLabel ? ` – ${endTimeLabel}` : ''}
                             </ThemedText>
                         </View>
                     </View>

@@ -53,8 +53,6 @@ const INTEREST_BY_CATEGORY: Record<string, string> = {
 };
 
 const DEFAULT_INTEREST = 'ADVENTURE';
-const DEFAULT_TRAVEL_TYPE = 'FRIENDS';
-const DEFAULT_DURATION_MINUTES = 60;
 
 const buildDateTime = (dateValue: string, timeValue: string): string | null => {
     const dateText = dateValue.trim();
@@ -87,6 +85,13 @@ const buildDateTime = (dateValue: string, timeValue: string): string | null => {
     return `${normalizedDate}T${normalizedTime}`;
 };
 
+const addOneHour = (timeValue: string): string => {
+    const parts = timeValue.split(':');
+    if (parts.length < 2) return '';
+    const hours = (Number.parseInt(parts[0], 10) + 1) % 24;
+    return `${hours.toString().padStart(2, '0')}:${parts[1]}`;
+};
+
 export default function CreatePlanScreen() {
     const router = useRouter();
     const { create } = usePlans();
@@ -106,11 +111,21 @@ export default function CreatePlanScreen() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [isPublic, setIsPublic] = useState(true);
-    const [date, setDate] = useState('');
-    const [time, setTime] = useState('');
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [showTimePicker, setShowTimePicker] = useState(false);
-    const [internalDate, setInternalDate] = useState(new Date());
+
+    // Start date/time
+    const [startDate, setStartDate] = useState('');
+    const [startTime, setStartTime] = useState('');
+    const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+    const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+    const [internalStartDate, setInternalStartDate] = useState(new Date());
+
+    // End date/time
+    const [endDate, setEndDate] = useState('');
+    const [endTime, setEndTime] = useState('');
+    const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+    const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+    const [internalEndDate, setInternalEndDate] = useState(new Date());
+
     const mapRef = useRef<MapView>(null);
     const [isSearchingLoc, setIsSearchingLoc] = useState(false);
     const [location, setLocation] = useState('');
@@ -119,8 +134,7 @@ export default function CreatePlanScreen() {
     const [minAge, setMinAge] = useState('');
     const [maxAge, setMaxAge] = useState('');
     const [maxParticipants, setMaxParticipants] = useState('10');
-    const [selectedCategories, setSelectedCategories] = useState<Array<(typeof CATEGORY_OPTIONS)[number]>>(['Aventura']);
-    const [budget, setBudget] = useState('');
+    const [selectedCategories, setSelectedCategories] = useState<Array<(typeof CATEGORY_OPTIONS)[number]>>(['Adventure']);
     const [images, setImages] = useState<string[]>([]);
 
     const handleAddImage = async () => {
@@ -161,12 +175,12 @@ export default function CreatePlanScreen() {
             setError('Title is required');
             return false;
         }
-        if (!date.trim()) {
-            setError('Date is required');
+        if (!startDate.trim() || !startTime.trim()) {
+            setError('Start date and time are required');
             return false;
         }
-        if (!time.trim()) {
-            setError('Time is required');
+        if (!endDate.trim() || !endTime.trim()) {
+            setError('End date and time are required');
             return false;
         }
         if (!location.trim()) {
@@ -174,7 +188,7 @@ export default function CreatePlanScreen() {
             return false;
         }
         if (selectedCategories.length === 0) {
-            setError('Selecciona al menos una categoria');
+            setError('Select at least one category');
             return false;
         }
         const ageError = validateAgeFields(minAge, maxAge);
@@ -187,7 +201,6 @@ export default function CreatePlanScreen() {
             setSelectedCategories(selectedCategories.filter((entry) => entry !== cat));
             return;
         }
-
         setSelectedCategories([...selectedCategories, cat]);
     };
 
@@ -252,44 +265,83 @@ export default function CreatePlanScreen() {
         }
     };
 
-    const handleDateChange = (event: any, selectedDate?: Date) => {
-        // En Android, el picker se cierra solo tras elegir. En iOS queda abierto si es modo "spinner".
+    const handleStartDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
         if (Platform.OS === 'android') {
-            setShowDatePicker(false);
+            setShowStartDatePicker(false);
         }
-
         if (event.type === 'set' && selectedDate) {
-            setInternalDate(selectedDate);
+            setInternalStartDate(selectedDate);
             const day = selectedDate.getDate().toString().padStart(2, '0');
             const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
             const year = selectedDate.getFullYear();
-            setDate(`${day}/${month}/${year}`);
+            const formatted = `${day}/${month}/${year}`;
+            setStartDate(formatted);
+            // Auto-copy start date to end date
+            setEndDate(formatted);
+            setInternalEndDate(selectedDate);
         } else if (event.type === 'dismissed') {
-            setShowDatePicker(false);
+            setShowStartDatePicker(false);
         }
     };
 
-    const handleTimeChange = (event: any, selectedDate?: Date) => {
+    const handleStartTimeChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
         if (Platform.OS === 'android') {
-            setShowTimePicker(false);
+            setShowStartTimePicker(false);
         }
-
         if (event.type === 'set' && selectedDate) {
-            setInternalDate(selectedDate);
+            setInternalStartDate(selectedDate);
             const hours = selectedDate.getHours().toString().padStart(2, '0');
             const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
-            setTime(`${hours}:${minutes}`);
+            const formatted = `${hours}:${minutes}`;
+            setStartTime(formatted);
+            // Auto-set end time to 1 hour later
+            setEndTime(addOneHour(formatted));
         } else if (event.type === 'dismissed') {
-            setShowTimePicker(false);
+            setShowStartTimePicker(false);
+        }
+    };
+
+    const handleEndDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+        if (Platform.OS === 'android') {
+            setShowEndDatePicker(false);
+        }
+        if (event.type === 'set' && selectedDate) {
+            setInternalEndDate(selectedDate);
+            const day = selectedDate.getDate().toString().padStart(2, '0');
+            const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+            const year = selectedDate.getFullYear();
+            setEndDate(`${day}/${month}/${year}`);
+        } else if (event.type === 'dismissed') {
+            setShowEndDatePicker(false);
+        }
+    };
+
+    const handleEndTimeChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+        if (Platform.OS === 'android') {
+            setShowEndTimePicker(false);
+        }
+        if (event.type === 'set' && selectedDate) {
+            setInternalEndDate(selectedDate);
+            const hours = selectedDate.getHours().toString().padStart(2, '0');
+            const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
+            setEndTime(`${hours}:${minutes}`);
+        } else if (event.type === 'dismissed') {
+            setShowEndTimePicker(false);
         }
     };
 
     const handleCreate = async () => {
         if (!validateForm()) return;
 
-        const dateTime = buildDateTime(date, time);
-        if (!dateTime) {
-            setError('Date or time has an invalid format.');
+        const startDateTime = buildDateTime(startDate, startTime);
+        const endDateTime = buildDateTime(endDate, endTime);
+
+        if (!startDateTime) {
+            setError('Start date or time has an invalid format.');
+            return;
+        }
+        if (!endDateTime) {
+            setError('End date or time has an invalid format.');
             return;
         }
 
@@ -308,8 +360,6 @@ export default function CreatePlanScreen() {
                 return;
             }
 
-            const { latitude, longitude } = geocodedLocation[0];
-
             const mappedInterests = selectedCategories
                 .map((cat) => INTEREST_BY_CATEGORY[cat])
                 .filter(Boolean);
@@ -317,16 +367,15 @@ export default function CreatePlanScreen() {
             const payload: PlanCreateRequest = {
                 title: title.trim(),
                 description: description.trim(),
-                dateTime,
-                latitude: pinLocation.latitude,
-                longitude: pinLocation?.longitude,
-                durationMinutes: DEFAULT_DURATION_MINUTES,
+                startDateTime,
+                endDateTime,
+                latitude: pinLocation?.latitude ?? geocodedLocation[0].latitude,
+                longitude: pinLocation?.longitude ?? geocodedLocation[0].longitude,
                 visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
                 maxSubscribers: Number.isNaN(parsedMaxSubscribers) ? 10 : parsedMaxSubscribers,
                 minAge: parseAge(minAge),
                 maxAge: parseAge(maxAge),
                 interests: mappedInterests.length > 0 ? mappedInterests : [DEFAULT_INTEREST],
-                travelType: DEFAULT_TRAVEL_TYPE,
                 location: location.trim(),
                 images: images.length > 0 ? images : undefined,
             };
@@ -337,11 +386,14 @@ export default function CreatePlanScreen() {
             ]);
         } catch (err) {
             console.error('[CreatePlanScreen] Error creating plan:', err);
-            setError('Could not create the plan. Please try again.');
+            const msg = err instanceof Error ? err.message : 'Could not create the plan. Please try again.';
+            setError(msg);
         } finally {
             setSaving(false);
         }
     };
+
+    const dateTimeInputStyle = [styles.input, { backgroundColor: surface, borderColor: border, flexDirection: 'row' as const, alignItems: 'center' as const, padding: 0, overflow: 'hidden' as const }];
 
     return (
         <AppScreen scrollable>
@@ -389,12 +441,12 @@ export default function CreatePlanScreen() {
                                 !isPublic && { backgroundColor: tint },
                             ]}
                         >
-                                    <ThemedText
-                                        type="label"
-                                        style={{ color: !isPublic ? tintText : mutedText, fontSize: 11 }}
-                                    >
-                                        Private
-                                    </ThemedText>
+                            <ThemedText
+                                type="label"
+                                style={{ color: !isPublic ? tintText : mutedText, fontSize: 11 }}
+                            >
+                                Private
+                            </ThemedText>
                         </Pressable>
                         <Pressable
                             onPress={() => setIsPublic(true)}
@@ -403,56 +455,53 @@ export default function CreatePlanScreen() {
                                 isPublic && { backgroundColor: tint },
                             ]}
                         >
-                                    <ThemedText
-                                        type="label"
-                                        style={{ color: isPublic ? tintText : mutedText, fontSize: 11 }}
-                                    >
-                                        Public
-                                    </ThemedText>
+                            <ThemedText
+                                type="label"
+                                style={{ color: isPublic ? tintText : mutedText, fontSize: 11 }}
+                            >
+                                Public
+                            </ThemedText>
                         </Pressable>
                     </View>
                 </View>
             </View>
 
-            {/* Fecha y hora */}
+            {/* Start date/time */}
             <View style={styles.row}>
-                {/* Input de Fecha */}
                 <View style={styles.halfInput}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Date
+                        Start Date
                     </ThemedText>
-                    <View style={[styles.input, { backgroundColor: surface, borderColor: border, flexDirection: 'row', alignItems: 'center', padding: 0, overflow: 'hidden' }]}>
+                    <View style={dateTimeInputStyle}>
                         <TextInput
-                            value={date}
-                            onChangeText={setDate}
+                            value={startDate}
+                            onChangeText={setStartDate}
                             placeholder="DD/MM/YYYY"
                             placeholderTextColor={mutedText}
                             style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 12, color: text }}
                         />
                         <Pressable
-                            onPress={() => setShowDatePicker(!showDatePicker)}
+                            onPress={() => setShowStartDatePicker(!showStartDatePicker)}
                             style={{ padding: 12, backgroundColor: background }}
                         >
                             <Ionicons name="calendar-outline" size={20} color={tint} />
                         </Pressable>
                     </View>
                 </View>
-
-                {/* Input de Hora */}
                 <View style={styles.halfInput}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Time
+                        Start Time
                     </ThemedText>
-                    <View style={[styles.input, { backgroundColor: surface, borderColor: border, flexDirection: 'row', alignItems: 'center', padding: 0, overflow: 'hidden' }]}>
+                    <View style={dateTimeInputStyle}>
                         <TextInput
-                            value={time}
-                            onChangeText={setTime}
+                            value={startTime}
+                            onChangeText={setStartTime}
                             placeholder="HH:MM"
                             placeholderTextColor={mutedText}
                             style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 12, color: text }}
                         />
                         <Pressable
-                            onPress={() => setShowTimePicker(!showTimePicker)}
+                            onPress={() => setShowStartTimePicker(!showStartTimePicker)}
                             style={{ padding: 12, backgroundColor: background }}
                         >
                             <Ionicons name="time-outline" size={20} color={tint} />
@@ -461,24 +510,85 @@ export default function CreatePlanScreen() {
                 </View>
             </View>
 
-            {/* Renderizado de los Selectores Nativos */}
-            {showDatePicker && (
+            {/* End date/time */}
+            <View style={styles.row}>
+                <View style={styles.halfInput}>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                        End Date
+                    </ThemedText>
+                    <View style={dateTimeInputStyle}>
+                        <TextInput
+                            value={endDate}
+                            onChangeText={setEndDate}
+                            placeholder="DD/MM/YYYY"
+                            placeholderTextColor={mutedText}
+                            style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 12, color: text }}
+                        />
+                        <Pressable
+                            onPress={() => setShowEndDatePicker(!showEndDatePicker)}
+                            style={{ padding: 12, backgroundColor: background }}
+                        >
+                            <Ionicons name="calendar-outline" size={20} color={tint} />
+                        </Pressable>
+                    </View>
+                </View>
+                <View style={styles.halfInput}>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                        End Time
+                    </ThemedText>
+                    <View style={dateTimeInputStyle}>
+                        <TextInput
+                            value={endTime}
+                            onChangeText={setEndTime}
+                            placeholder="HH:MM"
+                            placeholderTextColor={mutedText}
+                            style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 12, color: text }}
+                        />
+                        <Pressable
+                            onPress={() => setShowEndTimePicker(!showEndTimePicker)}
+                            style={{ padding: 12, backgroundColor: background }}
+                        >
+                            <Ionicons name="time-outline" size={20} color={tint} />
+                        </Pressable>
+                    </View>
+                </View>
+            </View>
+
+            {/* Native pickers */}
+            {showStartDatePicker && (
                 <DateTimePicker
-                    value={internalDate}
+                    value={internalStartDate}
                     mode="date"
                     display="default"
-                    onChange={handleDateChange}
+                    onChange={handleStartDateChange}
                     minimumDate={new Date()}
                 />
             )}
-
-            {showTimePicker && (
+            {showStartTimePicker && (
                 <DateTimePicker
-                    value={internalDate}
+                    value={internalStartDate}
                     mode="time"
                     display="default"
                     is24Hour={true}
-                    onChange={handleTimeChange}
+                    onChange={handleStartTimeChange}
+                />
+            )}
+            {showEndDatePicker && (
+                <DateTimePicker
+                    value={internalEndDate}
+                    mode="date"
+                    display="default"
+                    onChange={handleEndDateChange}
+                    minimumDate={new Date()}
+                />
+            )}
+            {showEndTimePicker && (
+                <DateTimePicker
+                    value={internalEndDate}
+                    mode="time"
+                    display="default"
+                    is24Hour={true}
+                    onChange={handleEndTimeChange}
                 />
             )}
 
@@ -518,7 +628,6 @@ export default function CreatePlanScreen() {
                     Area / Address
                 </ThemedText>
 
-                {/* Input de texto con botón de búsqueda */}
                 <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                     <TextInput
                         value={location}
@@ -553,7 +662,6 @@ export default function CreatePlanScreen() {
                     Tap the map or drag the pin to set coordinates.
                 </ThemedText>
 
-                {/* El mapa interactivo */}
                 <View style={{ height: 200, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: border }}>
                     <MapView
                         style={{ flex: 1 }}
@@ -580,8 +688,8 @@ export default function CreatePlanScreen() {
 
             {/* Images */}
             <View style={styles.inputGroup}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Images
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                    Images
                 </ThemedText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.imagesRow}>
@@ -608,8 +716,8 @@ export default function CreatePlanScreen() {
 
             {/* Description */}
             <View style={styles.inputGroup}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Description
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                    Description
                 </ThemedText>
                 <TextInput
                     value={description}
@@ -674,29 +782,13 @@ export default function CreatePlanScreen() {
                             ]}
                         />
                     </View>
-                    <View style={styles.halfInput}>
-                        <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                            Budget (optional)
-                        </ThemedText>
-                        <TextInput
-                            value={budget}
-                            onChangeText={setBudget}
-                            placeholder="$0"
-                            placeholderTextColor={mutedText}
-                            keyboardType="numeric"
-                            style={[
-                                styles.input,
-                                { backgroundColor: background, borderColor: border, color: text },
-                            ]}
-                        />
-                    </View>
                 </View>
             </View>
 
             {/* Error */}
             {error && (
                 <View style={styles.errorContainer}>
-                                    <ThemedText type="body" style={{ color: '#ef4444' }}>{error}</ThemedText>
+                    <ThemedText type="body" style={{ color: '#ef4444' }}>{error}</ThemedText>
                 </View>
             )}
 
@@ -714,7 +806,7 @@ export default function CreatePlanScreen() {
                 {saving ? (
                     <ActivityIndicator size="small" color={tintText} />
                 ) : (
-                        <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
+                    <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
                         CREATE PLAN
                     </ThemedText>
                 )}

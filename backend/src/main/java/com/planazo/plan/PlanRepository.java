@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.planazo.common.constants.Interest;
-import com.planazo.common.constants.TravelType;
 
 import java.util.List;
 
@@ -32,19 +31,17 @@ public interface PlanRepository extends JpaRepository<Plan, Long>, JpaSpecificat
 
     // Plans where a user is subscribed
     @EntityGraph(attributePaths = "images")
-        @Query("SELECT p FROM plans p JOIN p.subscribers s WHERE s.user.id = :userId AND p.active = true")
+    @Query("SELECT p FROM plans p JOIN p.subscribers s WHERE s.user.id = :userId AND p.active = true")
     List<Plan> findBySubscriberId(@Param("userId") Long userId);
-        // Plans where a user is subscribed and is not the creator
+
+    // Plans where a user is subscribed and is not the creator
     @EntityGraph(attributePaths = "images")
-        @Query("SELECT p FROM plans p JOIN p.subscribers s WHERE s.user.id = :userId AND p.active = true AND p.creator.id != :userId")
+    @Query("SELECT p FROM plans p JOIN p.subscribers s WHERE s.user.id = :userId AND p.active = true AND p.creator.id != :userId")
     List<Plan> findBySubscriberIdAndNotCreatorId(@Param("userId") Long userId);
+
     // Filter by interest
     @EntityGraph(attributePaths = "images")
     List<Plan> findByVisibilityAndInterestsContainingAndActiveTrue(PlanVisibility visibility, Interest interest);
-
-    // Filter by travelType
-    @EntityGraph(attributePaths = "images")
-    List<Plan> findByVisibilityAndTravelTypeAndActiveTrue(PlanVisibility visibility, TravelType travelType);
 
     @Query(value = "SELECT p.* FROM plans p " +
             "WHERE p.visibility = 'PUBLIC' AND p.active = true AND " +
