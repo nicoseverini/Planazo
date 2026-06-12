@@ -263,7 +263,7 @@ export default function PlanDetailScreen() {
     const reviewCount = 0;
     const averageRating = 0;
     const { dateLabel, timeLabel } = formatDateTime(plan.startDateTime);
-    const { timeLabel: endTimeLabel } = formatDateTime(plan.endDateTime);
+    const { dateLabel: endDateLabel, timeLabel: endTimeLabel } = formatDateTime(plan.endDateTime);
     const isPublic = plan.visibility === 'PUBLIC';
     const canSubscribe = !plan.isFull || isSubscribed;
 
@@ -335,18 +335,28 @@ export default function PlanDetailScreen() {
             </View>
 
             <View style={styles.infoRow}>
+                <ThemedText type="label" style={{ color: mutedText, fontWeight: '600', minWidth: 36 }}>Start</ThemedText>
                 <View style={styles.infoItem}>
                     <Ionicons name="calendar-outline" size={16} color={mutedText} />
-                    <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>
-                        {dateLabel}
-                    </ThemedText>
+                    <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>{dateLabel}</ThemedText>
                 </View>
                 {timeLabel ? (
                     <View style={styles.infoItem}>
                         <Ionicons name="time-outline" size={16} color={mutedText} />
-                        <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>
-                            {timeLabel}{endTimeLabel ? ` – ${endTimeLabel}` : ''}
-                        </ThemedText>
+                        <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>{timeLabel}</ThemedText>
+                    </View>
+                ) : null}
+            </View>
+            <View style={styles.infoRow}>
+                <ThemedText type="label" style={{ color: mutedText, fontWeight: '600', minWidth: 36 }}>End</ThemedText>
+                <View style={styles.infoItem}>
+                    <Ionicons name="calendar-outline" size={16} color={mutedText} />
+                    <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>{endDateLabel}</ThemedText>
+                </View>
+                {endTimeLabel ? (
+                    <View style={styles.infoItem}>
+                        <Ionicons name="time-outline" size={16} color={mutedText} />
+                        <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>{endTimeLabel}</ThemedText>
                     </View>
                 ) : null}
             </View>
