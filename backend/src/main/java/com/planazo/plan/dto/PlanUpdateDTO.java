@@ -7,6 +7,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public record PlanUpdateDTO(
 
         @Min(0) @Max(120) Integer maxAge,
 
-        List<Interest> interests,
+        @Size(min = 1, message = "At least one interest must be selected") List<Interest> interests,
 
         String location,
 

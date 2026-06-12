@@ -52,8 +52,6 @@ const INTEREST_BY_CATEGORY: Record<string, string> = {
     Other:     'OTHER',
 };
 
-const DEFAULT_INTEREST = 'ADVENTURE';
-
 const buildDateTime = (dateValue: string, timeValue: string): string | null => {
     const dateText = dateValue.trim();
     const timeText = timeValue.trim();
@@ -135,7 +133,7 @@ export default function CreatePlanScreen() {
     const [maxAge, setMaxAge] = useState('');
     const [maxParticipants, setMaxParticipants] = useState('10');
     const [budget, setBudget] = useState('');
-    const [selectedCategories, setSelectedCategories] = useState<Array<(typeof CATEGORY_OPTIONS)[number]>>(['Adventure']);
+    const [selectedCategories, setSelectedCategories] = useState<Array<(typeof CATEGORY_OPTIONS)[number]>>([]);
     const [images, setImages] = useState<string[]>([]);
 
     const handleAddImage = async () => {
@@ -394,7 +392,7 @@ export default function CreatePlanScreen() {
                 maxSubscribers: Number.isNaN(parsedMaxSubscribers) ? 10 : parsedMaxSubscribers,
                 minAge: parseAge(minAge),
                 maxAge: parseAge(maxAge),
-                interests: mappedInterests.length > 0 ? mappedInterests : [DEFAULT_INTEREST],
+                interests: mappedInterests,
                 location: location.trim(),
                 images: images.length > 0 ? images : undefined,
                 budget: parsedBudget,

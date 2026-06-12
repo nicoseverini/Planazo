@@ -52,8 +52,6 @@ const INTEREST_BY_CATEGORY: Record<string, string> = {
     Other:     'OTHER',
 };
 
-const DEFAULT_INTEREST = 'ADVENTURE';
-
 const buildDateTime = (dateValue: string, timeValue: string): string | null => {
     const dateText = dateValue.trim();
     const timeText = timeValue.trim();
@@ -440,7 +438,7 @@ export default function EditPlanScreen() {
                 maxSubscribers: Number.isNaN(parsedMaxSubscribers) ? 10 : parsedMaxSubscribers,
                 minAge: parseAge(minAge),
                 maxAge: parseAge(maxAge),
-                interests: mappedInterests.length > 0 ? mappedInterests : [DEFAULT_INTEREST],
+                interests: mappedInterests,
                 location: location.trim(),
                 images: images.length > 0 ? images : undefined,
                 budget: parsedBudget,

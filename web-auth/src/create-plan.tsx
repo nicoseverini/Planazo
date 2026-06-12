@@ -80,6 +80,12 @@ export function CreatePlanPage() {
 			return
 		}
 
+		if (form.interests.length === 0) {
+			setStatus('error')
+			setMessage('Please select at least one interest.')
+			return
+		}
+
 		const ageError = validateAgeRange(form.minAge, form.maxAge)
 		if (ageError) {
 			setStatus('error')

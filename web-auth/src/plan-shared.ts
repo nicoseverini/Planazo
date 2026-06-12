@@ -49,7 +49,7 @@ export const defaultPlanFormState: PlanFormState = {
 	maxSubscribers: '10',
 	minAge: '18',
 	maxAge: '90',
-	interests: ['OTHER'],
+	interests: [],
 	location: '',
 	latitude: '-34.6037',
 	longitude: '-58.3816',

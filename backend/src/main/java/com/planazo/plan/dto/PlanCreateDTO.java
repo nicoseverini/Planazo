@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.time.LocalDateTime;
@@ -24,7 +25,7 @@ public record PlanCreateDTO(
         @Positive @Max(999999) Integer maxSubscribers,
         @Min(0) @Max(120) Integer minAge,
         @Min(0) @Max(120) Integer maxAge,
-        List<Interest> interests,
+        @NotEmpty(message = "At least one interest must be selected") List<Interest> interests,
         String location,
         Double latitude,
         Double longitude,
