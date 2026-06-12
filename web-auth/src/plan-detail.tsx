@@ -23,6 +23,7 @@ type PlanDetailResponse = {
 	creatorName: string
 	subscriberCount: number
 	isFull: boolean
+	budget: number | null
 }
 
 type PlanDetailPageProps = {
@@ -225,6 +226,10 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 										? `${plan.latitude}, ${plan.longitude}`
 										: 'No coordinates provided'}
 								</dd>
+							</div>
+							<div>
+								<dt>Budget</dt>
+								<dd>{plan.budget ? `$${plan.budget.toLocaleString()}` : 'Not specified'}</dd>
 							</div>
 						</dl>
 					</section>

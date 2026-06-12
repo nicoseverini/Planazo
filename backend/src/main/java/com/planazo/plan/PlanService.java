@@ -1,6 +1,7 @@
 package com.planazo.plan;
 
 import com.planazo.common.exception.InvalidAgeRangeException;
+import com.planazo.common.exception.InvalidBudgetException;
 import com.planazo.common.exception.InvalidDateRangeException;
 import com.planazo.plan.dto.PlanCreateDTO;
 import com.planazo.plan.dto.PlanDetailDTO;
@@ -48,6 +49,9 @@ public class PlanService {
         Integer normalizedMax = normalizeAge(data.maxAge());
         validateAgeRange(normalizedMin, normalizedMax);
 
+        Double normalizedBudget = normalizeBudget(data.budget());
+        validateBudget(normalizedBudget);
+
         User creator = userRepository.findByEmail(creatorEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
@@ -67,6 +71,7 @@ public class PlanService {
                 data.images(),
                 creator
         );
+        plan.setBudget(normalizedBudget);
 
         planRepository.save(plan);
 
@@ -285,6 +290,11 @@ public class PlanService {
             validateDateRange(effectiveStart, effectiveEnd);
         }
 
+        if (data.budget() != null) {
+            Double normalizedBudget = normalizeBudget(data.budget());
+            validateBudget(normalizedBudget);
+            plan.setBudget(normalizedBudget);
+        }
         if (data.title() != null)           plan.setTitle(data.title());
         if (data.description() != null)     plan.setDescription(data.description());
         if (data.startDateTime() != null)   plan.setStartDateTime(data.startDateTime());
@@ -393,7 +403,8 @@ public class PlanService {
                 plan.getCreator().getId(),
                 plan.getCreator().getName(),
                 plan.getSubscriberCount(),
-                plan.isFull()
+                plan.isFull(),
+                plan.getBudget()
         );
     }
 
@@ -417,7 +428,8 @@ public class PlanService {
                 plan.getCreator().getName(),
                 plan.getCreator().getId(),
                 List.copyOf(plan.getImages()),
-                accepted
+                accepted,
+                plan.getBudget()
         );
     }
 
@@ -465,5 +477,18 @@ public class PlanService {
 
     private static Integer normalizeAge(Integer age) {
         return (age == null || age == 0) ? null : age;
+    }
+
+    private static Double normalizeBudget(Double budget) {
+        return budget == null ? 0.0 : budget;
+    }
+
+    private static void validateBudget(Double budget) {
+        if (budget < 0) {
+            throw new InvalidBudgetException("Budget must be greater than or equal to 0.");
+        }
+        if (budget > 9_999_999) {
+            throw new InvalidBudgetException("Budget cannot exceed 9,999,999.");
+        }
     }
 }

@@ -438,7 +438,7 @@ export default function PlanDetailScreen() {
                         type="body"
                         style={[styles.tabText, { color: activeTab === 'description' ? tint : mutedText }]}
                     >
-                        DESCRIPCION
+                        DESCRIPTION
                     </ThemedText>
                 </Pressable>
                 <Pressable
@@ -452,7 +452,7 @@ export default function PlanDetailScreen() {
                         type="body"
                         style={[styles.tabText, { color: activeTab === 'subscribe' ? tint : mutedText }]}
                     >
-                        SUBSCRIBE
+                        SUSCRIPTIONS
                     </ThemedText>
                 </Pressable>
                 <Pressable
@@ -491,6 +491,14 @@ export default function PlanDetailScreen() {
                                     Participants: {plan.subscriberCount}/{plan.maxSubscribers}
                                 </ThemedText>
                             </View>
+                            {plan.budget > 0 && (
+                                <View style={styles.infoListItem}>
+                                    <View style={[styles.infoDot, { backgroundColor: tint }]} />
+                                    <ThemedText type="body">
+                                        Budget: ${plan.budget.toLocaleString()}
+                                    </ThemedText>
+                                </View>
+                            )}
                         </View>
                     </View>
                 </View>

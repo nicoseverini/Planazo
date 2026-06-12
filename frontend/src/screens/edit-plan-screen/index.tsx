@@ -135,6 +135,7 @@ export default function EditPlanScreen() {
     const [minAge, setMinAge] = useState('');
     const [maxAge, setMaxAge] = useState('');
     const [maxParticipants, setMaxParticipants] = useState('');
+    const [budget, setBudget] = useState('');
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [images, setImages] = useState<string[]>([]);
 
@@ -151,6 +152,7 @@ export default function EditPlanScreen() {
                 setMinAge(plan.minAge ? plan.minAge.toString() : '');
                 setMaxAge(plan.maxAge ? plan.maxAge.toString() : '');
                 setMaxParticipants(plan.maxSubscribers ? plan.maxSubscribers.toString() : '');
+                setBudget(plan.budget ? plan.budget.toString() : '');
                 if (plan.images) setImages(plan.images);
 
                 const categoriesFromInterests = Object.keys(INTEREST_BY_CATEGORY).filter(
@@ -255,6 +257,22 @@ export default function EditPlanScreen() {
         }
         const ageError = validateAgeFields(minAge, maxAge);
         if (ageError) { setError(ageError); return false; }
+        const trimmedBudget = budget.trim();
+        if (trimmedBudget) {
+            const parsedBudget = Number(trimmedBudget);
+            if (!Number.isFinite(parsedBudget)) {
+                setError('Budget must be a valid number.');
+                return false;
+            }
+            if (parsedBudget < 0) {
+                setError('Budget must be greater than or equal to 0.');
+                return false;
+            }
+            if (parsedBudget > 9_999_999) {
+                setError('Budget cannot exceed 9,999,999.');
+                return false;
+            }
+        }
         return true;
     };
 
@@ -409,6 +427,8 @@ export default function EditPlanScreen() {
                 .map((cat) => INTEREST_BY_CATEGORY[cat])
                 .filter(Boolean);
 
+            const parsedBudget = budget.trim() ? Number(budget.trim()) : 0;
+
             const payload: PlanUpdateRequest = {
                 title: title.trim(),
                 description: description.trim(),
@@ -423,6 +443,7 @@ export default function EditPlanScreen() {
                 interests: mappedInterests.length > 0 ? mappedInterests : [DEFAULT_INTEREST],
                 location: location.trim(),
                 images: images.length > 0 ? images : undefined,
+                budget: parsedBudget,
             };
 
             await update(Number(id), payload);
@@ -829,6 +850,22 @@ export default function EditPlanScreen() {
                             placeholder="10"
                             placeholderTextColor={mutedText}
                             keyboardType="numeric"
+                            style={[
+                                styles.input,
+                                { backgroundColor: background, borderColor: border, color: text },
+                            ]}
+                        />
+                    </View>
+                    <View style={styles.halfInput}>
+                        <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                            Budget (optional)
+                        </ThemedText>
+                        <TextInput
+                            value={budget}
+                            onChangeText={setBudget}
+                            placeholder="e.g. 500"
+                            placeholderTextColor={mutedText}
+                            keyboardType="decimal-pad"
                             style={[
                                 styles.input,
                                 { backgroundColor: background, borderColor: border, color: text },

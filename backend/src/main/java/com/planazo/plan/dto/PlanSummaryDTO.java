@@ -36,6 +36,8 @@ public record PlanSummaryDTO(
 
         List<String> images,
 
-        Boolean accepted
+        Boolean accepted,
+
+        Double budget
 
 ) {}

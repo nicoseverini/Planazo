@@ -4,6 +4,8 @@ import com.planazo.plan.Plan;
 import com.planazo.plan.PlanVisibility;
 import com.planazo.common.constants.Interest;
 import com.planazo.user.User;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -26,7 +28,10 @@ public record PlanCreateDTO(
         String location,
         Double latitude,
         Double longitude,
-        List<String> images
+        List<String> images,
+        @DecimalMin(value = "0.0", message = "Budget must be at least 0")
+        @DecimalMax(value = "9999999.0", message = "Budget cannot exceed 9,999,999")
+        Double budget
 ) {
     public Plan asPlan(User creator) {
         return new Plan(

@@ -9,8 +9,10 @@ import {
 	buildDateTime,
 	defaultPlanFormState,
 	isFutureDateTime,
+	parseBudget,
 	parseOptionalNumber,
 	validateAgeRange,
+	validateBudget,
 } from './plan-shared'
 
 type CreatePlanResponse = {
@@ -85,6 +87,13 @@ export function CreatePlanPage() {
 			return
 		}
 
+		const budgetError = validateBudget(form.budget)
+		if (budgetError) {
+			setStatus('error')
+			setMessage(budgetError)
+			return
+		}
+
 		setStatus('loading')
 		setMessage('')
 
@@ -112,6 +121,7 @@ export function CreatePlanPage() {
 					latitude,
 					longitude,
 					images,
+					budget: parseBudget(form.budget),
 				}),
 			})
 

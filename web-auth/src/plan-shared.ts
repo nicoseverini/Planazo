@@ -16,6 +16,7 @@ export type PlanFormState = {
 	location: string
 	latitude: string
 	longitude: string
+	budget: string
 }
 
 export type SelectedImage = {
@@ -52,6 +53,7 @@ export const defaultPlanFormState: PlanFormState = {
 	location: '',
 	latitude: '-34.6037',
 	longitude: '-58.3816',
+	budget: '',
 }
 
 export function validateAgeRange(minAge: string, maxAge: string): string | null {
@@ -102,6 +104,23 @@ export function getTodayInputValue() {
 	const month = String(now.getMonth() + 1).padStart(2, '0')
 	const day = String(now.getDate()).padStart(2, '0')
 	return `${year}-${month}-${day}`
+}
+
+export function validateBudget(budget: string): string | null {
+	const trimmed = budget.trim()
+	if (!trimmed) return null
+	const parsed = Number(trimmed)
+	if (!Number.isFinite(parsed)) return 'Budget must be a valid number.'
+	if (parsed <= 0) return 'Budget must be greater than 0.'
+	if (parsed > 9_999_999) return 'Budget cannot exceed 9,999,999.'
+	return null
+}
+
+export function parseBudget(budget: string): number {
+	const trimmed = budget.trim()
+	if (!trimmed) return 0
+	const parsed = Number(trimmed)
+	return Number.isFinite(parsed) ? parsed : 0
 }
 
 export function readFileAsDataUrl(file: File) {

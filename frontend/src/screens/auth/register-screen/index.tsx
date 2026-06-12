@@ -120,14 +120,14 @@ function BirthDateField({ value, onChange }: { value: string; onChange: (value: 
   return (
     <View style={styles.pickerGroup}>
       <ThemedText type="defaultSemiBold" style={styles.fieldLabel}>
-        Fecha de nacimiento
+        Birth date
       </ThemedText>
       <Pressable
         onPress={() => setOpen((current) => !current)}
         style={({ pressed }) => [styles.pickerTrigger, pressed && styles.pressedField]}
       >
         <ThemedText style={[styles.pickerValue, !value && styles.placeholderValue]}>
-          {value || 'Elegí una fecha'}
+          {value || 'Select your birth date'}
         </ThemedText>
         <ThemedText style={styles.pickerChevron}>📅</ThemedText>
       </Pressable>

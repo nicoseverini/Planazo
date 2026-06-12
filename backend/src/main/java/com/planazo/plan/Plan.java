@@ -73,6 +73,9 @@ public class Plan {
     @Column(name = "subscriber_count", nullable = false, columnDefinition = "integer default 0")
     private int subscriberCount = 0;
 
+    @Column(name = "budget", nullable = false, columnDefinition = "double precision default 0 check (budget >= 0 and budget <= 9999999)")
+    private Double budget = 0.0;
+
     @Column(nullable = false)
     private Boolean active = true;
 
@@ -145,6 +148,8 @@ public class Plan {
     public int getSubscriberCount() { return subscriberCount; }
     public void incrementSubscriberCount() { this.subscriberCount++; }
     public void decrementSubscriberCount() { this.subscriberCount = Math.max(0, this.subscriberCount - 1); }
+    public Double getBudget() { return budget; }
+    public void setBudget(Double budget) { this.budget = budget; }
     public Boolean isActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
 

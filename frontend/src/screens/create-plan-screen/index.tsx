@@ -134,6 +134,7 @@ export default function CreatePlanScreen() {
     const [minAge, setMinAge] = useState('');
     const [maxAge, setMaxAge] = useState('');
     const [maxParticipants, setMaxParticipants] = useState('10');
+    const [budget, setBudget] = useState('');
     const [selectedCategories, setSelectedCategories] = useState<Array<(typeof CATEGORY_OPTIONS)[number]>>(['Adventure']);
     const [images, setImages] = useState<string[]>([]);
 
@@ -193,6 +194,22 @@ export default function CreatePlanScreen() {
         }
         const ageError = validateAgeFields(minAge, maxAge);
         if (ageError) { setError(ageError); return false; }
+        const trimmedBudget = budget.trim();
+        if (trimmedBudget) {
+            const parsedBudget = Number(trimmedBudget);
+            if (!Number.isFinite(parsedBudget)) {
+                setError('Budget must be a valid number.');
+                return false;
+            }
+            if (parsedBudget < 0) {
+                setError('Budget must be greater than or equal to 0.');
+                return false;
+            }
+            if (parsedBudget > 9_999_999) {
+                setError('Budget cannot exceed 9,999,999.');
+                return false;
+            }
+        }
         return true;
     };
 
@@ -364,6 +381,8 @@ export default function CreatePlanScreen() {
                 .map((cat) => INTEREST_BY_CATEGORY[cat])
                 .filter(Boolean);
 
+            const parsedBudget = budget.trim() ? Number(budget.trim()) : 0;
+
             const payload: PlanCreateRequest = {
                 title: title.trim(),
                 description: description.trim(),
@@ -378,6 +397,7 @@ export default function CreatePlanScreen() {
                 interests: mappedInterests.length > 0 ? mappedInterests : [DEFAULT_INTEREST],
                 location: location.trim(),
                 images: images.length > 0 ? images : undefined,
+                budget: parsedBudget,
             };
 
             await create(payload);
@@ -776,6 +796,22 @@ export default function CreatePlanScreen() {
                             placeholder="10"
                             placeholderTextColor={mutedText}
                             keyboardType="numeric"
+                            style={[
+                                styles.input,
+                                { backgroundColor: background, borderColor: border, color: text },
+                            ]}
+                        />
+                    </View>
+                    <View style={styles.halfInput}>
+                        <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                            Budget (optional)
+                        </ThemedText>
+                        <TextInput
+                            value={budget}
+                            onChangeText={setBudget}
+                            placeholder="e.g. 500"
+                            placeholderTextColor={mutedText}
+                            keyboardType="decimal-pad"
                             style={[
                                 styles.input,
                                 { backgroundColor: background, borderColor: border, color: text },

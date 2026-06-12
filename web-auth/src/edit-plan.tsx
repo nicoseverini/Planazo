@@ -11,9 +11,11 @@ import {
 	buildDateTime,
 	defaultPlanFormState,
 	isFutureDateTime,
+	parseBudget,
 	parseOptionalNumber,
 	splitDateTime,
 	validateAgeRange,
+	validateBudget,
 } from './plan-shared'
 
 type PlanDetailResponse = {
@@ -31,6 +33,7 @@ type PlanDetailResponse = {
 	latitude: number | null
 	longitude: number | null
 	images: string[]
+	budget: number | null
 }
 
 function toFormState(plan: PlanDetailResponse): PlanFormState {
@@ -52,6 +55,7 @@ function toFormState(plan: PlanDetailResponse): PlanFormState {
 		location: plan.location,
 		latitude: plan.latitude?.toString() ?? '',
 		longitude: plan.longitude?.toString() ?? '',
+		budget: plan.budget ? plan.budget.toString() : '',
 	}
 }
 
@@ -172,6 +176,13 @@ export function EditPlanPage({ planId }: { planId: number }) {
 			return
 		}
 
+		const budgetError = validateBudget(form.budget)
+		if (budgetError) {
+			setStatus('error')
+			setMessage(budgetError)
+			return
+		}
+
 		setStatus('saving')
 		setMessage('')
 
@@ -199,6 +210,7 @@ export function EditPlanPage({ planId }: { planId: number }) {
 					latitude,
 					longitude,
 					images,
+					budget: parseBudget(form.budget),
 				}),
 			})
 

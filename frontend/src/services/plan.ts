@@ -20,6 +20,7 @@ export type PlanSummary = {
     creatorId: number;
     images: string[];
     accepted: null | boolean;
+    budget: number;
 };
 
 export type PlanDetail = {
@@ -42,6 +43,7 @@ export type PlanDetail = {
     creatorName: string;
     subscriberCount: number;
     isFull: boolean;
+    budget: number;
 };
 
 export type PendingSubscriber = {
@@ -64,6 +66,7 @@ export type PlanCreateRequest = {
     latitude: number;
     longitude: number;
     images?: string[];
+    budget?: number;
 };
 
 export type PlanUpdateRequest = Partial<PlanCreateRequest>;

@@ -44,6 +44,8 @@ public record PlanDetailDTO(
 
         int subscriberCount,
 
-        boolean isFull
+        boolean isFull,
+
+        Double budget
 
 ) {}
