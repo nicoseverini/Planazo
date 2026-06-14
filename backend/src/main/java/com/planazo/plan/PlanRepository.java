@@ -19,9 +19,13 @@ public interface PlanRepository extends JpaRepository<Plan, Long>, JpaSpecificat
     @EntityGraph(attributePaths = "images")
     List<Plan> findByVisibilityAndActiveTrue(PlanVisibility visibility);
 
-    // Plans created by a user
+    // Plans created by a user (only active)
     @EntityGraph(attributePaths = "images")
     List<Plan> findByCreatorIdAndActiveTrue(Long creatorId);
+
+    // All plans created by a user (regardless of active status)
+    @EntityGraph(attributePaths = "images")
+    List<Plan> findByCreatorId(Long creatorId);
 
     // All active plans, regardless of visibility
     @EntityGraph(attributePaths = "images")

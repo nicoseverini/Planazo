@@ -314,6 +314,7 @@ export default function ProfileScreen() {
                     text: 'Delete',
                     style: 'destructive',
                     onPress: async () => {
+                        setError(null);
                         setDeletingAccount(true);
                         try {
                             await deleteAccount();
@@ -336,12 +337,17 @@ export default function ProfileScreen() {
 
     // Loading state
     if (loggingOut || deletingAccount || loading || tokenData.state === 'LOADING') {
+        const loadingText = deletingAccount
+            ? 'Deleting account...'
+            : loggingOut
+                ? 'Logging out...'
+                : 'Loading...';
         return (
             <AppScreen>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={tint} />
                     <ThemedText type="body" style={{ color: mutedText, marginTop: 12 }}>
-                        Logging out...
+                        {loadingText}
                     </ThemedText>
                 </View>
             </AppScreen>
@@ -474,6 +480,14 @@ export default function ProfileScreen() {
                             </View>
                         </View>
                     </View>
+
+                    {error && (
+                        <View style={[styles.errorContainer, { marginBottom: 16 }]}>
+                            <ThemedText type="body" style={{ color: '#ef4444' }}>
+                                {error}
+                            </ThemedText>
+                        </View>
+                    )}
 
                     {/* Menu de opciones */}
                     <View style={styles.menuSection}>
