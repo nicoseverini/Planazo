@@ -184,6 +184,7 @@ export default function PlanDetailScreen() {
                 setPlan({
                     ...plan,
                     subscriberCount: Math.max(0, plan.subscriberCount - 1),
+                    isFull: false,
                 });
             } else {
                 await subscribe(plan.id);
