@@ -340,8 +340,15 @@ public class PlanService {
 
         planRepository.save(plan);
 
+        boolean isNotCreator = !user.getId().equals(plan.getCreator().getId());
         if (!isPublic) {
             emailService.sendRequestToPlanCreator(
+                plan.getCreator().getEmail(),
+                user.getName(),
+                plan.getTitle()
+            );
+        } else if (isNotCreator) {
+            emailService.sendParticipantJoinedEmail(
                 plan.getCreator().getEmail(),
                 user.getName(),
                 plan.getTitle()
@@ -373,11 +380,22 @@ public class PlanService {
 
         if (!plan.removeSubscriber(user.getId())) return LeaveResult.NOT_SUBSCRIBED;
 
+        boolean isNotCreator = !user.getId().equals(plan.getCreator().getId());
+
         if (wasCounting) {
             plan.decrementSubscriberCount();
         }
 
         planRepository.save(plan);
+
+        if (wasCounting && isNotCreator) {
+            emailService.sendParticipantLeftEmail(
+                plan.getCreator().getEmail(),
+                user.getName(),
+                plan.getTitle()
+            );
+        }
+
         return LeaveResult.OK;
     }
 
