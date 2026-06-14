@@ -71,8 +71,6 @@ export async function loginUser(req: LoginRequest): Promise<AuthTokenResponse> {
 
   if (!response.ok) {
     const statusCode = Number(response.status);
-    console.log(statusCode, 'auth.ts')
-
     const errorText = await response.text();
     const cleanError = errorText.toUpperCase();
 

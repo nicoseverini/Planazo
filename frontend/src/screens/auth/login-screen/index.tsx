@@ -14,7 +14,7 @@ import { loginUser } from '@/services/auth';
 import { styles } from './styles';
 
 const LOGIN_ERROR_MESSAGES: Record<string, string> = {
-  AUTH_INVALID_CREDENTIALS: 'Invalid credentials: email or password wrong.',
+  AUTH_INVALID_CREDENTIALS: 'Invalid email or password. Please try again.',
   AUTH_ACCOUNT_NOT_VERIFIED: 'Your account hasn\'t been verified, please check your emails.',
   AUTH_SERVER_ERROR: 'Server error. Please try again later.',
   NETWORK_ERROR: 'Network error. Please check your internet connection.',
@@ -82,9 +82,9 @@ export default function LoginScreen() {
           </Pressable>
         </View>
         <AuthCard kicker="Sign in" title="Sign in" body="Enter your verified email and password to continue.">
-          <AuthInput label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
+          <AuthInput label="Email" value={email} onChangeText={(v) => { setEmail(v); setError(null); }} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
           <View style={{ position: 'relative' }}>
-            <AuthInput label="Password" value={password} onChangeText={setPassword} secureTextEntry={!showPassword} autoCapitalize="none" autoComplete="password"/>
+            <AuthInput label="Password" value={password} onChangeText={(v) => { setPassword(v); setError(null); }} secureTextEntry={!showPassword} autoCapitalize="none" autoComplete="password"/>
             <Pressable onPress={() => setShowPassword(!showPassword)} style={{position: 'absolute', right: 12, top: 42, zIndex: 1,}}>
               <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="gray"/>
             </Pressable>
