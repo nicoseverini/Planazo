@@ -56,6 +56,10 @@ export type ForgotPasswordRequest = {
   email: string;
 };
 
+export type ResendVerificationRequest = {
+  email: string;
+};
+
 // Basic auth functions (low-level)
 export async function loginUser(req: LoginRequest): Promise<AuthTokenResponse> {
   const url = `${getBackendUrl()}/api/v1/auth/token`;
@@ -74,12 +78,12 @@ export async function loginUser(req: LoginRequest): Promise<AuthTokenResponse> {
     const errorText = await response.text();
     const cleanError = errorText.toUpperCase();
 
-    if (statusCode === 401 || cleanError.includes('401') || cleanError.includes('UNAUTHORIZED') || cleanError.includes('CREDENTIALS')) {
-      throw new Error('AUTH_INVALID_CREDENTIALS');
-    }
-
-    if (statusCode === 403 || cleanError.includes('403') || cleanError.includes('FORBIDDEN') || cleanError.includes('VERIFIED')) {
-      throw new Error('AUTH_ACCOUNT_NOT_VERIFIED');
+    if (
+      statusCode === 401 || statusCode === 403 ||
+      cleanError.includes('UNAUTHORIZED') || cleanError.includes('CREDENTIALS') ||
+      cleanError.includes('FORBIDDEN') || cleanError.includes('VERIFIED')
+    ) {
+      throw new Error('AUTH_FAILURE');
     }
 
     throw new Error('AUTH_SERVER_ERROR');
@@ -106,6 +110,23 @@ export async function signupUser(req: SignupRequest): Promise<SignupResponse> {
   }
 
   return response.json();
+}
+
+export async function resendVerificationEmail(req: ResendVerificationRequest): Promise<void> {
+  const url = `${getBackendUrl()}/api/v1/auth/resend-verification`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(req),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to resend verification email');
+  }
 }
 
 export async function forgotPassword(req: ForgotPasswordRequest): Promise<void> {

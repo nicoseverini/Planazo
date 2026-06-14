@@ -14,8 +14,7 @@ import { loginUser } from '@/services/auth';
 import { styles } from './styles';
 
 const LOGIN_ERROR_MESSAGES: Record<string, string> = {
-  AUTH_INVALID_CREDENTIALS: 'Invalid email or password. Please try again.',
-  AUTH_ACCOUNT_NOT_VERIFIED: 'Your account hasn\'t been verified, please check your emails.',
+  AUTH_FAILURE: "Unable to sign in. Please check your email and password. If you've recently created your account, make sure to verify your email before signing in.",
   AUTH_SERVER_ERROR: 'Server error. Please try again later.',
   NETWORK_ERROR: 'Network error. Please check your internet connection.',
 };
@@ -93,6 +92,11 @@ export default function LoginScreen() {
           <Pressable onPress={() => router.push('/forgot-password')} style={styles.forgotPasswordLink}>
             <ThemedText lightColor="#000000" darkColor="#ffffff" style={styles.forgotPasswordText}>
               Forgot password
+            </ThemedText>
+          </Pressable>
+          <Pressable onPress={() => router.push('/resend-verification')} style={styles.forgotPasswordLink}>
+            <ThemedText lightColor="#000000" darkColor="#ffffff" style={styles.forgotPasswordText}>
+              Resend verification email
             </ThemedText>
           </Pressable>
 

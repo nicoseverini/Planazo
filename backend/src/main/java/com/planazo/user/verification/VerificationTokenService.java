@@ -3,6 +3,7 @@ package com.planazo.user.verification;
 import com.planazo.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,7 +19,16 @@ public class VerificationTokenService {
 
     public VerificationToken createFor(User user) {
         String value = UUID.randomUUID().toString();
-        VerificationToken token = new VerificationToken(value, user);        
+        VerificationToken token = new VerificationToken(value, user);
+        return tokenRepository.save(token);
+    }
+
+    @Transactional
+    public VerificationToken createOrReplace(User user) {
+        tokenRepository.deleteByUser(user);
+        tokenRepository.flush();
+        String value = UUID.randomUUID().toString();
+        VerificationToken token = new VerificationToken(value, user);
         return tokenRepository.save(token);
     }
 

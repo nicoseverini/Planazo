@@ -183,14 +183,14 @@ export default function PlanDetailScreen() {
                 setIsSubscribed(false);
                 setPlan({
                     ...plan,
-                    subscribersCount: Math.max(0, plan.subscriberCount - 1),
+                    subscriberCount: Math.max(0, plan.subscriberCount - 1),
                 });
             } else {
                 await subscribe(plan.id);
                 setIsSubscribed(true);
                 setPlan({
                     ...plan,
-                    subscribersCount: plan.subscriberCount + 1,
+                    subscriberCount: plan.subscriberCount + 1,
                 });
             }
         } catch (err) {
