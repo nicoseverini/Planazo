@@ -4,6 +4,7 @@ import com.planazo.config.security.JwtService;
 import com.planazo.config.security.JwtUserDetails;
 import com.planazo.plan.Plan;
 import com.planazo.plan.PlanRepository;
+import com.planazo.plan.PlanSubscriber;
 import com.planazo.plan.PlanSubscriberRepository;
 import com.planazo.turistic_place.TuristicPlaceRepository;
 import com.planazo.user.dto.*;
@@ -174,19 +175,30 @@ public class UserService implements UserDetailsService {
             // 1. Hard-delete all turistic places created by this user (cascades to images)
             turisticPlaceRepository.deleteByCreatorId(id);
 
-            // 2. Hard-delete all plans created by this user (cascades to subscribers, images, interests)
+            // 2. Decrement subscriberCount on plans where the user was a counted subscriber
+            // (but not the creator — creator's plans are deleted entirely in the next step)
+            List<PlanSubscriber> subscriptions = planSubscriberRepository.findByUserIdWithPlan(id);
+            for (PlanSubscriber sub : subscriptions) {
+                Plan plan = sub.getPlan();
+                if (!plan.getCreator().getId().equals(id) && sub.countsAsSubscriber()) {
+                    plan.decrementSubscriberCount();
+                }
+            }
+            planRepository.flush();
+
+            // 3. Hard-delete all plans created by this user (cascades to subscribers, images, interests)
             List<Plan> createdPlans = planRepository.findByCreatorId(id);
             planRepository.deleteAll(createdPlans);
 
-            // 3. Delete plan subscriptions where user is a subscriber in other users' plans
+            // 4. Delete plan subscriptions where user is a subscriber in other users' plans
             planSubscriberRepository.deleteByUserId(id);
 
-            // 4. Delete all auth tokens for this user
+            // 5. Delete all auth tokens for this user
             refreshTokenService.deleteByUser(managedUser);
             verificationTokenRepository.deleteByUser(managedUser);
             changePasswordTokenRepository.deleteByUser(managedUser);
 
-            // 5. Finally delete the user by ID (avoids detached entity issues)
+            // 6. Finally delete the user by ID (avoids detached entity issues)
             userRepository.deleteById(managedUser.getId());
         }
         return user;
