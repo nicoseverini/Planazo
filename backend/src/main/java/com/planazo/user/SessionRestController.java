@@ -94,6 +94,14 @@ class SessionRestController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token"));
     }
 
+    @PreAuthorize("permitAll()")
+    @PostMapping("/resend-verification")
+    @Operation(summary = "Resend account verification email")
+    public ResponseEntity<Void> resendVerification(@Valid @RequestBody ForgotPasswordDTO data) {
+        userService.resendVerificationEmail(data.email());
+        return ResponseEntity.ok().build();
+    }
+
 	@PreAuthorize("permitAll()")
     @PostMapping("/forgot-password")
     @Operation(summary = "Request a password reset email")

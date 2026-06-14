@@ -1,30 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { AuthButton, AuthCard, AuthInput } from '@/components/auth';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { forgotPassword } from '@/services/auth';
+import { resendVerificationEmail } from '@/services/auth';
 
-import { styles } from './styles';
+import { styles } from '../forgot-password-screen/styles';
 
-export default function ForgotPasswordScreen() {
+export default function ResendVerificationScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const textColor = useThemeColor({}, 'text');
 
-  const handleSendRecoveryEmail = async () => {
+  const handleResend = async () => {
     if (!email.trim()) {
       setError('Email is required');
       return;
     }
-
     if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
       setError('Enter a valid email');
       return;
@@ -34,28 +33,26 @@ export default function ForgotPasswordScreen() {
     setError(null);
 
     try {
-      await forgotPassword({ email: email.trim() });
-
-      Alert.alert('Email sent', 'Check your email to recover your password.');
-      setSuccess(true);
-
-      setTimeout(() => {
-        router.back();
-      }, 2000);
-    } catch (requestError) {
-      const message = requestError instanceof Error ? requestError.message : 'Could not send the email';
-      setError(message);
+      await resendVerificationEmail({ email: email.trim() });
+    } catch {
+      // Errors are swallowed to prevent user enumeration.
+      // The success screen is always shown regardless of the outcome.
     } finally {
       setLoading(false);
+      setSubmitted(true);
     }
   };
 
-  if (success) {
+  if (submitted) {
     return (
       <AppScreen centered scrollable>
         <View style={styles.shell}>
-          <AuthCard kicker="Recovery" title="Email sent" body="Check your email for recovery instructions.">
-            <AuthButton label="Back to login" onPress={() => router.back()} />
+          <AuthCard
+            kicker="Verification"
+            title="Check your inbox"
+            body="If an account exists for this email and it hasn't been verified yet, a new verification link has been sent."
+          >
+            <AuthButton label="Back to sign in" onPress={() => router.back()} />
           </AuthCard>
         </View>
       </AppScreen>
@@ -71,16 +68,26 @@ export default function ForgotPasswordScreen() {
           </Pressable>
         </View>
         <AuthCard
-          kicker="Recovery"
-          title="Recover password"
-          body="Enter your email and we will send you a link to recover your password."
+          kicker="Verification"
+          title="Resend verification email"
+          body="Enter your email address and we'll send you a new verification link."
         >
-          <AuthInput label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
-          <AuthButton label={loading ? 'Sending...' : 'Send link'} onPress={handleSendRecoveryEmail} disabled={loading} />
+          <AuthInput
+            label="Email"
+            value={email}
+            onChangeText={(v) => { setEmail(v); setError(null); }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+          />
+          <AuthButton
+            label={loading ? 'Sending...' : 'Send verification email'}
+            onPress={handleResend}
+            disabled={loading}
+          />
           {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
         </AuthCard>
       </View>
     </AppScreen>
   );
 }
-

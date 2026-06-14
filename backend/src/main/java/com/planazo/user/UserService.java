@@ -300,6 +300,15 @@ public class UserService implements UserDetailsService {
         return false;
     }
 
+    public void resendVerificationEmail(String email) {
+        userRepository.findByEmail(email)
+                .filter(user -> !Boolean.TRUE.equals(user.isVerified()))
+                .ifPresent(user -> {
+                    VerificationToken token = verificationTokenService.createOrReplace(user);
+                    emailService.sendVerificationEmail(user.getEmail(), token.getToken());
+                });
+    }
+
     public boolean requestPasswordReset(String email) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isPresent()) {

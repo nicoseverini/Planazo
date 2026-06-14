@@ -52,10 +52,6 @@ const INTEREST_BY_CATEGORY: Record<string, string> = {
     Other:     'OTHER',
 };
 
-const DEFAULT_INTEREST = 'ADVENTURE';
-const DEFAULT_TRAVEL_TYPE = 'FRIENDS';
-const DEFAULT_DURATION_MINUTES = 60;
-
 const buildDateTime = (dateValue: string, timeValue: string): string | null => {
     const dateText = dateValue.trim();
     const timeText = timeValue.trim();
@@ -87,6 +83,13 @@ const buildDateTime = (dateValue: string, timeValue: string): string | null => {
     return `${normalizedDate}T${normalizedTime}`;
 };
 
+const addOneHour = (timeValue: string): string => {
+    const parts = timeValue.split(':');
+    if (parts.length < 2) return '';
+    const hours = (Number.parseInt(parts[0], 10) + 1) % 24;
+    return `${hours.toString().padStart(2, '0')}:${parts[1]}`;
+};
+
 export default function EditPlanScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
@@ -107,11 +110,21 @@ export default function EditPlanScreen() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [isPublic, setIsPublic] = useState(true);
-    const [date, setDate] = useState('');
-    const [time, setTime] = useState('');
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [showTimePicker, setShowTimePicker] = useState(false);
-    const [internalDate, setInternalDate] = useState(new Date());
+
+    // Start date/time
+    const [startDate, setStartDate] = useState('');
+    const [startTime, setStartTime] = useState('');
+    const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+    const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+    const [internalStartDate, setInternalStartDate] = useState(new Date());
+
+    // End date/time
+    const [endDate, setEndDate] = useState('');
+    const [endTime, setEndTime] = useState('');
+    const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+    const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+    const [internalEndDate, setInternalEndDate] = useState(new Date());
+
     const mapRef = useRef<MapView>(null);
     const [isSearchingLoc, setIsSearchingLoc] = useState(false);
     const [location, setLocation] = useState('');
@@ -120,8 +133,8 @@ export default function EditPlanScreen() {
     const [minAge, setMinAge] = useState('');
     const [maxAge, setMaxAge] = useState('');
     const [maxParticipants, setMaxParticipants] = useState('');
-    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [budget, setBudget] = useState('');
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [images, setImages] = useState<string[]>([]);
 
     useEffect(() => {
@@ -137,6 +150,7 @@ export default function EditPlanScreen() {
                 setMinAge(plan.minAge ? plan.minAge.toString() : '');
                 setMaxAge(plan.maxAge ? plan.maxAge.toString() : '');
                 setMaxParticipants(plan.maxSubscribers ? plan.maxSubscribers.toString() : '');
+                setBudget(plan.budget ? plan.budget.toString() : '');
                 if (plan.images) setImages(plan.images);
 
                 const categoriesFromInterests = Object.keys(INTEREST_BY_CATEGORY).filter(
@@ -156,13 +170,23 @@ export default function EditPlanScreen() {
                     }, 500);
                 }
 
-                if (plan.dateTime) {
-                    const [datePart, timePart] = plan.dateTime.split('T');
+                if (plan.startDateTime) {
+                    const [datePart, timePart] = plan.startDateTime.split('T');
                     if (datePart && timePart) {
                         const [year, month, day] = datePart.split('-');
-                        setDate(`${day}/${month}/${year}`);
-                        setTime(timePart.substring(0,5));
-                        setInternalDate(new Date(plan.dateTime));
+                        setStartDate(`${day}/${month}/${year}`);
+                        setStartTime(timePart.substring(0, 5));
+                        setInternalStartDate(new Date(plan.startDateTime));
+                    }
+                }
+
+                if (plan.endDateTime) {
+                    const [datePart, timePart] = plan.endDateTime.split('T');
+                    if (datePart && timePart) {
+                        const [year, month, day] = datePart.split('-');
+                        setEndDate(`${day}/${month}/${year}`);
+                        setEndTime(timePart.substring(0, 5));
+                        setInternalEndDate(new Date(plan.endDateTime));
                     }
                 }
 
@@ -213,8 +237,12 @@ export default function EditPlanScreen() {
             setError('Title is required');
             return false;
         }
-        if (!date.trim() || !time.trim()) {
-            setError('Date and time are required');
+        if (!startDate.trim() || !startTime.trim()) {
+            setError('Start date and time are required');
+            return false;
+        }
+        if (!endDate.trim() || !endTime.trim()) {
+            setError('End date and time are required');
             return false;
         }
         if (!location.trim()) {
@@ -222,11 +250,27 @@ export default function EditPlanScreen() {
             return false;
         }
         if (selectedCategories.length === 0) {
-            setError('Selecciona al menos una categoría');
+            setError('Select at least one category');
             return false;
         }
         const ageError = validateAgeFields(minAge, maxAge);
         if (ageError) { setError(ageError); return false; }
+        const trimmedBudget = budget.trim();
+        if (trimmedBudget) {
+            const parsedBudget = Number(trimmedBudget);
+            if (!Number.isFinite(parsedBudget)) {
+                setError('Budget must be a valid number.');
+                return false;
+            }
+            if (parsedBudget < 0) {
+                setError('Budget must be greater than or equal to 0.');
+                return false;
+            }
+            if (parsedBudget > 9_999_999) {
+                setError('Budget cannot exceed 9,999,999.');
+                return false;
+            }
+        }
         return true;
     };
 
@@ -286,39 +330,73 @@ export default function EditPlanScreen() {
         }
     };
 
-    const handleDateChange = (event: any, selectedDate?: Date) => {
-        if (Platform.OS === 'android') setShowDatePicker(false);
-
+    const handleStartDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+        if (Platform.OS === 'android') setShowStartDatePicker(false);
         if (event.type === 'set' && selectedDate) {
-            setInternalDate(selectedDate);
+            setInternalStartDate(selectedDate);
             const day = selectedDate.getDate().toString().padStart(2, '0');
             const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
             const year = selectedDate.getFullYear();
-            setDate(`${day}/${month}/${year}`);
+            const formatted = `${day}/${month}/${year}`;
+            setStartDate(formatted);
+            setEndDate(formatted);
+            setInternalEndDate(selectedDate);
         } else if (event.type === 'dismissed') {
-            setShowDatePicker(false);
+            setShowStartDatePicker(false);
         }
     };
 
-    const handleTimeChange = (event: any, selectedDate?: Date) => {
-        if (Platform.OS === 'android') setShowTimePicker(false);
-
+    const handleStartTimeChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+        if (Platform.OS === 'android') setShowStartTimePicker(false);
         if (event.type === 'set' && selectedDate) {
-            setInternalDate(selectedDate);
+            setInternalStartDate(selectedDate);
             const hours = selectedDate.getHours().toString().padStart(2, '0');
             const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
-            setTime(`${hours}:${minutes}`);
+            const formatted = `${hours}:${minutes}`;
+            setStartTime(formatted);
+            setEndTime(addOneHour(formatted));
         } else if (event.type === 'dismissed') {
-            setShowTimePicker(false);
+            setShowStartTimePicker(false);
+        }
+    };
+
+    const handleEndDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+        if (Platform.OS === 'android') setShowEndDatePicker(false);
+        if (event.type === 'set' && selectedDate) {
+            setInternalEndDate(selectedDate);
+            const day = selectedDate.getDate().toString().padStart(2, '0');
+            const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+            const year = selectedDate.getFullYear();
+            setEndDate(`${day}/${month}/${year}`);
+        } else if (event.type === 'dismissed') {
+            setShowEndDatePicker(false);
+        }
+    };
+
+    const handleEndTimeChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+        if (Platform.OS === 'android') setShowEndTimePicker(false);
+        if (event.type === 'set' && selectedDate) {
+            setInternalEndDate(selectedDate);
+            const hours = selectedDate.getHours().toString().padStart(2, '0');
+            const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
+            setEndTime(`${hours}:${minutes}`);
+        } else if (event.type === 'dismissed') {
+            setShowEndTimePicker(false);
         }
     };
 
     const handleUpdate = async () => {
         if (!validateForm()) return;
 
-        const dateTime = buildDateTime(date, time);
-        if (!dateTime) {
-            setError('Date or time has an invalid format.');
+        const startDateTime = buildDateTime(startDate, startTime);
+        const endDateTime = buildDateTime(endDate, endTime);
+
+        if (!startDateTime) {
+            setError('Start date or time has an invalid format.');
+            return;
+        }
+        if (!endDateTime) {
+            setError('End date or time has an invalid format.');
             return;
         }
 
@@ -347,21 +425,23 @@ export default function EditPlanScreen() {
                 .map((cat) => INTEREST_BY_CATEGORY[cat])
                 .filter(Boolean);
 
+            const parsedBudget = budget.trim() ? Number(budget.trim()) : 0;
+
             const payload: PlanUpdateRequest = {
                 title: title.trim(),
                 description: description.trim(),
-                dateTime,
+                startDateTime,
+                endDateTime,
                 latitude: finalLat,
                 longitude: finalLng,
-                durationMinutes: DEFAULT_DURATION_MINUTES,
                 visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
                 maxSubscribers: Number.isNaN(parsedMaxSubscribers) ? 10 : parsedMaxSubscribers,
                 minAge: parseAge(minAge),
                 maxAge: parseAge(maxAge),
-                interests: mappedInterests.length > 0 ? mappedInterests : [DEFAULT_INTEREST],
-                travelType: DEFAULT_TRAVEL_TYPE,
+                interests: mappedInterests,
                 location: location.trim(),
                 images: images.length > 0 ? images : undefined,
+                budget: parsedBudget,
             };
 
             await update(Number(id), payload);
@@ -370,7 +450,8 @@ export default function EditPlanScreen() {
             ]);
         } catch (err) {
             console.error('[EditPlanScreen] Error updating plan:', err);
-            setError('Could not update the plan. Please try again.');
+            const msg = err instanceof Error ? err.message : 'Could not update the plan. Please try again.';
+            setError(msg);
         } finally {
             setSaving(false);
         }
@@ -383,6 +464,8 @@ export default function EditPlanScreen() {
             </AppScreen>
         );
     }
+
+    const dateTimeInputStyle = [styles.input, { backgroundColor: surface, borderColor: border, flexDirection: 'row' as const, alignItems: 'center' as const, padding: 0, overflow: 'hidden' as const }];
 
     return (
         <AppScreen scrollable>
@@ -420,7 +503,7 @@ export default function EditPlanScreen() {
                 </View>
                 <View style={styles.visibilityToggle}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Visibilidad
+                        Visibility
                     </ThemedText>
                     <View style={[styles.toggleContainer, { backgroundColor: surface, borderColor: border }]}>
                         <Pressable
@@ -448,52 +531,49 @@ export default function EditPlanScreen() {
                                 type="label"
                                 style={{ color: isPublic ? tintText : mutedText, fontSize: 11 }}
                             >
-                                Público
+                                Public
                             </ThemedText>
                         </Pressable>
                     </View>
                 </View>
             </View>
 
-            {/* Fecha y hora */}
+            {/* Start date/time */}
             <View style={styles.row}>
-                {/* Input de Fecha */}
                 <View style={styles.halfInput}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Date
+                        Start Date
                     </ThemedText>
-                    <View style={[styles.input, { backgroundColor: surface, borderColor: border, flexDirection: 'row', alignItems: 'center', padding: 0, overflow: 'hidden' }]}>
+                    <View style={dateTimeInputStyle}>
                         <TextInput
-                            value={date}
-                            onChangeText={setDate}
+                            value={startDate}
+                            onChangeText={setStartDate}
                             placeholder="DD/MM/YYYY"
                             placeholderTextColor={mutedText}
                             style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 12, color: text }}
                         />
                         <Pressable
-                            onPress={() => setShowDatePicker(!showDatePicker)}
+                            onPress={() => setShowStartDatePicker(!showStartDatePicker)}
                             style={{ padding: 12, backgroundColor: background }}
                         >
                             <Ionicons name="calendar-outline" size={20} color={tint} />
                         </Pressable>
                     </View>
                 </View>
-
-                {/* Input de Hora */}
                 <View style={styles.halfInput}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                        Hora
+                        Start Time
                     </ThemedText>
-                    <View style={[styles.input, { backgroundColor: surface, borderColor: border, flexDirection: 'row', alignItems: 'center', padding: 0, overflow: 'hidden' }]}>
+                    <View style={dateTimeInputStyle}>
                         <TextInput
-                            value={time}
-                            onChangeText={setTime}
+                            value={startTime}
+                            onChangeText={setStartTime}
                             placeholder="HH:MM"
                             placeholderTextColor={mutedText}
                             style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 12, color: text }}
                         />
                         <Pressable
-                            onPress={() => setShowTimePicker(!showTimePicker)}
+                            onPress={() => setShowStartTimePicker(!showStartTimePicker)}
                             style={{ padding: 12, backgroundColor: background }}
                         >
                             <Ionicons name="time-outline" size={20} color={tint} />
@@ -502,24 +582,85 @@ export default function EditPlanScreen() {
                 </View>
             </View>
 
-            {/* Renderizado de los Selectores Nativos */}
-            {showDatePicker && (
+            {/* End date/time */}
+            <View style={styles.row}>
+                <View style={styles.halfInput}>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                        End Date
+                    </ThemedText>
+                    <View style={dateTimeInputStyle}>
+                        <TextInput
+                            value={endDate}
+                            onChangeText={setEndDate}
+                            placeholder="DD/MM/YYYY"
+                            placeholderTextColor={mutedText}
+                            style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 12, color: text }}
+                        />
+                        <Pressable
+                            onPress={() => setShowEndDatePicker(!showEndDatePicker)}
+                            style={{ padding: 12, backgroundColor: background }}
+                        >
+                            <Ionicons name="calendar-outline" size={20} color={tint} />
+                        </Pressable>
+                    </View>
+                </View>
+                <View style={styles.halfInput}>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                        End Time
+                    </ThemedText>
+                    <View style={dateTimeInputStyle}>
+                        <TextInput
+                            value={endTime}
+                            onChangeText={setEndTime}
+                            placeholder="HH:MM"
+                            placeholderTextColor={mutedText}
+                            style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 12, color: text }}
+                        />
+                        <Pressable
+                            onPress={() => setShowEndTimePicker(!showEndTimePicker)}
+                            style={{ padding: 12, backgroundColor: background }}
+                        >
+                            <Ionicons name="time-outline" size={20} color={tint} />
+                        </Pressable>
+                    </View>
+                </View>
+            </View>
+
+            {/* Native pickers */}
+            {showStartDatePicker && (
                 <DateTimePicker
-                    value={internalDate}
+                    value={internalStartDate}
                     mode="date"
                     display="default"
-                    onChange={handleDateChange}
+                    onChange={handleStartDateChange}
                     minimumDate={new Date()}
                 />
             )}
-
-            {showTimePicker && (
+            {showStartTimePicker && (
                 <DateTimePicker
-                    value={internalDate}
+                    value={internalStartDate}
                     mode="time"
                     display="default"
                     is24Hour={true}
-                    onChange={handleTimeChange}
+                    onChange={handleStartTimeChange}
+                />
+            )}
+            {showEndDatePicker && (
+                <DateTimePicker
+                    value={internalEndDate}
+                    mode="date"
+                    display="default"
+                    onChange={handleEndDateChange}
+                    minimumDate={new Date()}
+                />
+            )}
+            {showEndTimePicker && (
+                <DateTimePicker
+                    value={internalEndDate}
+                    mode="time"
+                    display="default"
+                    is24Hour={true}
+                    onChange={handleEndTimeChange}
                 />
             )}
 
@@ -559,7 +700,6 @@ export default function EditPlanScreen() {
                     Area / Address
                 </ThemedText>
 
-                {/* Input de texto con botón de búsqueda */}
                 <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                     <TextInput
                         value={location}
@@ -594,13 +734,12 @@ export default function EditPlanScreen() {
                     Tap the map or drag the pin to set coordinates.
                 </ThemedText>
 
-                {/* El mapa interactivo */}
                 <View style={{ height: 200, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: border }}>
                     <MapView
                         style={{ flex: 1 }}
                         ref={mapRef}
                         initialRegion={{
-                            latitude: -34.6037, // Buenos Aires por defecto
+                            latitude: -34.6037,
                             longitude: -58.3816,
                             latitudeDelta: 0.05,
                             longitudeDelta: 0.05,
@@ -722,9 +861,9 @@ export default function EditPlanScreen() {
                         <TextInput
                             value={budget}
                             onChangeText={setBudget}
-                            placeholder="$0"
+                            placeholder="e.g. 500"
                             placeholderTextColor={mutedText}
-                            keyboardType="numeric"
+                            keyboardType="decimal-pad"
                             style={[
                                 styles.input,
                                 { backgroundColor: background, borderColor: border, color: text },

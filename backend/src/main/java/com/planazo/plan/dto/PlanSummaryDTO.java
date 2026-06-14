@@ -2,7 +2,6 @@ package com.planazo.plan.dto;
 
 import com.planazo.plan.PlanVisibility;
 import com.planazo.common.constants.Interest;
-import com.planazo.common.constants.TravelType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,7 +12,7 @@ public record PlanSummaryDTO(
 
         String title,
 
-        LocalDateTime dateTime,
+        LocalDateTime startDateTime,
 
         String location,
 
@@ -22,8 +21,6 @@ public record PlanSummaryDTO(
         Double longitude,
 
         List<Interest> interests,
-
-        TravelType travelType,
 
         PlanVisibility visibility,
 
@@ -39,6 +36,8 @@ public record PlanSummaryDTO(
 
         List<String> images,
 
-        Boolean accepted
+        Boolean accepted,
+
+        Double budget
 
 ) {}

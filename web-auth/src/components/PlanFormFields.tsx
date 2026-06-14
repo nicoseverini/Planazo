@@ -1,4 +1,4 @@
-import { getTodayInputValue, interestOptions, travelTypeOptions, type PlanFormState } from '../plan-shared'
+import { getTodayInputValue, interestOptions, type PlanFormState } from '../plan-shared'
 
 type PlanFormFieldsProps = {
 	form: PlanFormState
@@ -23,18 +23,37 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 			</label>
 
 			<label className="field">
-				Date
-				<input type="date" min={getTodayInputValue()} value={form.date} onChange={(event) => onChange('date', event.target.value)} required />
+				Start Date
+				<input type="date" min={getTodayInputValue()} value={form.startDate} onChange={(event) => {
+					const val = event.target.value
+					onChange('startDate', val)
+					// Auto-copy to end date
+					if (!form.endDate) onChange('endDate', val)
+				}} required />
 			</label>
 
 			<label className="field">
-				Time
-				<input type="time" value={form.time} onChange={(event) => onChange('time', event.target.value)} required />
+				Start Time
+				<input type="time" value={form.startTime} onChange={(event) => {
+					const val = event.target.value
+					onChange('startTime', val)
+					// Auto-set end time to 1 hour later
+					if (!form.endTime && val) {
+						const [h, m] = val.split(':')
+						const nextHour = ((Number(h) + 1) % 24).toString().padStart(2, '0')
+						onChange('endTime', `${nextHour}:${m}`)
+					}
+				}} required />
 			</label>
 
 			<label className="field">
-				Duration in minutes
-				<input type="number" min="1" value={form.durationMinutes} onChange={(event) => onChange('durationMinutes', event.target.value)} />
+				End Date
+				<input type="date" min={getTodayInputValue()} value={form.endDate} onChange={(event) => onChange('endDate', event.target.value)} required />
+			</label>
+
+			<label className="field">
+				End Time
+				<input type="time" value={form.endTime} onChange={(event) => onChange('endTime', event.target.value)} required />
 			</label>
 
 			<label className="field field--wide">
@@ -44,7 +63,12 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 
 			<label className="field">
 				Max. participants
-				<input type="number" min="1" value={form.maxSubscribers} onChange={(event) => onChange('maxSubscribers', event.target.value)} />
+				<input type="number" min="1" max="999999" value={form.maxSubscribers} onChange={(event) => onChange('maxSubscribers', event.target.value)} />
+			</label>
+
+			<label className="field">
+				Budget (optional)
+				<input type="number" min="0" max="9999999" step="any" placeholder="0" value={form.budget} onChange={(event) => onChange('budget', event.target.value)} />
 			</label>
 
 			<label className="field">
@@ -65,13 +89,13 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 
                         const handleCheckboxChange = () => {
                             let updatedInterests: any[];
-                            
+
                             if (isChecked) {
                                 updatedInterests = form.interests.filter((item: any) => item !== option.value);
                             } else {
                                 updatedInterests = [...(form.interests || []), option.value];
                             }
-                            
+
                             onChange('interests', updatedInterests as any);
                         };
 
@@ -88,17 +112,6 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
                     })}
                 </div>
             </div>
-
-			<label className="field">
-				Travel Type
-				<select value={form.travelType} onChange={(event) => onChange('travelType', event.target.value as PlanFormState['travelType'])}>
-					{travelTypeOptions.map((option) => (
-						<option key={option.value} value={option.value}>
-							{option.label}
-						</option>
-					))}
-				</select>
-			</label>
 
 			<label className="field field--wide">
 				Location

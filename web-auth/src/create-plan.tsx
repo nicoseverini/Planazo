@@ -9,8 +9,10 @@ import {
 	buildDateTime,
 	defaultPlanFormState,
 	isFutureDateTime,
+	parseBudget,
 	parseOptionalNumber,
 	validateAgeRange,
+	validateBudget,
 } from './plan-shared'
 
 type CreatePlanResponse = {
@@ -49,16 +51,24 @@ export function CreatePlanPage() {
 			return
 		}
 
-		const dateTime = buildDateTime(form.date, form.time)
-		if (!form.title.trim() || !dateTime || !form.location.trim()) {
+		const startDateTime = buildDateTime(form.startDate, form.startTime)
+		const endDateTime = buildDateTime(form.endDate, form.endTime)
+
+		if (!form.title.trim() || !startDateTime || !endDateTime || !form.location.trim()) {
 			setStatus('error')
-			setMessage('Title, date and location are required.')
+			setMessage('Title, start date/time, end date/time and location are required.')
 			return
 		}
 
-		if (!isFutureDateTime(dateTime)) {
+		if (!isFutureDateTime(startDateTime)) {
 			setStatus('error')
-			setMessage('The date and time must be in the future.')
+			setMessage('The start date and time must be in the future.')
+			return
+		}
+
+		if (endDateTime <= startDateTime) {
+			setStatus('error')
+			setMessage('End date/time must be after start date/time.')
 			return
 		}
 
@@ -70,10 +80,23 @@ export function CreatePlanPage() {
 			return
 		}
 
+		if (form.interests.length === 0) {
+			setStatus('error')
+			setMessage('Please select at least one interest.')
+			return
+		}
+
 		const ageError = validateAgeRange(form.minAge, form.maxAge)
 		if (ageError) {
 			setStatus('error')
 			setMessage(ageError)
+			return
+		}
+
+		const budgetError = validateBudget(form.budget)
+		if (budgetError) {
+			setStatus('error')
+			setMessage(budgetError)
 			return
 		}
 
@@ -93,24 +116,24 @@ export function CreatePlanPage() {
 				body: JSON.stringify({
 					title: form.title.trim(),
 					description: form.description.trim() || null,
-					dateTime,
-					durationMinutes: Number.parseInt(form.durationMinutes, 10) || 60,
+					startDateTime,
+					endDateTime,
 					visibility: form.visibility,
 					maxSubscribers: Number.parseInt(form.maxSubscribers, 10) || 10,
 					minAge: parseOptionalNumber(form.minAge),
 					maxAge: parseOptionalNumber(form.maxAge),
 					interests: form.interests,
-					travelType: form.travelType,
 					location: form.location.trim(),
 					latitude,
 					longitude,
 					images,
+					budget: parseBudget(form.budget),
 				}),
 			})
 
 			if (!response.ok) {
 				const errorText = await response.text()
-				throw new Error(errorText || 'No se pudo crear el plan.')
+				throw new Error(errorText || 'Could not create the plan.')
 			}
 
 			const data = (await response.json()) as CreatePlanResponse

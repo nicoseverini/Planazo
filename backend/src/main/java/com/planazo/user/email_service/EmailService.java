@@ -78,8 +78,24 @@ public class EmailService {
         String html = loadHtmlTemplate("classpath:templates/mail/request_to_plan_creator.html");
         html = html.replace("${requesterName}", requesterName);
         html = html.replace("${planTitle}", planTitle);
-        
+
         send(to, "New request to join your plan: " + planTitle, html);
+    }
+
+    public void sendParticipantJoinedEmail(String to, String participantName, String planTitle) {
+        String html = loadHtmlTemplate("classpath:templates/mail/participant_joined_plan.html");
+        html = html.replace("${participantName}", participantName);
+        html = html.replace("${planTitle}", planTitle);
+
+        send(to, "New participant joined your plan: " + planTitle, html);
+    }
+
+    public void sendParticipantLeftEmail(String to, String participantName, String planTitle) {
+        String html = loadHtmlTemplate("classpath:templates/mail/participant_left_plan.html");
+        html = html.replace("${participantName}", participantName);
+        html = html.replace("${planTitle}", planTitle);
+
+        send(to, "A participant has left your plan: " + planTitle, html);
     }
     private String loadHtmlTemplate(String path) {
         try {

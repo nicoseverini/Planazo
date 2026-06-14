@@ -58,6 +58,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
         .join(' · ');
 
     const isPublic = plan.visibility === 'PUBLIC';
+    const isFull = plan.maxSubscribers != null && plan.subscriberCount >= plan.maxSubscribers;
 
     return (
         <Pressable
@@ -79,7 +80,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
                             backgroundColor: isPublic ? StatusBadgeColors.public.background : StatusBadgeColors.private.background,
                         }]}>
                             <ThemedText type="label" style={[styles.visibilityBadgeText, { color: isPublic ? StatusBadgeColors.public.text : StatusBadgeColors.private.text }]}>
-                                {isPublic ? 'PUBLIC' : 'PRIVATE'}
+                                {isPublic ? 'Public' : 'Private'}
                             </ThemedText>
                         </View>
                     </View>
@@ -90,7 +91,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
                         <View style={styles.metaRow}>
                             <Ionicons name="calendar-outline" size={14} color={mutedText} />
                             <ThemedText type="label" style={[styles.metaText, { color: mutedText }]}>
-                                {formatDate(plan.dateTime)} - {formatTime(plan.dateTime)}
+                                {formatDate(plan.startDateTime)} - {formatTime(plan.startDateTime)}
                             </ThemedText>
                         </View>
                         <View style={styles.metaRow}>
@@ -102,30 +103,38 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
                         <View style={styles.metaRow}>
                             <Ionicons name="people-outline" size={14} color={mutedText} />
                             <ThemedText type="label" style={[styles.metaText, { color: mutedText }]}>
-                                {plan.subscribersCount}/{plan.maxSubscribers}
+                                {plan.subscriberCount}/{plan.maxSubscribers}
                             </ThemedText>
                         </View>
                     </View>
                 </View>
 
                 {!isSubscribed && (
-                    <Pressable
-                        onPress={() => onSubscribe(plan.id)}
-                        disabled={subscribing}
-                        style={({ pressed }) => [
-                            styles.subscribeButton,
-                            { backgroundColor: tint },
-                            pressed && styles.buttonPressed,
-                        ]}
-                    >
-                        {subscribing ? (
-                            <ActivityIndicator size="small" color={tintText} />
-                        ) : (
+                    isFull ? (
+                        <View style={[styles.subscribeButton, { backgroundColor: tint, opacity: 0.5 }]}>
                             <ThemedText type="label" style={[styles.subscribeButtonText, { color: tintText }]}>
-                                SUBSCRIBE
+                                PLAN FULL
                             </ThemedText>
-                        )}
-                    </Pressable>
+                        </View>
+                    ) : (
+                        <Pressable
+                            onPress={() => onSubscribe(plan.id)}
+                            disabled={subscribing}
+                            style={({ pressed }) => [
+                                styles.subscribeButton,
+                                { backgroundColor: tint },
+                                pressed && styles.buttonPressed,
+                            ]}
+                        >
+                            {subscribing ? (
+                                <ActivityIndicator size="small" color={tintText} />
+                            ) : (
+                                <ThemedText type="label" style={[styles.subscribeButtonText, { color: tintText }]}>
+                                    SUBSCRIBE
+                                </ThemedText>
+                            )}
+                        </Pressable>
+                    )
                 )}
             </View>
         </Pressable>

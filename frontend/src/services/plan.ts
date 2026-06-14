@@ -7,42 +7,43 @@ export type PlanVisibility = 'PUBLIC' | 'PRIVATE';
 export type PlanSummary = {
     id: number;
     title: string;
-    dateTime: string;
+    startDateTime: string;
     location: string;
     latitude: number;
     longitude: number;
     interests: string[];
-    travelType: string;
     visibility: PlanVisibility;
-    subscribersCount: number;
+    subscriberCount: number;
     maxSubscribers: number;
     minAge: number | null;
     creatorName: string;
     creatorId: number;
     images: string[];
     accepted: null | boolean;
+    budget: number;
 };
 
 export type PlanDetail = {
     id: number;
     title: string;
     description: string;
-    dateTime: string;
+    startDateTime: string;
+    endDateTime: string;
     durationMinutes: number;
     visibility: PlanVisibility;
     maxSubscribers: number;
     minAge: number | null;
     maxAge: number | null;
     interests: string[];
-    travelType: string;
     location: string;
     latitude: number;
     longitude: number;
     images: string[];
     creatorId: number;
     creatorName: string;
-    subscribersCount: number;
+    subscriberCount: number;
     isFull: boolean;
+    budget: number;
 };
 
 export type PendingSubscriber = {
@@ -54,18 +55,18 @@ export type PendingSubscriber = {
 export type PlanCreateRequest = {
     title: string;
     description: string;
-    dateTime: string;
-    durationMinutes: number;
+    startDateTime: string;
+    endDateTime: string;
     visibility: PlanVisibility;
     maxSubscribers: number;
     minAge?: number;
     maxAge?: number;
     interests: string[];
-    travelType: string;
     location: string;
     latitude: number;
     longitude: number;
     images?: string[];
+    budget?: number;
 };
 
 export type PlanUpdateRequest = Partial<PlanCreateRequest>;
@@ -322,6 +323,10 @@ export async function subscribeToPlan(planId: number, accessToken: string): Prom
     });
 
     if (!response.ok) {
+        if (response.status === 410) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'This plan has already ended.');
+        }
         if (response.status === 409) {
             throw new Error('Already subscribed or plan is full');
         }
@@ -347,6 +352,10 @@ export async function unsubscribeFromPlan(planId: number, accessToken: string): 
     });
 
     if (!response.ok) {
+        if (response.status === 410) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'This plan has already ended.');
+        }
         if (response.status === 409) {
             throw new Error('Not subscribed to this plan');
         }
@@ -631,7 +640,7 @@ export function usePlans() {
         if (!token) throw new Error('No access token');
         setLoading(true);
         setError(null);
-        try {            
+        try {
             await acceptSubscriber(planId, userId, token);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');

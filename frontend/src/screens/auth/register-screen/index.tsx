@@ -120,14 +120,14 @@ function BirthDateField({ value, onChange }: { value: string; onChange: (value: 
   return (
     <View style={styles.pickerGroup}>
       <ThemedText type="defaultSemiBold" style={styles.fieldLabel}>
-        Fecha de nacimiento
+        Birth date
       </ThemedText>
       <Pressable
         onPress={() => setOpen((current) => !current)}
         style={({ pressed }) => [styles.pickerTrigger, pressed && styles.pressedField]}
       >
         <ThemedText style={[styles.pickerValue, !value && styles.placeholderValue]}>
-          {value || 'Elegí una fecha'}
+          {value || 'Select your birth date'}
         </ThemedText>
         <ThemedText style={styles.pickerChevron}>📅</ThemedText>
       </Pressable>
@@ -279,7 +279,7 @@ export default function RegisterScreen() {
           onChange={(value) => update('interests', value as typeof values.interests)}
         />
         <ChoiceGroup
-          label="Tipo de viaje (opcional)"
+          label="Travel type (optional)"
           options={TRAVEL_TYPE_OPTIONS.map((value) => ({
             label: TRAVEL_TYPE_LABELS[value] ?? value,
             value,
@@ -288,8 +288,8 @@ export default function RegisterScreen() {
           onChange={(value) => update('travelType', value as typeof values.travelType)}
         />
         <SelectField
-          label="Idioma"
-          placeholder="Seleccioná un idioma"
+          label="Language"
+          placeholder="Select a language"
           value={values.language}
           options={LANGUAGE_OPTIONS.map((value) => ({ label: value, value }))}
           onChange={(value) => update('language', value)}

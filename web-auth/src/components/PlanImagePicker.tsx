@@ -10,7 +10,7 @@ type PlanImagePickerProps = {
 	hint?: string
 }
 
-export function PlanImagePicker({ images, onChange, label = 'Imágenes', hint }: PlanImagePickerProps) {
+export function PlanImagePicker({ images, onChange, label = 'Images', hint }: PlanImagePickerProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null)
 
 	async function handleImageSelection(event: ChangeEvent<HTMLInputElement>) {

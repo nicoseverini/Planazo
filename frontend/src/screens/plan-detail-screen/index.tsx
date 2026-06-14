@@ -124,8 +124,7 @@ export default function PlanDetailScreen() {
                 setIsSubscribed(false);
             }
         } catch (err) {
-            console.error('[PlanDetailScreen] Error loading plan:', err);
-            Alert.alert('Error', 'No se pudo cargar el plan');
+            Alert.alert('Error', 'Unable to load the plan.');
         } finally {
             setLoading(false);
         }
@@ -184,14 +183,15 @@ export default function PlanDetailScreen() {
                 setIsSubscribed(false);
                 setPlan({
                     ...plan,
-                    subscribersCount: Math.max(0, plan.subscribersCount - 1),
+                    subscriberCount: Math.max(0, plan.subscriberCount - 1),
+                    isFull: false,
                 });
             } else {
                 await subscribe(plan.id);
                 setIsSubscribed(true);
                 setPlan({
                     ...plan,
-                    subscribersCount: plan.subscribersCount + 1,
+                    subscriberCount: plan.subscriberCount + 1,
                 });
             }
         } catch (err) {
@@ -262,9 +262,11 @@ export default function PlanDetailScreen() {
     const images = plan.images || [];
     const reviewCount = 0;
     const averageRating = 0;
-    const { dateLabel, timeLabel } = formatDateTime(plan.dateTime);
+    const { dateLabel, timeLabel } = formatDateTime(plan.startDateTime);
+    const { dateLabel: endDateLabel, timeLabel: endTimeLabel } = formatDateTime(plan.endDateTime);
     const isPublic = plan.visibility === 'PUBLIC';
-    const canSubscribe = !plan.isFull || isSubscribed;
+    const isExpired = plan.endDateTime ? new Date(plan.endDateTime) <= new Date() : false;
+    const canUseSubscriptionButton = !isExpired && (!plan.isFull || isSubscribed);
 
     const handleDelete = () => {
         Alert.alert(
@@ -316,6 +318,13 @@ export default function PlanDetailScreen() {
                                 {isPublic ? 'Public' : 'Private'}
                             </ThemedText>
                         </View>
+                        {isExpired && (
+                            <View style={[styles.visibilityBadge, { backgroundColor: '#fef2f2', marginTop: 4 }]}>
+                                <ThemedText type="label" style={{ color: '#ef4444', fontSize: 11 }}>
+                                    ENDED
+                                </ThemedText>
+                            </View>
+                        )}
                     </View>
                 </View>
             </View>
@@ -334,18 +343,28 @@ export default function PlanDetailScreen() {
             </View>
 
             <View style={styles.infoRow}>
+                <ThemedText type="label" style={{ color: mutedText, fontWeight: '600', minWidth: 36 }}>Start</ThemedText>
                 <View style={styles.infoItem}>
                     <Ionicons name="calendar-outline" size={16} color={mutedText} />
-                    <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>
-                        {dateLabel}
-                    </ThemedText>
+                    <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>{dateLabel}</ThemedText>
                 </View>
                 {timeLabel ? (
                     <View style={styles.infoItem}>
                         <Ionicons name="time-outline" size={16} color={mutedText} />
-                        <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>
-                            {timeLabel}
-                        </ThemedText>
+                        <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>{timeLabel}</ThemedText>
+                    </View>
+                ) : null}
+            </View>
+            <View style={styles.infoRow}>
+                <ThemedText type="label" style={{ color: mutedText, fontWeight: '600', minWidth: 36 }}>End</ThemedText>
+                <View style={styles.infoItem}>
+                    <Ionicons name="calendar-outline" size={16} color={mutedText} />
+                    <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>{endDateLabel}</ThemedText>
+                </View>
+                {endTimeLabel ? (
+                    <View style={styles.infoItem}>
+                        <Ionicons name="time-outline" size={16} color={mutedText} />
+                        <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>{endTimeLabel}</ThemedText>
                     </View>
                 ) : null}
             </View>
@@ -437,7 +456,7 @@ export default function PlanDetailScreen() {
                         type="body"
                         style={[styles.tabText, { color: activeTab === 'description' ? tint : mutedText }]}
                     >
-                        DESCRIPCION
+                        DESCRIPTION
                     </ThemedText>
                 </Pressable>
                 <Pressable
@@ -451,7 +470,7 @@ export default function PlanDetailScreen() {
                         type="body"
                         style={[styles.tabText, { color: activeTab === 'subscribe' ? tint : mutedText }]}
                     >
-                        SUBSCRIBE
+                        SUSCRIPTIONS
                     </ThemedText>
                 </Pressable>
                 <Pressable
@@ -487,9 +506,17 @@ export default function PlanDetailScreen() {
                             <View style={styles.infoListItem}>
                                 <View style={[styles.infoDot, { backgroundColor: tint }]} />
                                 <ThemedText type="body">
-                                    Participants: {plan.subscribersCount}/{plan.maxSubscribers}
+                                    Participants: {plan.subscriberCount}/{plan.maxSubscribers}
                                 </ThemedText>
                             </View>
+                            {plan.budget > 0 && (
+                                <View style={styles.infoListItem}>
+                                    <View style={[styles.infoDot, { backgroundColor: tint }]} />
+                                    <ThemedText type="body">
+                                        Budget: ${plan.budget.toLocaleString()}
+                                    </ThemedText>
+                                </View>
+                            )}
                         </View>
                     </View>
                 </View>
@@ -560,13 +587,13 @@ export default function PlanDetailScreen() {
                         <View style={styles.subscribeInfoRow}>
                             <Ionicons name="people-outline" size={20} color={mutedText} />
                             <ThemedText type="body" style={{ marginLeft: 8 }}>
-                                {plan.subscribersCount} of {plan.maxSubscribers} participants
+                                {plan.subscriberCount} of {plan.maxSubscribers} participants
                             </ThemedText>
                         </View>
                         <View style={styles.subscribeInfoRow}>
                             <Ionicons name="calendar-outline" size={20} color={mutedText} />
                             <ThemedText type="body" style={{ marginLeft: 8 }}>
-                                {dateLabel}{timeLabel ? ` a las ${timeLabel}` : ''}
+                                {dateLabel}{timeLabel ? ` a las ${timeLabel}` : ''}{endTimeLabel ? ` – ${endTimeLabel}` : ''}
                             </ThemedText>
                         </View>
                     </View>
@@ -587,10 +614,12 @@ export default function PlanDetailScreen() {
                     <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
                         <Pressable
                             onPress={() => router.push(`/plan/edit/${plan.id}`)}
+                            disabled={isExpired}
                             style={({ pressed }) => [
                                 styles.subscribeButton,
                                 { flex: 1, backgroundColor: surface, borderColor: tint, borderWidth: 1 },
-                                pressed && styles.pressed,
+                                pressed && !isExpired && styles.pressed,
+                                isExpired && styles.disabled,
                             ]}
                         >
                             <ThemedText type="body" style={{ color: tint, fontWeight: '600' }}>
@@ -614,19 +643,19 @@ export default function PlanDetailScreen() {
                 ) : (
                     <Pressable
                         onPress={handleSubscribe}
-                        disabled={subscribing || !canSubscribe}
+                        disabled={subscribing || !canUseSubscriptionButton}
                         style={({ pressed }) => [
                             styles.subscribeButton,
-                            { backgroundColor: isSubscribed ? '#ef4444' : tint },
+                            { backgroundColor: isExpired ? '#6b7280' : (isSubscribed ? '#ef4444' : tint) },
                             pressed && styles.pressed,
-                            (subscribing || !canSubscribe) && styles.disabled,
+                            (subscribing || !canUseSubscriptionButton) && styles.disabled,
                         ]}
                     >
                         {subscribing ? (
                             <ActivityIndicator size="small" color={tintText} />
                         ) : (
                             <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                                {isSubscribed ? 'CANCEL SUBSCRIPTION' : (plan.isFull ? 'PLAN FULL' : 'SUBSCRIBE')}
+                                {isExpired ? 'PLAN ENDED' : (isSubscribed ? 'CANCEL SUBSCRIPTION' : (plan.isFull ? 'PLAN FULL' : 'SUBSCRIBE'))}
                             </ThemedText>
                         )}
                     </Pressable>

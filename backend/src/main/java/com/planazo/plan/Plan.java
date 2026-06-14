@@ -1,11 +1,11 @@
 package com.planazo.plan;
 
 import com.planazo.common.constants.Interest;
-import com.planazo.common.constants.TravelType;
 import com.planazo.user.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,10 +21,13 @@ public class Plan {
     @Column(length = 1000)
     private String description;
 
-    @Column(nullable = false)
-    private LocalDateTime dateTime;
+    @Column(name = "start_date_time", nullable = false)
+    private LocalDateTime startDateTime;
 
-    // Duration in minutes
+    @Column(name = "end_date_time", nullable = false)
+    private LocalDateTime endDateTime;
+
+    // Computed: minutes between startDateTime and endDateTime
     @Column
     private Integer durationMinutes;
 
@@ -47,10 +50,6 @@ public class Plan {
     @Enumerated(EnumType.STRING)
     private List<Interest> interests = new ArrayList<>();
 
-    @Enumerated(EnumType.STRING)
-    @Column
-    private TravelType travelType;
-
     // Free-text address / zone
     @Column
     private String location;
@@ -68,33 +67,41 @@ public class Plan {
     @JoinColumn(name = "creator_id", nullable = false)
     private User creator;
 
-        @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
-        private List<PlanSubscriber> subscribers = new ArrayList<>();
+    @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PlanSubscriber> subscribers = new ArrayList<>();
+
+    @Column(name = "subscriber_count", nullable = false, columnDefinition = "integer default 0")
+    private int subscriberCount = 0;
+
+    @Column(name = "budget", nullable = false, columnDefinition = "double precision default 0 check (budget >= 0 and budget <= 9999999)")
+    private Double budget = 0.0;
 
     @Column(nullable = false)
     private Boolean active = true;
 
     public Plan() {}
 
-    public Plan(String title, String description, LocalDateTime dateTime, Integer durationMinutes,
+    public Plan(String title, String description, LocalDateTime startDateTime, LocalDateTime endDateTime,
                 PlanVisibility visibility, Integer maxSubscribers, Integer minAge, Integer maxAge,
-                List<Interest> interests, TravelType travelType, String location,Double latitude, Double longitude, List<String> images, User creator) {
+                List<Interest> interests, String location, Double latitude, Double longitude,
+                List<String> images, User creator) {
         this.title = title;
         this.description = description;
-        this.dateTime = dateTime;
-        this.durationMinutes = durationMinutes;
+        this.startDateTime = startDateTime;
+        this.endDateTime = endDateTime;
+        this.durationMinutes = computeDuration(startDateTime, endDateTime);
         this.visibility = visibility;
         this.maxSubscribers = maxSubscribers;
         this.minAge = minAge;
         this.maxAge = maxAge;
         this.interests = interests == null ? new ArrayList<>() : new ArrayList<>(interests);
-        this.travelType = travelType;
         this.location = location;
         this.latitude = latitude;
         this.longitude = longitude;
         this.images = images == null ? new ArrayList<>() : new ArrayList<>(images);
         this.creator = creator;
         this.active = true;
+        this.subscriberCount = 0;
     }
 
     public Long getId() { return id; }
@@ -102,10 +109,17 @@ public class Plan {
     public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-    public LocalDateTime getDateTime() { return dateTime; }
-    public void setDateTime(LocalDateTime dateTime) { this.dateTime = dateTime; }
+    public LocalDateTime getStartDateTime() { return startDateTime; }
+    public void setStartDateTime(LocalDateTime startDateTime) {
+        this.startDateTime = startDateTime;
+        this.durationMinutes = computeDuration(this.startDateTime, this.endDateTime);
+    }
+    public LocalDateTime getEndDateTime() { return endDateTime; }
+    public void setEndDateTime(LocalDateTime endDateTime) {
+        this.endDateTime = endDateTime;
+        this.durationMinutes = computeDuration(this.startDateTime, this.endDateTime);
+    }
     public Integer getDurationMinutes() { return durationMinutes; }
-    public void setDurationMinutes(Integer durationMinutes) { this.durationMinutes = durationMinutes; }
     public PlanVisibility getVisibility() { return visibility; }
     public void setVisibility(PlanVisibility visibility) { this.visibility = visibility; }
     public Integer getMaxSubscribers() { return maxSubscribers; }
@@ -118,8 +132,6 @@ public class Plan {
     public void setInterests(List<Interest> interests) {
         this.interests = interests == null ? new ArrayList<>() : new ArrayList<>(interests);
     }
-    public TravelType getTravelType() { return travelType; }
-    public void setTravelType(TravelType travelType) { this.travelType = travelType; }
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
     public Double getLatitude() { return latitude; }
@@ -133,24 +145,36 @@ public class Plan {
     public void setSubscribers(List<PlanSubscriber> subscribers) {
         this.subscribers = subscribers == null ? new ArrayList<>() : subscribers;
     }
+    public int getSubscriberCount() { return subscriberCount; }
+    public void incrementSubscriberCount() { this.subscriberCount++; }
+    public void decrementSubscriberCount() { this.subscriberCount = Math.max(0, this.subscriberCount - 1); }
+    public Double getBudget() { return budget; }
+    public void setBudget(Double budget) { this.budget = budget; }
+    public boolean isActive() {
+        return active && LocalDateTime.now().isBefore(endDateTime);
+    }
+    public void setActive(Boolean active) { this.active = active; }
+
     public boolean hasSubscriber(Long userId) {
         return subscribers.stream().anyMatch(subscription -> subscription.matchesUserId(userId));
     }
+
     public boolean addSubscriber(User user, Boolean accepted) {
         if (user == null || user.getId() == null || hasSubscriber(user.getId())) return false;
         subscribers.add(new PlanSubscriber(this, user, accepted));
         return true;
     }
+
     public boolean removeSubscriber(Long userId) {
         return subscribers.removeIf(subscription -> subscription.matchesUserId(userId));
     }
-    public int getSubscriberCount() {
-        return Math.toIntExact(subscribers.stream().filter(PlanSubscriber::countsAsSubscriber).count());
-    }
-    public Boolean isActive() { return active; }
-    public void setActive(Boolean active) { this.active = active; }
 
     public boolean isFull() {
-        return maxSubscribers != null && getSubscriberCount() >= maxSubscribers;
+        return maxSubscribers != null && subscriberCount >= maxSubscribers;
+    }
+
+    private static Integer computeDuration(LocalDateTime start, LocalDateTime end) {
+        if (start == null || end == null) return null;
+        return (int) ChronoUnit.MINUTES.between(start, end);
     }
 }

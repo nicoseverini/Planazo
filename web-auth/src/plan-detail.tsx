@@ -7,14 +7,14 @@ type PlanDetailResponse = {
 	id: number
 	title: string
 	description: string
-	dateTime: string
+	startDateTime: string
+	endDateTime: string
 	durationMinutes: number | null
 	visibility: 'PUBLIC' | 'PRIVATE'
 	maxSubscribers: number | null
 	minAge: number | null
 	maxAge: number | null
 	interests: string[]
-	travelType: string
 	location: string
 	latitude: number | null
 	longitude: number | null
@@ -23,6 +23,7 @@ type PlanDetailResponse = {
 	creatorName: string
 	subscriberCount: number
 	isFull: boolean
+	budget: number | null
 }
 
 type PlanDetailPageProps = {
@@ -156,7 +157,7 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 						<div className="plan-detail-summary">
 							<div>
 								<span className="summary-label">Date</span>
-								<strong>{formatDateTime(plan.dateTime)}</strong>
+								<strong>{formatDateTime(plan.startDateTime)}{plan.endDateTime ? ` – ${formatDateTime(plan.endDateTime)}` : ''}</strong>
 							</div>
 							<div>
 								<span className="summary-label">Location</span>
@@ -196,10 +197,6 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 								<dd>{plan.interests?.map((i) => toTitleCase(i)).join(', ') || 'No interests defined'}</dd>
 							</div>
 							<div>
-								<dt>Travel Type</dt>
-								<dd>{toTitleCase(plan.travelType)}</dd>
-							</div>
-							<div>
 								<dt>Visibility</dt>
 								<dd>{getVisibilityLabel(plan.visibility)}</dd>
 							</div>
@@ -229,6 +226,10 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 										? `${plan.latitude}, ${plan.longitude}`
 										: 'No coordinates provided'}
 								</dd>
+							</div>
+							<div>
+								<dt>Budget</dt>
+								<dd>{plan.budget ? `$${plan.budget.toLocaleString()}` : 'Not specified'}</dd>
 							</div>
 						</dl>
 					</section>
