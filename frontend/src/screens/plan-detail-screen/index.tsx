@@ -124,8 +124,7 @@ export default function PlanDetailScreen() {
                 setIsSubscribed(false);
             }
         } catch (err) {
-            console.error('[PlanDetailScreen] Error loading plan:', err);
-            Alert.alert('Error', 'No se pudo cargar el plan');
+            Alert.alert('Error', 'Unable to load the plan.');
         } finally {
             setLoading(false);
         }
@@ -265,7 +264,8 @@ export default function PlanDetailScreen() {
     const { dateLabel, timeLabel } = formatDateTime(plan.startDateTime);
     const { dateLabel: endDateLabel, timeLabel: endTimeLabel } = formatDateTime(plan.endDateTime);
     const isPublic = plan.visibility === 'PUBLIC';
-    const canSubscribe = !plan.isFull || isSubscribed;
+    const isExpired = plan.endDateTime ? new Date(plan.endDateTime) <= new Date() : false;
+    const canUseSubscriptionButton = !isExpired && (!plan.isFull || isSubscribed);
 
     const handleDelete = () => {
         Alert.alert(
@@ -317,6 +317,13 @@ export default function PlanDetailScreen() {
                                 {isPublic ? 'Public' : 'Private'}
                             </ThemedText>
                         </View>
+                        {isExpired && (
+                            <View style={[styles.visibilityBadge, { backgroundColor: '#fef2f2', marginTop: 4 }]}>
+                                <ThemedText type="label" style={{ color: '#ef4444', fontSize: 11 }}>
+                                    ENDED
+                                </ThemedText>
+                            </View>
+                        )}
                     </View>
                 </View>
             </View>
@@ -606,10 +613,12 @@ export default function PlanDetailScreen() {
                     <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
                         <Pressable
                             onPress={() => router.push(`/plan/edit/${plan.id}`)}
+                            disabled={isExpired}
                             style={({ pressed }) => [
                                 styles.subscribeButton,
                                 { flex: 1, backgroundColor: surface, borderColor: tint, borderWidth: 1 },
-                                pressed && styles.pressed,
+                                pressed && !isExpired && styles.pressed,
+                                isExpired && styles.disabled,
                             ]}
                         >
                             <ThemedText type="body" style={{ color: tint, fontWeight: '600' }}>
@@ -633,19 +642,19 @@ export default function PlanDetailScreen() {
                 ) : (
                     <Pressable
                         onPress={handleSubscribe}
-                        disabled={subscribing || !canSubscribe}
+                        disabled={subscribing || !canUseSubscriptionButton}
                         style={({ pressed }) => [
                             styles.subscribeButton,
-                            { backgroundColor: isSubscribed ? '#ef4444' : tint },
+                            { backgroundColor: isExpired ? '#6b7280' : (isSubscribed ? '#ef4444' : tint) },
                             pressed && styles.pressed,
-                            (subscribing || !canSubscribe) && styles.disabled,
+                            (subscribing || !canUseSubscriptionButton) && styles.disabled,
                         ]}
                     >
                         {subscribing ? (
                             <ActivityIndicator size="small" color={tintText} />
                         ) : (
                             <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                                {isSubscribed ? 'CANCEL SUBSCRIPTION' : (plan.isFull ? 'PLAN FULL' : 'SUBSCRIBE')}
+                                {isExpired ? 'PLAN ENDED' : (isSubscribed ? 'CANCEL SUBSCRIPTION' : (plan.isFull ? 'PLAN FULL' : 'SUBSCRIBE'))}
                             </ThemedText>
                         )}
                     </Pressable>

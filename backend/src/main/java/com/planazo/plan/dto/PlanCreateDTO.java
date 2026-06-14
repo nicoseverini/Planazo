@@ -14,13 +14,17 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 public record PlanCreateDTO(
-        @NotBlank String title,
+        @NotBlank(message = "Plan title is required.") String title,
         String description,
-        @NotNull @Future LocalDateTime startDateTime,
-        @NotNull LocalDateTime endDateTime,
+        @NotNull(message = "Start date and time is required.")
+        @Future(message = "Start date and time must be set in the future.")
+        OffsetDateTime startDateTime,
+        @NotNull(message = "End date and time is required.") OffsetDateTime endDateTime,
         @NotNull PlanVisibility visibility,
         @Positive @Max(999999) Integer maxSubscribers,
         @Min(0) @Max(120) Integer minAge,
@@ -38,8 +42,8 @@ public record PlanCreateDTO(
         return new Plan(
                 title,
                 description,
-                startDateTime,
-                endDateTime,
+                startDateTime.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime(),
+                endDateTime.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime(),
                 visibility,
                 maxSubscribers,
                 minAge,

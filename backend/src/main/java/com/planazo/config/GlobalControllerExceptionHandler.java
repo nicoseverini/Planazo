@@ -4,6 +4,7 @@ import com.planazo.common.exception.InvalidAgeRangeException;
 import com.planazo.common.exception.InvalidBudgetException;
 import com.planazo.common.exception.InvalidDateRangeException;
 import com.planazo.common.exception.ItemNotFoundException;
+import com.planazo.common.exception.PlanExpiredException;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -39,7 +41,7 @@ public class GlobalControllerExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(value = MethodArgumentNotValidException.class, produces = "text/plain")
+    @ExceptionHandler(MethodArgumentNotValidException.class)
     @ApiResponse(
             responseCode = "400",
             description = "Invalid arguments supplied",
@@ -49,10 +51,14 @@ public class GlobalControllerExceptionHandler {
             )
     )
     public ResponseEntity<String> handleMethodArgumentInvalid(MethodArgumentNotValidException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(FieldError::getDefaultMessage)
+                .orElse("Invalid request data.");
+        return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(value = ItemNotFoundException.class, produces = "text/plain")
+    @ExceptionHandler(ItemNotFoundException.class)
     @ApiResponse(
             responseCode = "404",
             description = "Referenced entity not found",
@@ -63,6 +69,12 @@ public class GlobalControllerExceptionHandler {
     )
     public ResponseEntity<String> handleItemNotFound(ItemNotFoundException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(PlanExpiredException.class)
+    @ApiResponse(responseCode = "410", description = "Plan has ended", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
+    public ResponseEntity<String> handlePlanExpired(PlanExpiredException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.GONE);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

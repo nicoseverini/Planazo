@@ -3,6 +3,7 @@ package com.planazo.plan;
 import com.planazo.common.exception.InvalidAgeRangeException;
 import com.planazo.common.exception.InvalidBudgetException;
 import com.planazo.common.exception.InvalidDateRangeException;
+import com.planazo.common.exception.PlanExpiredException;
 import com.planazo.plan.dto.PlanCreateDTO;
 import com.planazo.plan.dto.PlanDetailDTO;
 import com.planazo.plan.dto.PendingSubscriberDTO;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.planazo.common.constants.Interest;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,7 +45,10 @@ public class PlanService {
     // ── Create ───────────────────────────────────────────────────────────────
 
     public PlanDetailDTO createPlan(PlanCreateDTO data, String creatorEmail) {
-        validateDateRange(data.startDateTime(), data.endDateTime());
+        // Normalize to UTC so storage and comparisons are timezone-consistent
+        LocalDateTime startUtc = data.startDateTime().withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime endUtc = data.endDateTime().withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
+        validateDateRange(startUtc, endUtc);
 
         Integer normalizedMin = normalizeAge(data.minAge());
         Integer normalizedMax = normalizeAge(data.maxAge());
@@ -58,8 +63,8 @@ public class PlanService {
         Plan plan = new Plan(
                 data.title(),
                 data.description(),
-                data.startDateTime(),
-                data.endDateTime(),
+                startUtc,
+                endUtc,
                 data.visibility(),
                 data.maxSubscribers(),
                 normalizedMin,
@@ -146,9 +151,7 @@ public class PlanService {
 
     @Transactional(readOnly = true)
     public List<PendingSubscriberDTO> getPendingSubscribers(Long planId, String requesterEmail) {
-        Plan plan = planRepository.findById(planId)
-            .filter(Plan::isActive)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
+        Plan plan = requireActivePlan(planId);
 
         if (!plan.getCreator().getUsername().equals(requesterEmail)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the creator");
@@ -175,7 +178,11 @@ public class PlanService {
     // ── Update ───────────────────────────────────────────────────────────────
 
     public Optional<PlanDetailDTO> updatePlan(Long id, PlanUpdateDTO data, String requesterEmail) {
-        return planRepository.findById(id)
+        Optional<Plan> planOpt = planRepository.findById(id);
+        planOpt.ifPresent(plan -> {
+            if (!plan.isActive()) throwIfExpired(plan);
+        });
+        return planOpt
                 .filter(Plan::isActive)
                 .filter(plan -> plan.getCreator().getUsername().equals(requesterEmail))
                 .map(plan -> toDetailDTO(saveUpdatedPlan(plan, data)));
@@ -188,9 +195,7 @@ public class PlanService {
     }
 
     public void acceptPendingSubscriber(Long planId, Long userId, String requesterEmail) {
-        Plan plan = planRepository.findById(planId)
-                .filter(Plan::isActive)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
+        Plan plan = requireActivePlan(planId);
 
         if (!plan.getCreator().getUsername().equals(requesterEmail)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the creator");
@@ -228,9 +233,7 @@ public class PlanService {
     }
 
     public void denyPendingSubscriber(Long planId, Long userId, String requesterEmail) {
-        Plan plan = planRepository.findById(planId)
-                .filter(Plan::isActive)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
+        Plan plan = requireActivePlan(planId);
 
         if (!plan.getCreator().getUsername().equals(requesterEmail)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the creator");
@@ -319,12 +322,12 @@ public class PlanService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        Optional<Plan> maybePlan = planRepository.findById(planId)
-                .filter(Plan::isActive);
-
-        if (maybePlan.isEmpty()) return JoinResult.NOT_FOUND;
-
-        Plan plan = maybePlan.get();
+        Plan plan = planRepository.findById(planId).orElse(null);
+        if (plan == null) return JoinResult.NOT_FOUND;
+        if (!plan.isActive()) {
+            throwIfExpired(plan);
+            return JoinResult.NOT_FOUND;
+        }
 
         if (plan.hasSubscriber(user.getId())) return JoinResult.ALREADY_JOINED;
         if (plan.isFull()) return JoinResult.FULL;
@@ -364,12 +367,12 @@ public class PlanService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        Optional<Plan> maybePlan = planRepository.findById(planId)
-                .filter(Plan::isActive);
-
-        if (maybePlan.isEmpty()) return LeaveResult.NOT_FOUND;
-
-        Plan plan = maybePlan.get();
+        Plan plan = planRepository.findById(planId).orElse(null);
+        if (plan == null) return LeaveResult.NOT_FOUND;
+        if (!plan.isActive()) {
+            throwIfExpired(plan);
+            return LeaveResult.NOT_FOUND;
+        }
 
         // Check whether the subscription was counting before removing it
         boolean wasCounting = plan.getSubscribers().stream()
@@ -507,6 +510,24 @@ public class PlanService {
         }
         if (budget > 9_999_999) {
             throw new InvalidBudgetException("Budget cannot exceed 9,999,999.");
+        }
+    }
+
+    // ── Expiry helpers ───────────────────────────────────────────────────────
+
+    private Plan requireActivePlan(Long planId) {
+        Plan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
+        if (!plan.isActive()) {
+            throwIfExpired(plan);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found");
+        }
+        return plan;
+    }
+
+    private void throwIfExpired(Plan plan) {
+        if (!plan.getEndDateTime().isAfter(LocalDateTime.now())) {
+            throw new PlanExpiredException(plan.getTitle());
         }
     }
 }

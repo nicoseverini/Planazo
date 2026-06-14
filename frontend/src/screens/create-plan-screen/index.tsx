@@ -80,7 +80,14 @@ const buildDateTime = (dateValue: string, timeValue: string): string | null => {
     const normalizedDate = `${year.padStart(4, '0')}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
     const normalizedTime = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
 
-    return `${normalizedDate}T${normalizedTime}`;
+    // Append the device's UTC offset so the backend validates against the correct instant.
+    // getTimezoneOffset() returns minutes behind UTC (negative for UTC+), so we negate it.
+    const offsetMin = -new Date().getTimezoneOffset();
+    const sign = offsetMin >= 0 ? '+' : '-';
+    const absMin = Math.abs(offsetMin);
+    const offsetStr = `${sign}${Math.floor(absMin / 60).toString().padStart(2, '0')}:${(absMin % 60).toString().padStart(2, '0')}`;
+
+    return `${normalizedDate}T${normalizedTime}:00${offsetStr}`;
 };
 
 const addOneHour = (timeValue: string): string => {
@@ -176,6 +183,11 @@ export default function CreatePlanScreen() {
         }
         if (!startDate.trim() || !startTime.trim()) {
             setError('Start date and time are required');
+            return false;
+        }
+        const startDt = buildDateTime(startDate, startTime);
+        if (startDt && new Date(startDt) <= new Date()) {
+            setError('Start date and time must be set in the future.');
             return false;
         }
         if (!endDate.trim() || !endTime.trim()) {
@@ -403,7 +415,6 @@ export default function CreatePlanScreen() {
                 { text: 'OK', onPress: () => router.back() },
             ]);
         } catch (err) {
-            console.error('[CreatePlanScreen] Error creating plan:', err);
             const msg = err instanceof Error ? err.message : 'Could not create the plan. Please try again.';
             setError(msg);
         } finally {

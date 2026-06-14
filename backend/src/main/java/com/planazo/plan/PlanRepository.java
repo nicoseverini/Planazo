@@ -5,11 +5,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.planazo.common.constants.Interest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PlanRepository extends JpaRepository<Plan, Long>, JpaSpecificationExecutor<Plan> {
@@ -42,6 +44,10 @@ public interface PlanRepository extends JpaRepository<Plan, Long>, JpaSpecificat
     // Filter by interest
     @EntityGraph(attributePaths = "images")
     List<Plan> findByVisibilityAndInterestsContainingAndActiveTrue(PlanVisibility visibility, Interest interest);
+
+    @Modifying
+    @Query("UPDATE plans p SET p.active = false WHERE p.active = true AND p.endDateTime <= :now")
+    int deactivateExpiredPlans(@Param("now") LocalDateTime now);
 
     @Query(value = "SELECT p.* FROM plans p " +
             "WHERE p.visibility = 'PUBLIC' AND p.active = true AND " +

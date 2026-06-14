@@ -150,7 +150,9 @@ public class Plan {
     public void decrementSubscriberCount() { this.subscriberCount = Math.max(0, this.subscriberCount - 1); }
     public Double getBudget() { return budget; }
     public void setBudget(Double budget) { this.budget = budget; }
-    public Boolean isActive() { return active; }
+    public boolean isActive() {
+        return active && LocalDateTime.now().isBefore(endDateTime);
+    }
     public void setActive(Boolean active) { this.active = active; }
 
     public boolean hasSubscriber(Long userId) {

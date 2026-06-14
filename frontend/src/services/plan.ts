@@ -323,6 +323,10 @@ export async function subscribeToPlan(planId: number, accessToken: string): Prom
     });
 
     if (!response.ok) {
+        if (response.status === 410) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'This plan has already ended.');
+        }
         if (response.status === 409) {
             throw new Error('Already subscribed or plan is full');
         }
@@ -348,6 +352,10 @@ export async function unsubscribeFromPlan(planId: number, accessToken: string): 
     });
 
     if (!response.ok) {
+        if (response.status === 410) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'This plan has already ended.');
+        }
         if (response.status === 409) {
             throw new Error('Not subscribed to this plan');
         }
