@@ -138,7 +138,7 @@ export default function CreatePlanScreen() {
     const [pinLocation, setPinLocation] = useState<{latitude: number, longitude: number} | null>(null);
     const [minAge, setMinAge] = useState('');
     const [maxAge, setMaxAge] = useState('');
-    const [maxParticipants, setMaxParticipants] = useState('10');
+    const [maxParticipants, setMaxParticipants] = useState('');
     const [budget, setBudget] = useState('');
     const [selectedCategories, setSelectedCategories] = useState<Array<(typeof CATEGORY_OPTIONS)[number]>>([]);
     const [images, setImages] = useState<string[]>([]);
@@ -204,6 +204,12 @@ export default function CreatePlanScreen() {
         }
         const ageError = validateAgeFields(minAge, maxAge);
         if (ageError) { setError(ageError); return false; }
+        const trimmedMax = maxParticipants.trim();
+        const parsedMax = Number.parseInt(trimmedMax, 10);
+        if (!trimmedMax || Number.isNaN(parsedMax) || parsedMax <= 0 || parsedMax > 99_999) {
+            setError('Max participants must be between 1 and 99,999.');
+            return false;
+        }
         const trimmedBudget = budget.trim();
         if (trimmedBudget) {
             const parsedBudget = Number(trimmedBudget);
@@ -401,7 +407,7 @@ export default function CreatePlanScreen() {
                 latitude: pinLocation?.latitude ?? geocodedLocation[0].latitude,
                 longitude: pinLocation?.longitude ?? geocodedLocation[0].longitude,
                 visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
-                maxSubscribers: Number.isNaN(parsedMaxSubscribers) ? 10 : parsedMaxSubscribers,
+                maxSubscribers: parsedMaxSubscribers,
                 minAge: parseAge(minAge),
                 maxAge: parseAge(maxAge),
                 interests: mappedInterests,
@@ -802,7 +808,7 @@ export default function CreatePlanScreen() {
                         <TextInput
                             value={maxParticipants}
                             onChangeText={setMaxParticipants}
-                            placeholder="10"
+                            placeholder="e.g. 10"
                             placeholderTextColor={mutedText}
                             keyboardType="numeric"
                             style={[

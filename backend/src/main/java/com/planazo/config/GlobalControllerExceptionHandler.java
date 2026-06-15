@@ -4,6 +4,7 @@ import com.planazo.common.exception.AgeRestrictionException;
 import com.planazo.common.exception.InvalidAgeRangeException;
 import com.planazo.common.exception.InvalidBudgetException;
 import com.planazo.common.exception.InvalidDateRangeException;
+import com.planazo.common.exception.InvalidMaxSubscribersException;
 import com.planazo.common.exception.ItemNotFoundException;
 import com.planazo.common.exception.PlanExpiredException;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -40,6 +41,12 @@ public class GlobalControllerExceptionHandler {
     @ExceptionHandler(InvalidBudgetException.class)
     @ApiResponse(responseCode = "400", description = "Invalid budget value", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
     public ResponseEntity<String> handleInvalidBudget(InvalidBudgetException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidMaxSubscribersException.class)
+    @ApiResponse(responseCode = "400", description = "Invalid max subscribers value", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
+    public ResponseEntity<String> handleInvalidMaxSubscribers(InvalidMaxSubscribersException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 

@@ -46,7 +46,7 @@ export const defaultPlanFormState: PlanFormState = {
 	endDate: '',
 	endTime: '',
 	visibility: 'PUBLIC',
-	maxSubscribers: '10',
+	maxSubscribers: '',
 	minAge: '18',
 	maxAge: '90',
 	interests: [],
@@ -104,6 +104,15 @@ export function getTodayInputValue() {
 	const month = String(now.getMonth() + 1).padStart(2, '0')
 	const day = String(now.getDate()).padStart(2, '0')
 	return `${year}-${month}-${day}`
+}
+
+export function validateMaxSubscribers(maxSubscribers: string): string | null {
+	const trimmed = maxSubscribers.trim()
+	const parsed = Number.parseInt(trimmed, 10)
+	if (!trimmed || Number.isNaN(parsed) || parsed <= 0 || parsed > 99_999) {
+		return 'Max participants must be between 1 and 99,999.'
+	}
+	return null
 }
 
 export function validateBudget(budget: string): string | null {

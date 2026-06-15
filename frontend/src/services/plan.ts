@@ -222,7 +222,7 @@ export async function createPlan(data: PlanCreateRequest, accessToken: string): 
 
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to create plan: ${errorText}`);
+        throw new Error(errorText || 'Could not create the plan. Please try again.');
     }
 
     return response.json();
@@ -249,7 +249,7 @@ export async function updatePlan(
 
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to update plan: ${errorText}`);
+        throw new Error(errorText || 'Could not update the plan. Please try again.');
     }
 
     return response.json();

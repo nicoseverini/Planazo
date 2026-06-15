@@ -3,6 +3,7 @@ package com.planazo.plan;
 import com.planazo.common.exception.InvalidAgeRangeException;
 import com.planazo.common.exception.InvalidBudgetException;
 import com.planazo.common.exception.InvalidDateRangeException;
+import com.planazo.common.exception.InvalidMaxSubscribersException;
 import com.planazo.common.exception.PlanExpiredException;
 import com.planazo.plan.dto.PlanCreateDTO;
 import com.planazo.plan.dto.PlanDetailDTO;
@@ -56,6 +57,8 @@ public class PlanService {
 
         Double normalizedBudget = normalizeBudget(data.budget());
         validateBudget(normalizedBudget);
+
+        validateMaxSubscribers(data.maxSubscribers());
 
         User creator = userRepository.findByEmail(creatorEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
@@ -298,6 +301,9 @@ public class PlanService {
             validateBudget(normalizedBudget);
             plan.setBudget(normalizedBudget);
         }
+        if (data.maxSubscribers() != null) {
+            validateMaxSubscribers(data.maxSubscribers());
+        }
         if (data.title() != null)           plan.setTitle(data.title());
         if (data.description() != null)     plan.setDescription(data.description());
         if (data.startDateTime() != null)   plan.setStartDateTime(data.startDateTime());
@@ -503,6 +509,12 @@ public class PlanService {
 
     private static Double normalizeBudget(Double budget) {
         return budget == null ? 0.0 : budget;
+    }
+
+    private static void validateMaxSubscribers(Integer maxSubscribers) {
+        if (maxSubscribers != null && (maxSubscribers <= 0 || maxSubscribers > 99_999)) {
+            throw new InvalidMaxSubscribersException();
+        }
     }
 
     private static void validateBudget(Double budget) {

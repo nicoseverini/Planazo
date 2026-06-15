@@ -63,7 +63,7 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 
 			<label className="field">
 				Max. participants
-				<input type="number" min="1" max="999999" value={form.maxSubscribers} onChange={(event) => onChange('maxSubscribers', event.target.value)} />
+				<input type="number" min="1" max="99999" placeholder="e.g. 10" value={form.maxSubscribers} onChange={(event) => onChange('maxSubscribers', event.target.value)} required />
 			</label>
 
 			<label className="field">

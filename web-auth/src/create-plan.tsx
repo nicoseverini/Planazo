@@ -13,6 +13,7 @@ import {
 	parseOptionalNumber,
 	validateAgeRange,
 	validateBudget,
+	validateMaxSubscribers,
 } from './plan-shared'
 
 type CreatePlanResponse = {
@@ -93,6 +94,13 @@ export function CreatePlanPage() {
 			return
 		}
 
+		const maxSubscribersError = validateMaxSubscribers(form.maxSubscribers)
+		if (maxSubscribersError) {
+			setStatus('error')
+			setMessage(maxSubscribersError)
+			return
+		}
+
 		const budgetError = validateBudget(form.budget)
 		if (budgetError) {
 			setStatus('error')
@@ -119,7 +127,7 @@ export function CreatePlanPage() {
 					startDateTime,
 					endDateTime,
 					visibility: form.visibility,
-					maxSubscribers: Number.parseInt(form.maxSubscribers, 10) || 10,
+					maxSubscribers: Number.parseInt(form.maxSubscribers, 10),
 					minAge: parseOptionalNumber(form.minAge),
 					maxAge: parseOptionalNumber(form.maxAge),
 					interests: form.interests,

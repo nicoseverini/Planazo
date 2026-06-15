@@ -6,7 +6,6 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,7 +22,9 @@ public record PlanUpdateDTO(
 
         PlanVisibility visibility,
 
-        @Positive @Max(999999) Integer maxSubscribers,
+        @Min(value = 1, message = "Max participants must be between 1 and 99,999.")
+        @Max(value = 99999, message = "Max participants must be between 1 and 99,999.")
+        Integer maxSubscribers,
 
         @Min(0) @Max(120) Integer minAge,
 

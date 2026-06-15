@@ -12,7 +12,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -26,7 +25,9 @@ public record PlanCreateDTO(
         OffsetDateTime startDateTime,
         @NotNull(message = "End date and time is required.") OffsetDateTime endDateTime,
         @NotNull PlanVisibility visibility,
-        @Positive @Max(999999) Integer maxSubscribers,
+        @Min(value = 1, message = "Max participants must be between 1 and 99,999.")
+        @Max(value = 99999, message = "Max participants must be between 1 and 99,999.")
+        Integer maxSubscribers,
         @Min(0) @Max(120) Integer minAge,
         @Min(0) @Max(120) Integer maxAge,
         @NotEmpty(message = "At least one interest must be selected") List<Interest> interests,

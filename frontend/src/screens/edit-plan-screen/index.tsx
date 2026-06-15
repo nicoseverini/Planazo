@@ -255,6 +255,12 @@ export default function EditPlanScreen() {
         }
         const ageError = validateAgeFields(minAge, maxAge);
         if (ageError) { setError(ageError); return false; }
+        const trimmedMax = maxParticipants.trim();
+        const parsedMax = Number.parseInt(trimmedMax, 10);
+        if (!trimmedMax || Number.isNaN(parsedMax) || parsedMax <= 0 || parsedMax > 99_999) {
+            setError('Max participants must be between 1 and 99,999.');
+            return false;
+        }
         const trimmedBudget = budget.trim();
         if (trimmedBudget) {
             const parsedBudget = Number(trimmedBudget);
@@ -435,7 +441,7 @@ export default function EditPlanScreen() {
                 latitude: finalLat,
                 longitude: finalLng,
                 visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
-                maxSubscribers: Number.isNaN(parsedMaxSubscribers) ? 10 : parsedMaxSubscribers,
+                maxSubscribers: parsedMaxSubscribers,
                 minAge: parseAge(minAge),
                 maxAge: parseAge(maxAge),
                 interests: mappedInterests,
@@ -845,7 +851,7 @@ export default function EditPlanScreen() {
                         <TextInput
                             value={maxParticipants}
                             onChangeText={setMaxParticipants}
-                            placeholder="10"
+                            placeholder="e.g. 10"
                             placeholderTextColor={mutedText}
                             keyboardType="numeric"
                             style={[
