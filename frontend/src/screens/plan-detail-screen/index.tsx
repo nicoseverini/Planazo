@@ -1,13 +1,14 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
     Dimensions,
     Image,
     Pressable,
+    RefreshControl,
     ScrollView,
     StyleSheet,
     View,
@@ -81,6 +82,8 @@ export default function PlanDetailScreen() {
 
     const [plan, setPlan] = useState<PlanDetail | null>(null);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const refreshingRef = useRef(false);
     const [subscribing, setSubscribing] = useState(false);
     const [activeTab, setActiveTab] = useState<TabType>('description');
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -117,6 +120,38 @@ export default function PlanDetailScreen() {
             setLoading(false);
         }
     }, [id, fetchMyJoinedPlans, fetchPlanDetail, getAccessToken]);
+
+    const handleRefresh = useCallback(async () => {
+        if (refreshingRef.current) return;
+        refreshingRef.current = true;
+        setRefreshing(true);
+
+        const planId = parsePlanId(id);
+        if (!planId) {
+            setRefreshing(false);
+            refreshingRef.current = false;
+            return;
+        }
+
+        try {
+            const data = await fetchPlanDetail(planId);
+            setPlan(data);
+
+            const token = getAccessToken();
+            if (token) {
+                const joinedPlans = await fetchMyJoinedPlans();
+                setIsSubscribed(joinedPlans.some((jp) => jp.id === planId));
+            } else {
+                setIsSubscribed(false);
+            }
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Unable to refresh the plan.';
+            Alert.alert('Error', message);
+        } finally {
+            setRefreshing(false);
+            refreshingRef.current = false;
+        }
+    }, [id, fetchPlanDetail, fetchMyJoinedPlans, getAccessToken]);
 
     useFocusEffect(
         useCallback(() => {
@@ -168,19 +203,10 @@ export default function PlanDetailScreen() {
         try {
             if (isSubscribed) {
                 await unsubscribe(plan.id);
-                setIsSubscribed(false);
-                setPlan({
-                    ...plan,
-                    subscriberCount: Math.max(0, plan.subscriberCount - 1),
-                    isFull: false,
-                });
+                await handleRefresh();
             } else {
                 await subscribe(plan.id);
-                setIsSubscribed(true);
-                setPlan({
-                    ...plan,
-                    subscriberCount: plan.subscriberCount + 1,
-                });
+                await handleRefresh();
                 if (isPrivatePlan) {
                     Alert.alert(
                         'Request sent',
@@ -209,7 +235,7 @@ export default function PlanDetailScreen() {
         try {
             setPendingLoading(true);
             await accept(plan!.id, id);
-            await loadPendingSubscribers();
+            await Promise.all([handleRefresh(), loadPendingSubscribers()]);
             Alert.alert('Request accepted', `You've just accepted ${name} into the plan.`);
         } catch (err) {
             console.error('[PlanDetailScreen] Error accepting subscriber:', err);
@@ -307,7 +333,17 @@ export default function PlanDetailScreen() {
     };
 
     return (
-        <AppScreen scrollable>
+        <AppScreen
+            scrollable
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                    tintColor={tint}
+                    colors={[tint]}
+                />
+            }
+        >
             <View style={styles.header}>
                 <Pressable
                     onPress={() => router.back()}

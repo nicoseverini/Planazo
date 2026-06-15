@@ -24,6 +24,7 @@ type AppScreenProps = {
   style?: StyleProp<ViewStyle>;
   showNavBar?: boolean;
   safeAreaEdges?: Array<'top' | 'bottom' | 'left' | 'right'>;
+  refreshControl?: React.ReactElement;
 };
 
 export function AppScreen({
@@ -34,6 +35,7 @@ export function AppScreen({
   style,
   showNavBar,
   safeAreaEdges,
+  refreshControl,
 }: AppScreenProps) {
   const { tokenData } = useToken();
   const backgroundColor = useThemeColor({}, 'background');
@@ -60,6 +62,7 @@ export function AppScreen({
                 contentStyle,
               ]}
               showsVerticalScrollIndicator={false}
+              refreshControl={refreshControl}
             >
               {children}
             </ScrollView>
