@@ -210,23 +210,33 @@ export default function PlanDetailScreen() {
     };
 
     const handleAcceptUser = async (id: number) => {
+        const subscriber = pendingSubscribers.find((s) => s.id === id);
+        const name = subscriber ? subscriber.name : 'the user';
         try {
             setPendingLoading(true);
             await accept(plan!.id, id);
             await loadPendingSubscribers();
+            Alert.alert('Request accepted', `You've just accepted ${name} into the plan.`);
         } catch (err) {
             console.error('[PlanDetailScreen] Error accepting subscriber:', err);
+            const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+            Alert.alert('Error', message);
             setPendingLoading(false);
         }
     };
 
     const handleRejectUser = async (id: number) => {
+        const subscriber = pendingSubscribers.find((s) => s.id === id);
+        const name = subscriber ? subscriber.name : 'the user';
         try {
             setPendingLoading(true);
             await reject(plan!.id, id);
             await loadPendingSubscribers();
+            Alert.alert('Request rejected', `You've just rejected ${name}'s subscription request.`);
         } catch (err) {
             console.error('[PlanDetailScreen] Error rejecting subscriber:', err);
+            const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+            Alert.alert('Error', message);
             setPendingLoading(false);
         }
     };

@@ -287,8 +287,14 @@ export async function acceptSubscriber(planId: number, userId: number, accessTok
     });
 
     if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to accept subscriber: ${errorText}`);
+        if (response.status === 403) throw new Error('You are not allowed to manage this request.');
+        if (response.status === 404) throw new Error('This subscription request no longer exists.');
+        if (response.status === 409) throw new Error('This plan has already reached its participant limit.');
+        if (response.status === 410) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'This plan has already ended.');
+        }
+        throw new Error('Something went wrong. Please try again.');
     }
 }
 
@@ -305,8 +311,13 @@ export async function rejectSubscriber(planId: number, userId: number, accessTok
     });
 
     if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to reject subscriber: ${errorText}`);
+        if (response.status === 403) throw new Error('You are not allowed to manage this request.');
+        if (response.status === 404) throw new Error('This subscription request no longer exists.');
+        if (response.status === 410) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'This plan has already ended.');
+        }
+        throw new Error('Something went wrong. Please try again.');
     }
 }
 // Subscribe to a plan
