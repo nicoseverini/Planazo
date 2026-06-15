@@ -21,6 +21,7 @@ import { StatusBadgeColors } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PendingSubscriber, PlanDetail, usePlans } from '@/services/plan';
 import { formatAgeRestriction } from '@/utils/age-restriction';
+import { formatInterest } from '@/utils/interests';
 
 import { styles } from './styles';
 
@@ -87,21 +88,8 @@ export default function PlanDetailScreen() {
     const [pendingSubscribers, setPendingSubscribers] = useState<PendingSubscriber[]>([]);
     const [pendingLoading, setPendingLoading] = useState(false);
 
-    const CATEGORY_BY_INTEREST: Record<string, string> = {
-        FOOD: 'Gastronomy',
-        CULTURE: 'Culture',
-        NATURE: 'Nature',
-        BEACH: 'Beach',
-        ADVENTURE: 'Adventure',
-        NIGHTLIFE: 'Nightlife',
-        SHOPPING: 'Shopping',
-        HISTORY: 'History',
-        MOUNTAINS: 'Mountains',
-        OTHER: 'Other',
-    };
-
     const interestLabel = (plan?.interests ?? [])
-        .map((interest) => CATEGORY_BY_INTEREST[interest] || interest)
+        .map(formatInterest)
         .join(' · ');
 
     const loadPlan = useCallback(async () => {
@@ -283,6 +271,12 @@ export default function PlanDetailScreen() {
     const { dateLabel: endDateLabel, timeLabel: endTimeLabel } = formatDateTime(plan.endDateTime);
     const isPublic = plan.visibility === 'PUBLIC';
     const isExpired = plan.endDateTime ? new Date(plan.endDateTime) <= new Date() : false;
+    const participantsLabel = plan.maxSubscribers != null
+        ? `${plan.subscriberCount} / ${plan.maxSubscribers} participants`
+        : `${plan.subscriberCount} participants`;
+    const budgetLabel = plan.budget > 0
+        ? `$${plan.budget.toLocaleString()}`
+        : 'Free';
     const canUseSubscriptionButton = !isExpired && (!plan.isFull || isSubscribed);
 
     const handleDelete = () => {
@@ -395,6 +389,35 @@ export default function PlanDetailScreen() {
                 </View>
             </View>
 
+            <View style={styles.infoRow}>
+                <View style={styles.infoItem}>
+                    <Ionicons name="person-outline" size={16} color={mutedText} />
+                    <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>
+                        {participantsLabel}
+                    </ThemedText>
+                </View>
+            </View>
+
+            <View style={styles.infoRow}>
+                <View style={styles.infoItem}>
+                    <Ionicons name="cash-outline" size={16} color={mutedText} />
+                    <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>
+                        {budgetLabel}
+                    </ThemedText>
+                </View>
+            </View>
+
+            {interestLabel ? (
+                <View style={styles.infoRow}>
+                    <View style={styles.infoItem}>
+                        <Ionicons name="pricetag-outline" size={16} color={mutedText} />
+                        <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>
+                            {interestLabel}
+                        </ThemedText>
+                    </View>
+                </View>
+            ) : null}
+
             <View style={[styles.locationCard, { backgroundColor: surface, borderColor: border, flexDirection: 'column', alignItems: 'stretch', padding: 0, overflow: 'hidden' }]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12 }}>
                     <Ionicons name="location-outline" size={20} color={tint} />
@@ -487,7 +510,7 @@ export default function PlanDetailScreen() {
                         type="body"
                         style={[styles.tabText, { color: activeTab === 'subscribe' ? tint : mutedText }]}
                     >
-                        SUSCRIPTIONS
+                        SUBSCRIPTIONS
                     </ThemedText>
                 </Pressable>
                 <Pressable
@@ -513,29 +536,6 @@ export default function PlanDetailScreen() {
                         {plan.description || 'No description available'}
                     </ThemedText>
 
-                    <View style={[styles.infoSection, { backgroundColor: surface, borderColor: border }]}>
-                        <ThemedText type="subtitle" style={{ marginBottom: 12 }}>INFO</ThemedText>
-                        <View style={styles.infoList}>
-                            <View style={styles.infoListItem}>
-                                <View style={[styles.infoDot, { backgroundColor: tint }]} />
-                                <ThemedText type="body">Interests: {interestLabel || 'No interests'}</ThemedText>
-                            </View>
-                            <View style={styles.infoListItem}>
-                                <View style={[styles.infoDot, { backgroundColor: tint }]} />
-                                <ThemedText type="body">
-                                    Participants: {plan.subscriberCount}/{plan.maxSubscribers}
-                                </ThemedText>
-                            </View>
-                            {plan.budget > 0 && (
-                                <View style={styles.infoListItem}>
-                                    <View style={[styles.infoDot, { backgroundColor: tint }]} />
-                                    <ThemedText type="body">
-                                        Budget: ${plan.budget.toLocaleString()}
-                                    </ThemedText>
-                                </View>
-                            )}
-                        </View>
-                    </View>
                 </View>
             )}
 
@@ -600,20 +600,6 @@ export default function PlanDetailScreen() {
                         </View>
                     ) : null}
 
-                    <View style={[styles.subscribeInfo, { backgroundColor: surface, borderColor: border }]}>
-                        <View style={styles.subscribeInfoRow}>
-                            <Ionicons name="people-outline" size={20} color={mutedText} />
-                            <ThemedText type="body" style={{ marginLeft: 8 }}>
-                                {plan.subscriberCount} of {plan.maxSubscribers} participants
-                            </ThemedText>
-                        </View>
-                        <View style={styles.subscribeInfoRow}>
-                            <Ionicons name="calendar-outline" size={20} color={mutedText} />
-                            <ThemedText type="body" style={{ marginLeft: 8 }}>
-                                {dateLabel}{timeLabel ? ` a las ${timeLabel}` : ''}{endTimeLabel ? ` – ${endTimeLabel}` : ''}
-                            </ThemedText>
-                        </View>
-                    </View>
                 </View>
             )}
 
