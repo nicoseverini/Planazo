@@ -170,11 +170,18 @@ export function SearchPlansScreen() {
     }, [loadPlans]);
 
     const handleSubscribe = async (planId: number) => {
+        const isPrivate = filteredPlans.find((p) => p.id === planId)?.visibility === 'PRIVATE';
         setSubscribingId(planId);
         try {
             await subscribe(planId);
             setJoinedIds(prev => new Set(prev).add(planId));
             await loadPlans();
+            if (isPrivate) {
+                Alert.alert(
+                    'Request sent',
+                    'Your subscription request was sent. You can check its status in "My Plans".'
+                );
+            }
         } catch (err) {
             console.error('Error subscribing:', err);
             const message = err instanceof Error ? err.message : 'Could not process the subscription';

@@ -229,15 +229,15 @@ class PlanRestController {
     @PostMapping(value = "/{id}/subscribe", produces = "application/json")
     @Operation(summary = "Join a plan")
     @ApiResponse(responseCode = "409", description = "Already joined or plan is full", content = @Content)
-    ResponseEntity<Void> subscribe(
+    ResponseEntity<Object> subscribe(
             @PathVariable Long id,
             @AuthenticationPrincipal(expression = "username") String email
     ) {
         return switch (planService.subscribe(id, email)) {
-            case OK           -> ResponseEntity.ok().build();
-            case NOT_FOUND    -> ResponseEntity.notFound().build();
-            case FULL         -> ResponseEntity.status(HttpStatus.CONFLICT).build();
-            case ALREADY_JOINED -> ResponseEntity.status(HttpStatus.CONFLICT).build();
+            case OK             -> ResponseEntity.ok().build();
+            case NOT_FOUND      -> ResponseEntity.status(HttpStatus.NOT_FOUND).body("Plan not found.");
+            case FULL           -> ResponseEntity.status(HttpStatus.CONFLICT).body("This plan has already reached its participant limit.");
+            case ALREADY_JOINED -> ResponseEntity.status(HttpStatus.CONFLICT).body("You already have a pending request or are a participant of this plan.");
         };
     }
 

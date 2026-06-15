@@ -193,6 +193,12 @@ export default function PlanDetailScreen() {
                     ...plan,
                     subscriberCount: plan.subscriberCount + 1,
                 });
+                if (isPrivatePlan) {
+                    Alert.alert(
+                        'Request sent',
+                        'Your subscription request was sent. You can check its status in "My Plans".'
+                    );
+                }
             }
         } catch (err) {
             console.error('[PlanDetailScreen] Error subscribing:', err);

@@ -343,13 +343,18 @@ export async function subscribeToPlan(planId: number, accessToken: string): Prom
             throw new Error(errorText || "You don't meet this plan's age requirements.");
         }
         if (response.status === 409) {
-            throw new Error('Already subscribed or plan is full');
+            const errorText = await response.text();
+            throw new Error(errorText || 'Already subscribed or plan is full.');
+        }
+        if (response.status === 404) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'Plan not found.');
         }
         if (response.status === 403) {
-            throw new Error('Plan is not public');
+            throw new Error('You are not allowed to join this plan.');
         }
         const errorText = await response.text();
-        throw new Error(`Failed to subscribe: ${errorText}`);
+        throw new Error(errorText || 'Something went wrong. Please try again.');
     }
 }
 
