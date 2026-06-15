@@ -196,7 +196,8 @@ export default function PlanDetailScreen() {
             }
         } catch (err) {
             console.error('[PlanDetailScreen] Error subscribing:', err);
-            Alert.alert('Error', 'Could not process the subscription');
+            const message = err instanceof Error ? err.message : 'Could not process the subscription';
+            Alert.alert('Error', message);
         } finally {
             setSubscribing(false);
         }

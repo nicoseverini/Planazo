@@ -327,6 +327,10 @@ export async function subscribeToPlan(planId: number, accessToken: string): Prom
             const errorText = await response.text();
             throw new Error(errorText || 'This plan has already ended.');
         }
+        if (response.status === 422) {
+            const errorText = await response.text();
+            throw new Error(errorText || "You don't meet this plan's age requirements.");
+        }
         if (response.status === 409) {
             throw new Error('Already subscribed or plan is full');
         }

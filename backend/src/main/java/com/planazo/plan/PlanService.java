@@ -331,6 +331,7 @@ public class PlanService {
 
         if (plan.hasSubscriber(user.getId())) return JoinResult.ALREADY_JOINED;
         if (plan.isFull()) return JoinResult.FULL;
+        plan.checkAgeEligibility(user);
 
         boolean isPublic = plan.getVisibility() == PlanVisibility.PUBLIC;
         Boolean accepted = isPublic ? null : Boolean.FALSE;

@@ -1,5 +1,6 @@
 package com.planazo.config;
 
+import com.planazo.common.exception.AgeRestrictionException;
 import com.planazo.common.exception.InvalidAgeRangeException;
 import com.planazo.common.exception.InvalidBudgetException;
 import com.planazo.common.exception.InvalidDateRangeException;
@@ -23,6 +24,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class GlobalControllerExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalControllerExceptionHandler.class);
+
+    @ExceptionHandler(AgeRestrictionException.class)
+    @ApiResponse(responseCode = "422", description = "User does not meet plan's age requirements", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
+    public ResponseEntity<String> handleAgeRestriction(AgeRestrictionException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+    }
 
     @ExceptionHandler(InvalidAgeRangeException.class)
     @ApiResponse(responseCode = "400", description = "Invalid age range", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))

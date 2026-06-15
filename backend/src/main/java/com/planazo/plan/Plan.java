@@ -1,10 +1,13 @@
 package com.planazo.plan;
 
 import com.planazo.common.constants.Interest;
+import com.planazo.common.exception.AgeRestrictionException;
 import com.planazo.user.User;
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -171,6 +174,13 @@ public class Plan {
 
     public boolean isFull() {
         return maxSubscribers != null && subscriberCount >= maxSubscribers;
+    }
+
+    public void checkAgeEligibility(User user) {
+        if (minAge == null && maxAge == null) return;
+        int age = Period.between(user.getBirthDate(), LocalDate.now()).getYears();
+        if (minAge != null && age < minAge) throw new AgeRestrictionException();
+        if (maxAge != null && age > maxAge) throw new AgeRestrictionException();
     }
 
     private static Integer computeDuration(LocalDateTime start, LocalDateTime end) {

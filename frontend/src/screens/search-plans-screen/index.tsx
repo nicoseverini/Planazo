@@ -177,6 +177,8 @@ export function SearchPlansScreen() {
             await loadPlans();
         } catch (err) {
             console.error('Error subscribing:', err);
+            const message = err instanceof Error ? err.message : 'Could not process the subscription';
+            Alert.alert('Error', message);
         } finally {
             setSubscribingId(null);
         }
