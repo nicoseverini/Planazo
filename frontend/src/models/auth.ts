@@ -23,6 +23,7 @@ export type LoginRequest = {
 export type SignupFormState = {
   email: string;
   password: string;
+  confirmPassword: string;
   name: string;
   lastname: string;
   gender: string;
@@ -78,6 +79,10 @@ export function validateSignupForm(values: SignupFormState) {
 
   if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(values.password)) {
     return 'Password must include uppercase, lowercase and number';
+  }
+
+  if (values.password !== values.confirmPassword) {
+    return 'Passwords do not match';
   }
 
   if (!values.name.trim()) {

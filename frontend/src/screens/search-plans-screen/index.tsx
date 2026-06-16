@@ -21,7 +21,7 @@ const INTERESTS = [
     'NIGHTLIFE', 'SHOPPING', 'HISTORY', 'MOUNTAINS', 'OTHER',
 ];
 const INTEREST_LABELS: Record<string, string> = {
-    FOOD: 'Gastronomy',
+    FOOD: 'Food',
     CULTURE: 'Culture',
     NATURE: 'Nature',
     BEACH: 'Beach',

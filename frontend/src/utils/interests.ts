@@ -2,14 +2,14 @@ const INTEREST_LABELS: Record<string, string> = {
     // If we want to change the label for a specific interest,
     // we can add it here without affecting the formatting of other interests.
     // Add more explicit mappings here as needed.
-    // For example, if we want to change the label for FOOD from "Food" to "Gastronomy",
+    // For example, if we want to change the label for FOOD from "Food" to "Food",
     // we can do it here: 
-    // FOOD: 'Gastronomy',
+    // FOOD: 'Food',
 };
 
 /**
  * Converts a backend interest constant to a user-friendly label.
- * Known labels use an explicit mapping (e.g. FOOD → Gastronomy).
+ * Known labels use an explicit mapping (e.g. FOOD → Food).
  * Everything else is title-cased with underscores replaced by spaces,
  * so future values like BOARD_GAMES → "Board Games" work automatically.
  */

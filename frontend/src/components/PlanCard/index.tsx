@@ -24,7 +24,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
     const tintText = useThemeColor({}, 'tintText');
 
     const CATEGORY_BY_INTEREST: Record<string, string> = {
-        FOOD:      'Gastronomy',
+        FOOD:      'Food',
         CULTURE:   'Culture',
         NATURE:    'Nature',
         BEACH:     'Beach',

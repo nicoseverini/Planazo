@@ -25,7 +25,7 @@ import { validateAgeFields, parseAge } from '@/utils/age-restriction';
 import { styles } from './styles';
 
 const CATEGORY_OPTIONS = [
-    'Gastronomy',
+    'Food',
     'Culture',
     'Nature',
     'Beach',
@@ -39,7 +39,7 @@ const CATEGORY_OPTIONS = [
 ] as const;
 
 const INTEREST_BY_CATEGORY: Record<string, string> = {
-    Gastronomy:      'FOOD',
+    Food:      'FOOD',
     Culture:   'CULTURE',
     Nature:    'NATURE',
     Beach:     'BEACH',

@@ -35,7 +35,7 @@ export const interestOptions: { label: string; value: Interest }[] = [
 	{ label: 'Adventure', value: 'ADVENTURE' },
 	{ label: 'Sports', value: 'SPORTS' },
 	{ label: 'History', value: 'HISTORY' },
-	{ label: 'Gastronomy', value: 'FOOD' },
+	{ label: 'Food', value: 'FOOD' },
 ]
 
 export const defaultPlanFormState: PlanFormState = {

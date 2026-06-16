@@ -177,6 +177,7 @@ export default function RegisterScreen() {
   const [values, setValues] = useState<SignupFormState>({
     email: '',
     password: '',
+    confirmPassword: '',
     name: '',
     lastname: '',
     gender: '',
@@ -240,6 +241,16 @@ export default function RegisterScreen() {
             autoCapitalize="none"
             autoComplete="password"
           />
+          <View style={{ position: 'relative' }}>
+              <AuthInput
+                  label="Confirm password"
+                  value={values.confirmPassword}
+                  onChangeText={(value) => update('confirmPassword', value)}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoComplete="password"
+              />
+          </View>
 
           <Pressable
             onPress={() => setShowPassword(!showPassword)}
