@@ -93,23 +93,29 @@ export async function loginUser(req: LoginRequest): Promise<AuthTokenResponse> {
 }
 
 export async function signupUser(req: SignupRequest): Promise<SignupResponse> {
-  const url = `${getBackendUrl()}/api/v1/auth/signup`;
+    const url = `${getBackendUrl()}/api/v1/auth/signup`;
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(req),
-  });
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(req),
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Signup failed: ${errorText}`);
-  }
+    if (!response.ok) {
+        if (response.status === 409) {
+            throw new Error('This email is already registered. Try logging in.');
+        }
+        if (response.status === 400) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'Please check your information and try again.');
+        }
+        throw new Error('Could not create account. Please try again later.');
+    }
 
-  return response.json();
+    return response.json();
 }
 
 export async function resendVerificationEmail(req: ResendVerificationRequest): Promise<void> {

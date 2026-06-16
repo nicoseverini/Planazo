@@ -96,6 +96,10 @@ export function validateSignupForm(values: SignupFormState) {
     return 'Birth date is required';
   }
 
+  if (!values.language.trim()) {
+    return 'Language is required';
+  }
+
   return null;
 }
 
