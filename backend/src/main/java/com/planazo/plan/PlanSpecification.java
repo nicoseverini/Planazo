@@ -11,7 +11,7 @@ import java.util.List;
 public class PlanSpecification {
 
     public static Specification<Plan> withFilters(
-            Interest interest,
+            List<Interest> interests,
             LocalDateTime dateFrom,
             LocalDateTime dateTo,
             String location,
@@ -26,8 +26,10 @@ public class PlanSpecification {
             predicates.add(cb.equal(root.get("visibility"), PlanVisibility.PUBLIC));
             predicates.add(cb.isTrue(root.get("active")));
 
-            if (interest != null) {
-                predicates.add(cb.isMember(interest, root.get("interests")));
+            if (interests != null && !interests.isEmpty()) {
+                for (Interest interest : interests) {
+                    predicates.add(cb.isMember(interest, root.get("interests")));
+                }
             }
 
             if (dateFrom != null) {

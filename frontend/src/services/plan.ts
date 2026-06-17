@@ -406,7 +406,7 @@ export async function getNearbyPlans(lat: number, lng: number, radius: number = 
 }
 
 export type PlanFilters = {
-    interest?: string;
+    interests?: string[];
     dateFrom?: string;   // ISO string
     dateTo?: string;
     location?: string;
@@ -417,7 +417,9 @@ export type PlanFilters = {
 
 export async function getFilteredPlans(filters: PlanFilters): Promise<PlanSummary[]> {
     const params = new URLSearchParams();
-    if (filters.interest)  params.append('interest', filters.interest);
+    if (filters.interests && filters.interests.length > 0) {
+        filters.interests.forEach((i) => params.append('interests', i));
+    }
     if (filters.dateFrom)  params.append('dateFrom', filters.dateFrom);
     if (filters.dateTo)    params.append('dateTo', filters.dateTo);
     if (filters.location)  params.append('location', filters.location);
@@ -429,7 +431,10 @@ export async function getFilteredPlans(filters: PlanFilters): Promise<PlanSummar
     const response = await fetch(url, {
         headers: { Accept: 'application/json' },
     });
-    if (!response.ok) throw new Error(await response.text());
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Unable to apply filters. Please try again.');
+    }
     return response.json();
 }
 

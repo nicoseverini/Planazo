@@ -50,7 +50,7 @@ export function SearchPlansScreen() {
     const [showFilters, setShowFilters] = useState(false);
 
     // Filtros
-    const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
+    const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
     const [locationFilter, setLocationFilter] = useState('');
     const [dateFrom, setDateFrom] = useState<Date | null>(null);
     const [dateTo, setDateTo] = useState<Date | null>(null);
@@ -68,11 +68,11 @@ export function SearchPlansScreen() {
     const mutedText = useThemeColor({}, 'mutedText');
     const textColor = useThemeColor({}, 'text');
 
-    const hasActiveFilters = !!(selectedInterest || locationFilter || dateFrom || dateTo || radius);
+    const hasActiveFilters = !!(selectedInterests.length > 0 || locationFilter || dateFrom || dateTo || radius);
 
     const buildFilters = useCallback((): PlanFilters => {
         const f: PlanFilters = {};
-        if (selectedInterest) f.interest = selectedInterest;
+        if (selectedInterests.length > 0) f.interests = selectedInterests;
         if (locationFilter) f.location = locationFilter;
         if (dateFrom) f.dateFrom = `${fmt(dateFrom)}T00:00:00`;
         if (dateTo) f.dateTo = `${fmt(dateTo)}T23:59:59`;
@@ -82,7 +82,7 @@ export function SearchPlansScreen() {
             f.radius = radius;
         }
         return f;
-    }, [selectedInterest, locationFilter, dateFrom, dateTo, radius, userLocation]);
+    }, [selectedInterests, locationFilter, dateFrom, dateTo, radius, userLocation]);
 
     const { tokenData, getAccessToken } = useToken();
 
@@ -118,6 +118,9 @@ export function SearchPlansScreen() {
             setFilteredPlans(visiblePlans);
         } catch (err) {
             console.error('Error loading plans:', err);
+            if (hasActiveFilters) {
+                Alert.alert('Error', 'Unable to apply filters. Please try again.');
+            }
         }
     }, [fetchPublicPlans, fetchFilteredPlans, fetchMyJoinedPlans, hasActiveFilters, buildFilters, tokenData.state]);
     useEffect(() => { loadPlans(); }, [loadPlans]);
@@ -133,7 +136,7 @@ export function SearchPlansScreen() {
     }, [searchQuery, plans]);
 
     const clearFilters = () => {
-        setSelectedInterest(null);
+        setSelectedInterests([]);
         setLocationFilter('');
         setDateFrom(null);
         setDateTo(null);
@@ -210,13 +213,13 @@ export function SearchPlansScreen() {
             {/* Chips de filtros activos */}
             {hasActiveFilters && (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginHorizontal: 20, marginBottom: 8 }}>
-                    {selectedInterest && (
-                        <View style={activeChipStyle}>
+                    {selectedInterests.map((interest) => (
+                        <View key={interest} style={activeChipStyle}>
                             <ThemedText type="label" style={{ color: tintText }}>
-                                {INTEREST_LABELS[selectedInterest]}
+                                {INTEREST_LABELS[interest]}
                             </ThemedText>
                         </View>
-                    )}
+                    ))}
                     {locationFilter && (
                         <View style={activeChipStyle}>
                             <ThemedText type="label" style={{ color: tintText }}>📍 {locationFilter}</ThemedText>
@@ -319,11 +322,15 @@ export function SearchPlansScreen() {
                     <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Category</ThemedText>
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
                         {INTERESTS.map((i) => {
-                            const active = selectedInterest === i;
+                            const active = selectedInterests.includes(i);
                             return (
                                 <Pressable
                                     key={i}
-                                    onPress={() => setSelectedInterest(active ? null : i)}
+                                    onPress={() =>
+                                        setSelectedInterests((prev) =>
+                                            prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]
+                                        )
+                                    }
                                     style={{
                                         paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
                                         backgroundColor: active ? tint : 'transparent',

@@ -471,7 +471,7 @@ public class PlanService {
 
     @Transactional(readOnly = true)
     public List<PlanSummaryDTO> getFilteredPlans(
-            Interest interest,
+            List<Interest> interests,
             LocalDateTime dateFrom,
             LocalDateTime dateTo,
             String location,
@@ -480,7 +480,7 @@ public class PlanService {
             Double radiusKm
     ) {
         var spec = PlanSpecification.withFilters(
-                interest, dateFrom, dateTo, location, null, userLat, userLng, radiusKm
+                interests, dateFrom, dateTo, location, null, userLat, userLng, radiusKm
         );
         return planRepository.findAll(spec)
                 .stream()
