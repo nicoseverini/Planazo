@@ -23,7 +23,6 @@ public class PlanSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            predicates.add(cb.equal(root.get("visibility"), PlanVisibility.PUBLIC));
             predicates.add(cb.isTrue(root.get("active")));
 
             if (interests != null && !interests.isEmpty()) {
