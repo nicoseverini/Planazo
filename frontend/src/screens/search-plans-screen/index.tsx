@@ -127,11 +127,12 @@ export function SearchPlansScreen() {
 
     useEffect(() => {
         if (!searchQuery.trim()) { setFilteredPlans(plans); return; }
-        const q = searchQuery.toLowerCase();
+        const strip = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        const q = strip(searchQuery);
         setFilteredPlans(plans.filter(p =>
-            p.title.toLowerCase().includes(q) ||
-            p.location?.toLowerCase().includes(q) ||
-            (p.interests ?? []).some((interest) => interest.toLowerCase().includes(q))
+            strip(p.title).includes(q) ||
+            (p.location ? strip(p.location).includes(q) : false) ||
+            (p.interests ?? []).some((interest) => strip(interest).includes(q))
         ));
     }, [searchQuery, plans]);
 

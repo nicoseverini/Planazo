@@ -40,9 +40,10 @@ public class PlanSpecification {
             }
 
             if (location != null && !location.isBlank()) {
+                String pattern = "%" + location.toLowerCase() + "%";
                 predicates.add(cb.like(
-                    cb.lower(root.get("location")),
-                    "%" + location.toLowerCase() + "%"
+                    cb.function("unaccent", String.class, cb.lower(root.get("location"))),
+                    cb.function("unaccent", String.class, cb.lower(cb.literal(pattern)))
                 ));
             }
 
