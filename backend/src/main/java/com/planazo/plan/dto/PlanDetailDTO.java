@@ -3,7 +3,7 @@ package com.planazo.plan.dto;
 import com.planazo.plan.PlanVisibility;
 import com.planazo.common.constants.Interest;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public record PlanDetailDTO(
@@ -14,9 +14,9 @@ public record PlanDetailDTO(
 
         String description,
 
-        LocalDateTime startDateTime,
+        OffsetDateTime startDateTime,
 
-        LocalDateTime endDateTime,
+        OffsetDateTime endDateTime,
 
         Integer durationMinutes,
 
@@ -46,6 +46,8 @@ public record PlanDetailDTO(
 
         boolean isFull,
 
-        Double budget
+        Double budget,
+
+        String timezone
 
 ) {}

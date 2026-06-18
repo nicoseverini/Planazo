@@ -5,6 +5,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { StatusBadgeColors } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PlanSummary } from '@/services/plan';
+import { formatDateInTimezone, formatTimeInTimezone } from '@/utils/date';
 
 import { styles } from './styles';
 
@@ -18,21 +19,11 @@ export function CreatedPlanCard({ plan, onPress }: CreatedPlanCardProps) {
     const border = useThemeColor({}, 'border');
     const mutedText = useThemeColor({}, 'mutedText');
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: 'short',
-        });
-    };
+    const formatDate = (dateString: string) =>
+        formatDateInTimezone(dateString, plan.timezone);
 
-    const formatTime = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
+    const formatTime = (dateString: string) =>
+        formatTimeInTimezone(dateString, plan.timezone);
 
     const isPrivate = plan.visibility === 'PRIVATE';
 

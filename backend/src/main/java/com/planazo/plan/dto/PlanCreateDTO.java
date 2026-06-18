@@ -12,7 +12,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -37,7 +36,9 @@ public record PlanCreateDTO(
         List<String> images,
         @DecimalMin(value = "0.0", message = "Budget must be at least 0")
         @DecimalMax(value = "9999999.0", message = "Budget cannot exceed 9,999,999")
-        Double budget
+        Double budget,
+        @NotBlank(message = "Time zone is required. Please use a valid IANA time zone identifier (e.g., \"America/New_York\", \"Europe/Madrid\").")
+        String timezone
 ) {
     public Plan asPlan(User creator) {
         return new Plan(
@@ -54,7 +55,8 @@ public record PlanCreateDTO(
                 latitude,
                 longitude,
                 images,
-                creator
+                creator,
+                timezone
         );
     }
 }

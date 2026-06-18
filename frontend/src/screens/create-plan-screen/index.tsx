@@ -21,6 +21,7 @@ import { AppScreen } from '@/components/ui';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PlanCreateRequest, usePlans } from '@/services/plan';
 import { validateAgeFields, parseAge } from '@/utils/age-restriction';
+import { getDeviceTimezone } from '@/utils/date';
 
 import { styles } from './styles';
 
@@ -414,6 +415,7 @@ export default function CreatePlanScreen() {
                 location: location.trim(),
                 images: images.length > 0 ? images : undefined,
                 budget: parsedBudget,
+                timezone: getDeviceTimezone(),
             };
 
             await create(payload);

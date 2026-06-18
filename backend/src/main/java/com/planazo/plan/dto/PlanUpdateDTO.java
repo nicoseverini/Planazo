@@ -7,7 +7,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public record PlanUpdateDTO(
@@ -16,9 +16,9 @@ public record PlanUpdateDTO(
 
         String description,
 
-        LocalDateTime startDateTime,
+        OffsetDateTime startDateTime,
 
-        LocalDateTime endDateTime,
+        OffsetDateTime endDateTime,
 
         PlanVisibility visibility,
 
@@ -42,6 +42,8 @@ public record PlanUpdateDTO(
 
         @DecimalMin(value = "0.0", message = "Budget must be at least 0")
         @DecimalMax(value = "9999999.0", message = "Budget cannot exceed 9,999,999")
-        Double budget
+        Double budget,
+
+        String timezone
 
 ) {}

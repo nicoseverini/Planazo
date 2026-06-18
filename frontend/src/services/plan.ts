@@ -21,6 +21,7 @@ export type PlanSummary = {
     images: string[];
     accepted: null | boolean;
     budget: number;
+    timezone: string;
 };
 
 export type PlanDetail = {
@@ -44,6 +45,7 @@ export type PlanDetail = {
     subscriberCount: number;
     isFull: boolean;
     budget: number;
+    timezone: string;
 };
 
 export type PendingSubscriber = {
@@ -67,6 +69,7 @@ export type PlanCreateRequest = {
     longitude: number;
     images?: string[];
     budget?: number;
+    timezone: string;
 };
 
 export type PlanUpdateRequest = Partial<PlanCreateRequest>;

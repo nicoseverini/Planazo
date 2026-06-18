@@ -5,6 +5,7 @@ import com.planazo.common.exception.InvalidAgeRangeException;
 import com.planazo.common.exception.InvalidBudgetException;
 import com.planazo.common.exception.InvalidDateRangeException;
 import com.planazo.common.exception.InvalidMaxSubscribersException;
+import com.planazo.common.exception.InvalidTimezoneException;
 import com.planazo.common.exception.ItemNotFoundException;
 import com.planazo.common.exception.PlanExpiredException;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -54,6 +56,19 @@ public class GlobalControllerExceptionHandler {
     @ApiResponse(responseCode = "400", description = "Invalid date range", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
     public ResponseEntity<String> handleInvalidDateRange(InvalidDateRangeException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidTimezoneException.class)
+    @ApiResponse(responseCode = "400", description = "Invalid IANA time zone identifier", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
+    public ResponseEntity<String> handleInvalidTimezone(InvalidTimezoneException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ApiResponse(responseCode = "400", description = "Malformed or unparseable request body", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
+    public ResponseEntity<String> handleUnreadableMessage(HttpMessageNotReadableException ex) {
+        String cause = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+        return new ResponseEntity<>("Invalid request body: " + cause, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -1,6 +1,6 @@
 import type { PlanVisibility } from './plan-shared'
 
-export function formatDateTime(value: string) {
+export function formatDateTime(value: string, timezone?: string) {
 	const parsedDate = new Date(value)
 	if (Number.isNaN(parsedDate.getTime())) {
 		return value
@@ -9,6 +9,7 @@ export function formatDateTime(value: string) {
 	return new Intl.DateTimeFormat('es-ES', {
 		dateStyle: 'full',
 		timeStyle: 'short',
+		...(timezone ? { timeZone: timezone } : {}),
 	}).format(parsedDate)
 }
 

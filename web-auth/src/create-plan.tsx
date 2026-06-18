@@ -52,8 +52,8 @@ export function CreatePlanPage() {
 			return
 		}
 
-		const startDateTime = buildDateTime(form.startDate, form.startTime)
-		const endDateTime = buildDateTime(form.endDate, form.endTime)
+		const startDateTime = buildDateTime(form.startDate, form.startTime, form.timezone)
+		const endDateTime = buildDateTime(form.endDate, form.endTime, form.timezone)
 
 		if (!form.title.trim() || !startDateTime || !endDateTime || !form.location.trim()) {
 			setStatus('error')
@@ -126,6 +126,7 @@ export function CreatePlanPage() {
 					description: form.description.trim() || null,
 					startDateTime,
 					endDateTime,
+					timezone: form.timezone,
 					visibility: form.visibility,
 					maxSubscribers: Number.parseInt(form.maxSubscribers, 10),
 					minAge: parseOptionalNumber(form.minAge),

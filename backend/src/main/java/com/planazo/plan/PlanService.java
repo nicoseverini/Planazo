@@ -4,6 +4,7 @@ import com.planazo.common.exception.InvalidAgeRangeException;
 import com.planazo.common.exception.InvalidBudgetException;
 import com.planazo.common.exception.InvalidDateRangeException;
 import com.planazo.common.exception.InvalidMaxSubscribersException;
+import com.planazo.common.exception.InvalidTimezoneException;
 import com.planazo.common.exception.PlanExpiredException;
 import com.planazo.plan.dto.PlanCreateDTO;
 import com.planazo.plan.dto.PlanDetailDTO;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.planazo.common.constants.Interest;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 
 import java.util.List;
@@ -46,10 +48,10 @@ public class PlanService {
     // ── Create ───────────────────────────────────────────────────────────────
 
     public PlanDetailDTO createPlan(PlanCreateDTO data, String creatorEmail) {
-        // Normalize to UTC so storage and comparisons are timezone-consistent
         LocalDateTime startUtc = data.startDateTime().withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime endUtc = data.endDateTime().withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
         validateDateRange(startUtc, endUtc);
+        validateTimezone(data.timezone());
 
         Integer normalizedMin = normalizeAge(data.minAge());
         Integer normalizedMax = normalizeAge(data.maxAge());
@@ -77,7 +79,8 @@ public class PlanService {
                 data.latitude(),
                 data.longitude(),
                 data.images(),
-                creator
+                creator,
+                data.timezone()
         );
         plan.setBudget(normalizedBudget);
 
@@ -289,10 +292,13 @@ public class PlanService {
         Integer effectiveMax = data.maxAge() != null ? incomingMax : plan.getMaxAge();
         validateAgeRange(effectiveMin, effectiveMax);
 
-        // Validate date range using the effective values (mix of incoming and existing)
-        LocalDateTime effectiveStart = data.startDateTime() != null ? data.startDateTime() : plan.getStartDateTime();
-        LocalDateTime effectiveEnd = data.endDateTime() != null ? data.endDateTime() : plan.getEndDateTime();
-        if (data.startDateTime() != null || data.endDateTime() != null) {
+        LocalDateTime incomingStartUtc = data.startDateTime() != null
+                ? data.startDateTime().withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime() : null;
+        LocalDateTime incomingEndUtc = data.endDateTime() != null
+                ? data.endDateTime().withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime() : null;
+        LocalDateTime effectiveStart = incomingStartUtc != null ? incomingStartUtc : plan.getStartDateTime();
+        LocalDateTime effectiveEnd = incomingEndUtc != null ? incomingEndUtc : plan.getEndDateTime();
+        if (incomingStartUtc != null || incomingEndUtc != null) {
             validateDateRange(effectiveStart, effectiveEnd);
         }
 
@@ -304,10 +310,14 @@ public class PlanService {
         if (data.maxSubscribers() != null) {
             validateMaxSubscribers(data.maxSubscribers());
         }
+        if (data.timezone() != null) {
+            validateTimezone(data.timezone());
+            plan.setTimezone(data.timezone());
+        }
         if (data.title() != null)           plan.setTitle(data.title());
         if (data.description() != null)     plan.setDescription(data.description());
-        if (data.startDateTime() != null)   plan.setStartDateTime(data.startDateTime());
-        if (data.endDateTime() != null)     plan.setEndDateTime(data.endDateTime());
+        if (incomingStartUtc != null)       plan.setStartDateTime(incomingStartUtc);
+        if (incomingEndUtc != null)         plan.setEndDateTime(incomingEndUtc);
         if (data.visibility() != null)      plan.setVisibility(data.visibility());
         if (data.maxSubscribers() != null)  plan.setMaxSubscribers(data.maxSubscribers());
         if (data.minAge() != null)          plan.setMinAge(incomingMin);
@@ -416,8 +426,8 @@ public class PlanService {
                 plan.getId(),
                 plan.getTitle(),
                 plan.getDescription(),
-                plan.getStartDateTime(),
-                plan.getEndDateTime(),
+                plan.getStartDateTime().atOffset(ZoneOffset.UTC),
+                plan.getEndDateTime().atOffset(ZoneOffset.UTC),
                 plan.getDurationMinutes(),
                 plan.getVisibility(),
                 plan.getMaxSubscribers(),
@@ -432,7 +442,8 @@ public class PlanService {
                 plan.getCreator().getName(),
                 plan.getSubscriberCount(),
                 plan.isFull(),
-                plan.getBudget()
+                plan.getBudget(),
+                plan.getTimezone()
         );
     }
 
@@ -444,7 +455,7 @@ public class PlanService {
         return new PlanSummaryDTO(
                 plan.getId(),
                 plan.getTitle(),
-                plan.getStartDateTime(),
+                plan.getStartDateTime().atOffset(ZoneOffset.UTC),
                 plan.getLocation(),
                 plan.getLatitude(),
                 plan.getLongitude(),
@@ -457,7 +468,8 @@ public class PlanService {
                 plan.getCreator().getId(),
                 List.copyOf(plan.getImages()),
                 accepted,
-                plan.getBudget()
+                plan.getBudget(),
+                plan.getTimezone()
         );
     }
 
@@ -539,8 +551,17 @@ public class PlanService {
     }
 
     private void throwIfExpired(Plan plan) {
-        if (!plan.getEndDateTime().isAfter(LocalDateTime.now())) {
+        if (!plan.getEndDateTime().isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
             throw new PlanExpiredException(plan.getTitle());
+        }
+    }
+
+    private void validateTimezone(String timezone) {
+        if (timezone == null || timezone.isBlank()) return;
+        try {
+            ZoneId.of(timezone);
+        } catch (Exception e) {
+            throw new InvalidTimezoneException(timezone);
         }
     }
 }

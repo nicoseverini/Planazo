@@ -24,6 +24,7 @@ type PlanDetailResponse = {
 	subscriberCount: number
 	isFull: boolean
 	budget: number | null
+	timezone: string
 }
 
 type PlanDetailPageProps = {
@@ -157,7 +158,7 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 						<div className="plan-detail-summary">
 							<div>
 								<span className="summary-label">Date</span>
-								<strong>{formatDateTime(plan.startDateTime)}{plan.endDateTime ? ` – ${formatDateTime(plan.endDateTime)}` : ''}</strong>
+								<strong>{formatDateTime(plan.startDateTime, plan.timezone)}{plan.endDateTime ? ` – ${formatDateTime(plan.endDateTime, plan.timezone)}` : ''}</strong>
 							</div>
 							<div>
 								<span className="summary-label">Location</span>

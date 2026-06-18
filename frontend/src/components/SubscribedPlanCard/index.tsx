@@ -4,6 +4,7 @@ import { Pressable, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PlanSummary } from '@/services/plan';
+import { formatDateInTimezone, formatTimeInTimezone } from '@/utils/date';
 
 import { styles } from './styles';
 
@@ -23,21 +24,11 @@ export function SubscribedPlanCard({ plan, onPress }: SubscribedPlanCardProps) {
     const statusColor =
         plan.accepted === true ? '#1E9E63' : plan.accepted === false ? '#D9822B' : mutedText;
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: 'short',
-        });
-    };
+    const formatDate = (dateString: string) =>
+        formatDateInTimezone(dateString, plan.timezone);
 
-    const formatTime = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
+    const formatTime = (dateString: string) =>
+        formatTimeInTimezone(dateString, plan.timezone);
 
     return (
         <Pressable

@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,12 +83,15 @@ public class Plan {
     @Column(nullable = false)
     private Boolean active = true;
 
+    @Column(nullable = true)
+    private String timezone;
+
     public Plan() {}
 
     public Plan(String title, String description, LocalDateTime startDateTime, LocalDateTime endDateTime,
                 PlanVisibility visibility, Integer maxSubscribers, Integer minAge, Integer maxAge,
                 List<Interest> interests, String location, Double latitude, Double longitude,
-                List<String> images, User creator) {
+                List<String> images, User creator, String timezone) {
         this.title = title;
         this.description = description;
         this.startDateTime = startDateTime;
@@ -105,6 +109,7 @@ public class Plan {
         this.creator = creator;
         this.active = true;
         this.subscriberCount = 0;
+        this.timezone = timezone;
     }
 
     public Long getId() { return id; }
@@ -154,9 +159,11 @@ public class Plan {
     public Double getBudget() { return budget; }
     public void setBudget(Double budget) { this.budget = budget; }
     public boolean isActive() {
-        return active && LocalDateTime.now().isBefore(endDateTime);
+        return active && LocalDateTime.now(ZoneOffset.UTC).isBefore(endDateTime);
     }
     public void setActive(Boolean active) { this.active = active; }
+    public String getTimezone() { return timezone != null ? timezone : "UTC"; }
+    public void setTimezone(String timezone) { this.timezone = timezone; }
 
     public boolean hasSubscriber(Long userId) {
         return subscribers.stream().anyMatch(subscription -> subscription.matchesUserId(userId));
@@ -178,7 +185,7 @@ public class Plan {
 
     public void checkAgeEligibility(User user) {
         if (minAge == null && maxAge == null) return;
-        int age = Period.between(user.getBirthDate(), LocalDate.now()).getYears();
+        int age = Period.between(user.getBirthDate(), LocalDate.now(ZoneOffset.UTC)).getYears();
         if (minAge != null && age < minAge) throw new AgeRestrictionException();
         if (maxAge != null && age > maxAge) throw new AgeRestrictionException();
     }

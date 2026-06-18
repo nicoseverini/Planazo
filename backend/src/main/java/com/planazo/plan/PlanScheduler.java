@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Component
 class PlanScheduler {
@@ -18,6 +19,6 @@ class PlanScheduler {
     @Scheduled(fixedRate = 60_000) // time in milliseconds (ex: 60_000 ms = 60s = 1 minute)
     @Transactional
     public void deactivateExpiredPlans() {
-        planRepository.deactivateExpiredPlans(LocalDateTime.now());
+        planRepository.deactivateExpiredPlans(LocalDateTime.now(ZoneOffset.UTC));
     }
 }

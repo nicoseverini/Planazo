@@ -21,6 +21,7 @@ import { AppScreen } from '@/components/ui';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PlanUpdateRequest, usePlans } from '@/services/plan';
 import { validateAgeFields, parseAge } from '@/utils/age-restriction';
+import { buildDateTimeWithTimezone, getLocalPartsInTimezone } from '@/utils/date';
 
 import { styles } from './styles';
 
@@ -52,36 +53,6 @@ const INTEREST_BY_CATEGORY: Record<string, string> = {
     Other:     'OTHER',
 };
 
-const buildDateTime = (dateValue: string, timeValue: string): string | null => {
-    const dateText = dateValue.trim();
-    const timeText = timeValue.trim();
-    if (!dateText || !timeText) return null;
-
-    let day = '';
-    let month = '';
-    let year = '';
-
-    if (dateText.includes('/')) {
-        const parts = dateText.split('/');
-        if (parts.length !== 3) return null;
-        [day, month, year] = parts;
-    } else if (dateText.includes('-')) {
-        const parts = dateText.split('-');
-        if (parts.length !== 3) return null;
-        [year, month, day] = parts;
-    } else {
-        return null;
-    }
-
-    const timeParts = timeText.split(':');
-    if (timeParts.length < 2) return null;
-    const [hour, minute] = timeParts;
-
-    const normalizedDate = `${year.padStart(4, '0')}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    const normalizedTime = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
-
-    return `${normalizedDate}T${normalizedTime}`;
-};
 
 const addOneHour = (timeValue: string): string => {
     const parts = timeValue.split(':');
@@ -136,6 +107,7 @@ export default function EditPlanScreen() {
     const [budget, setBudget] = useState('');
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [images, setImages] = useState<string[]>([]);
+    const [planTimezone, setPlanTimezone] = useState<string>('UTC');
 
     useEffect(() => {
         const loadPlan = async () => {
@@ -152,6 +124,9 @@ export default function EditPlanScreen() {
                 setMaxParticipants(plan.maxSubscribers ? plan.maxSubscribers.toString() : '');
                 setBudget(plan.budget ? plan.budget.toString() : '');
                 if (plan.images) setImages(plan.images);
+
+                const tz = plan.timezone || 'UTC';
+                setPlanTimezone(tz);
 
                 const categoriesFromInterests = Object.keys(INTEREST_BY_CATEGORY).filter(
                     key => plan.interests?.includes(INTEREST_BY_CATEGORY[key])
@@ -171,23 +146,19 @@ export default function EditPlanScreen() {
                 }
 
                 if (plan.startDateTime) {
-                    const [datePart, timePart] = plan.startDateTime.split('T');
-                    if (datePart && timePart) {
-                        const [year, month, day] = datePart.split('-');
-                        setStartDate(`${day}/${month}/${year}`);
-                        setStartTime(timePart.substring(0, 5));
-                        setInternalStartDate(new Date(plan.startDateTime));
-                    }
+                    const startDate = new Date(plan.startDateTime);
+                    const { date: localDate, time: localTime } = getLocalPartsInTimezone(startDate, tz);
+                    setStartDate(localDate);
+                    setStartTime(localTime);
+                    setInternalStartDate(startDate);
                 }
 
                 if (plan.endDateTime) {
-                    const [datePart, timePart] = plan.endDateTime.split('T');
-                    if (datePart && timePart) {
-                        const [year, month, day] = datePart.split('-');
-                        setEndDate(`${day}/${month}/${year}`);
-                        setEndTime(timePart.substring(0, 5));
-                        setInternalEndDate(new Date(plan.endDateTime));
-                    }
+                    const endDate = new Date(plan.endDateTime);
+                    const { date: localDate, time: localTime } = getLocalPartsInTimezone(endDate, tz);
+                    setEndDate(localDate);
+                    setEndTime(localTime);
+                    setInternalEndDate(endDate);
                 }
 
             } catch (error) {
@@ -394,8 +365,8 @@ export default function EditPlanScreen() {
     const handleUpdate = async () => {
         if (!validateForm()) return;
 
-        const startDateTime = buildDateTime(startDate, startTime);
-        const endDateTime = buildDateTime(endDate, endTime);
+        const startDateTime = buildDateTimeWithTimezone(startDate, startTime, planTimezone);
+        const endDateTime = buildDateTimeWithTimezone(endDate, endTime, planTimezone);
 
         if (!startDateTime) {
             setError('Start date or time has an invalid format.');
@@ -448,6 +419,7 @@ export default function EditPlanScreen() {
                 location: location.trim(),
                 images: images.length > 0 ? images : undefined,
                 budget: parsedBudget,
+                timezone: planTimezone,
             };
 
             await update(Number(id), payload);

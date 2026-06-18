@@ -17,6 +17,7 @@ export type PlanFormState = {
 	latitude: string
 	longitude: string
 	budget: string
+	timezone: string
 }
 
 export type SelectedImage = {
@@ -54,6 +55,7 @@ export const defaultPlanFormState: PlanFormState = {
 	latitude: '-34.6037',
 	longitude: '-58.3816',
 	budget: '',
+	timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
 }
 
 export function validateAgeRange(minAge: string, maxAge: string): string | null {
@@ -75,22 +77,75 @@ export function parseOptionalNumber(value: string) {
 	return Number.isFinite(parsed) ? parsed : undefined
 }
 
-export function buildDateTime(date: string, time: string) {
+export function buildDateTime(date: string, time: string, timezone?: string) {
 	const normalizedDate = date.trim()
 	const normalizedTime = time.trim()
 	if (!normalizedDate || !normalizedTime) {
 		return ''
 	}
 
-	return `${normalizedDate}T${normalizedTime}`
+	const tz = timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC'
+
+	// DST-safe UTC offset computation using Intl.DateTimeFormat.formatToParts
+	const refDate = new Date(`${normalizedDate}T${normalizedTime}:00Z`)
+	const parts = new Intl.DateTimeFormat('en-CA', {
+		timeZone: tz,
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit',
+		hour12: false,
+	}).formatToParts(refDate)
+	const p: Record<string, string> = {}
+	for (const part of parts) p[part.type] = part.value
+	const localHour = p.hour === '24' ? 0 : parseInt(p.hour, 10)
+	const localAsUtcMs = Date.UTC(
+		parseInt(p.year, 10), parseInt(p.month, 10) - 1, parseInt(p.day, 10),
+		localHour, parseInt(p.minute, 10), parseInt(p.second, 10),
+	)
+	const diffMinutes = Math.round((localAsUtcMs - refDate.getTime()) / 60000)
+	const sign = diffMinutes >= 0 ? '+' : '-'
+	const absDiff = Math.abs(diffMinutes)
+	const h = String(Math.floor(absDiff / 60)).padStart(2, '0')
+	const m = String(absDiff % 60).padStart(2, '0')
+
+	return `${normalizedDate}T${normalizedTime}:00${sign}${h}:${m}`
 }
 
-export function splitDateTime(dateTime: string) {
-	const [date = '', time = ''] = dateTime.split('T')
-	return {
-		date,
-		time: time.slice(0, 5),
+export function splitDateTime(dateTime: string, timezone?: string) {
+	if (!dateTime) return { date: '', time: '' }
+
+	const tz = timezone ?? 'UTC'
+	const parsed = new Date(dateTime)
+
+	if (!Number.isFinite(parsed.getTime())) {
+		const [d = '', t = ''] = dateTime.split('T')
+		return { date: d, time: t.slice(0, 5) }
 	}
+
+	// Extract local date/time parts in the given timezone
+	const parts = new Intl.DateTimeFormat('en-CA', {
+		timeZone: tz,
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		hour12: false,
+	}).formatToParts(parsed)
+
+	const p: Record<string, string> = {}
+	for (const part of parts) {
+		p[part.type] = part.value
+	}
+
+	const localDate = `${p.year}-${p.month}-${p.day}`
+	const hour = p.hour === '24' ? '00' : p.hour
+	const localTime = `${hour}:${p.minute}`
+
+	return { date: localDate, time: localTime }
 }
 
 export function isFutureDateTime(dateTime: string) {

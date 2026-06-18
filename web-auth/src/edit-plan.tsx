@@ -35,11 +35,13 @@ type PlanDetailResponse = {
 	longitude: number | null
 	images: string[]
 	budget: number | null
+	timezone: string
 }
 
 function toFormState(plan: PlanDetailResponse): PlanFormState {
-	const { date: startDate, time: startTime } = splitDateTime(plan.startDateTime)
-	const { date: endDate, time: endTime } = splitDateTime(plan.endDateTime ?? '')
+	const tz = plan.timezone || 'UTC'
+	const { date: startDate, time: startTime } = splitDateTime(plan.startDateTime, tz)
+	const { date: endDate, time: endTime } = splitDateTime(plan.endDateTime ?? '', tz)
 
 	return {
 		title: plan.title,
@@ -57,6 +59,7 @@ function toFormState(plan: PlanDetailResponse): PlanFormState {
 		latitude: plan.latitude?.toString() ?? '',
 		longitude: plan.longitude?.toString() ?? '',
 		budget: plan.budget ? plan.budget.toString() : '',
+		timezone: tz,
 	}
 }
 
@@ -141,8 +144,8 @@ export function EditPlanPage({ planId }: { planId: number }) {
 			return
 		}
 
-		const startDateTime = buildDateTime(form.startDate, form.startTime)
-		const endDateTime = buildDateTime(form.endDate, form.endTime)
+		const startDateTime = buildDateTime(form.startDate, form.startTime, form.timezone)
+		const endDateTime = buildDateTime(form.endDate, form.endTime, form.timezone)
 
 		if (!form.title.trim() || !startDateTime || !endDateTime || !form.location.trim()) {
 			setStatus('error')
@@ -215,6 +218,7 @@ export function EditPlanPage({ planId }: { planId: number }) {
 					description: form.description.trim() || null,
 					startDateTime,
 					endDateTime,
+					timezone: form.timezone,
 					visibility: form.visibility,
 					maxSubscribers: Number.parseInt(form.maxSubscribers, 10),
 					minAge: parseOptionalNumber(form.minAge),

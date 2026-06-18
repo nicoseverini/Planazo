@@ -23,6 +23,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { PendingSubscriber, PlanDetail, usePlans } from '@/services/plan';
 import { formatAgeRestriction } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
+import { formatDateTimeInTimezone } from '@/utils/date';
 
 import { styles } from './styles';
 
@@ -55,17 +56,8 @@ const parsePlanId = (value?: string | string[]): number | null => {
     return Number.isNaN(parsed) ? null : parsed;
 };
 
-const formatDateTime = (value: string) => {
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) {
-        return { dateLabel: value, timeLabel: '' };
-    }
-
-    return {
-        dateLabel: parsed.toLocaleDateString(),
-        timeLabel: parsed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-};
+const formatDateTime = (value: string, timezone: string | undefined | null) =>
+    formatDateTimeInTimezone(value, timezone);
 
 export default function PlanDetailScreen() {
     const router = useRouter();
@@ -293,8 +285,8 @@ export default function PlanDetailScreen() {
     const images = plan.images || [];
     const reviewCount = 0;
     const averageRating = 0;
-    const { dateLabel, timeLabel } = formatDateTime(plan.startDateTime);
-    const { dateLabel: endDateLabel, timeLabel: endTimeLabel } = formatDateTime(plan.endDateTime);
+    const { dateLabel, timeLabel } = formatDateTime(plan.startDateTime, plan.timezone);
+    const { dateLabel: endDateLabel, timeLabel: endTimeLabel } = formatDateTime(plan.endDateTime, plan.timezone);
     const isPublic = plan.visibility === 'PUBLIC';
     const isExpired = plan.endDateTime ? new Date(plan.endDateTime) <= new Date() : false;
     const participantsLabel = plan.maxSubscribers != null
