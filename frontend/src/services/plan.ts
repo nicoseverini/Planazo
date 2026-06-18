@@ -9,6 +9,9 @@ export type PlanSummary = {
     title: string;
     startDateTime: string;
     location: string;
+    country?: string;
+    city?: string;
+    address?: string;
     latitude: number;
     longitude: number;
     interests: string[];
@@ -37,6 +40,9 @@ export type PlanDetail = {
     maxAge: number | null;
     interests: string[];
     location: string;
+    country?: string;
+    city?: string;
+    address?: string;
     latitude: number;
     longitude: number;
     images: string[];
@@ -64,7 +70,9 @@ export type PlanCreateRequest = {
     minAge?: number;
     maxAge?: number;
     interests: string[];
-    location: string;
+    country: string;
+    city: string;
+    address: string;
     latitude: number;
     longitude: number;
     images?: string[];

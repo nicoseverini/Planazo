@@ -32,6 +32,15 @@ public record PlanUpdateDTO(
 
         @Size(min = 1, message = "At least one interest must be selected") List<Interest> interests,
 
+        @Size(max = 100, message = "Country must be 100 characters or less.")
+        String country,
+
+        @Size(max = 100, message = "City must be 100 characters or less.")
+        String city,
+
+        @Size(max = 255, message = "Address must be 255 characters or less.")
+        String address,
+
         String location,
 
         Double latitude,

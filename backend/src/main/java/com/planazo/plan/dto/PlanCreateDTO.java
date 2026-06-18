@@ -12,6 +12,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -30,7 +31,15 @@ public record PlanCreateDTO(
         @Min(0) @Max(120) Integer minAge,
         @Min(0) @Max(120) Integer maxAge,
         @NotEmpty(message = "At least one interest must be selected") List<Interest> interests,
-        String location,
+        @NotBlank(message = "Country is required.")
+        @Size(max = 100, message = "Country must be 100 characters or less.")
+        String country,
+        @NotBlank(message = "City is required.")
+        @Size(max = 100, message = "City must be 100 characters or less.")
+        String city,
+        @NotBlank(message = "Address is required.")
+        @Size(max = 255, message = "Address must be 255 characters or less.")
+        String address,
         Double latitude,
         Double longitude,
         List<String> images,
@@ -51,7 +60,9 @@ public record PlanCreateDTO(
                 minAge,
                 maxAge,
                 interests,
-                location,
+                country,
+                city,
+                address,
                 latitude,
                 longitude,
                 images,

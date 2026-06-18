@@ -54,7 +54,16 @@ public class Plan {
     @Enumerated(EnumType.STRING)
     private List<Interest> interests = new ArrayList<>();
 
-    // Free-text address / zone
+    @Column
+    private String country;
+
+    @Column
+    private String city;
+
+    @Column(name = "address_line")
+    private String address;
+
+    // Derived from country/city/address; kept for backward compat and search
     @Column
     private String location;
 
@@ -90,8 +99,8 @@ public class Plan {
 
     public Plan(String title, String description, LocalDateTime startDateTime, LocalDateTime endDateTime,
                 PlanVisibility visibility, Integer maxSubscribers, Integer minAge, Integer maxAge,
-                List<Interest> interests, String location, Double latitude, Double longitude,
-                List<String> images, User creator, String timezone) {
+                List<Interest> interests, String country, String city, String address,
+                Double latitude, Double longitude, List<String> images, User creator, String timezone) {
         this.title = title;
         this.description = description;
         this.startDateTime = startDateTime;
@@ -102,7 +111,7 @@ public class Plan {
         this.minAge = minAge;
         this.maxAge = maxAge;
         this.interests = interests == null ? new ArrayList<>() : new ArrayList<>(interests);
-        this.location = location;
+        setLocationParts(country, city, address);
         this.latitude = latitude;
         this.longitude = longitude;
         this.images = images == null ? new ArrayList<>() : new ArrayList<>(images);
@@ -140,8 +149,31 @@ public class Plan {
     public void setInterests(List<Interest> interests) {
         this.interests = interests == null ? new ArrayList<>() : new ArrayList<>(interests);
     }
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
+
+    public void setLocationParts(String country, String city, String address) {
+        this.country = country != null ? country.trim() : null;
+        this.city = city != null ? city.trim() : null;
+        this.address = address != null ? address.trim() : null;
+        StringBuilder derived = new StringBuilder();
+        if (this.address != null && !this.address.isBlank()) derived.append(this.address);
+        if (this.city != null && !this.city.isBlank()) {
+            if (derived.length() > 0) derived.append(", ");
+            derived.append(this.city);
+        }
+        if (this.country != null && !this.country.isBlank()) {
+            if (derived.length() > 0) derived.append(", ");
+            derived.append(this.country);
+        }
+        this.location = derived.toString();
+    }
     public Double getLatitude() { return latitude; }
     public void setLatitude(Double latitude) { this.latitude = latitude; }
     public Double getLongitude() { return longitude; }

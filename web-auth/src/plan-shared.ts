@@ -13,7 +13,9 @@ export type PlanFormState = {
 	minAge: string
 	maxAge: string
 	interests: Interest[]
-	location: string
+	country: string
+	city: string
+	address: string
 	latitude: string
 	longitude: string
 	budget: string
@@ -51,7 +53,9 @@ export const defaultPlanFormState: PlanFormState = {
 	minAge: '18',
 	maxAge: '90',
 	interests: [],
-	location: '',
+	country: '',
+	city: '',
+	address: '',
 	latitude: '-34.6037',
 	longitude: '-58.3816',
 	budget: '',

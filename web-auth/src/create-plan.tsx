@@ -55,9 +55,24 @@ export function CreatePlanPage() {
 		const startDateTime = buildDateTime(form.startDate, form.startTime, form.timezone)
 		const endDateTime = buildDateTime(form.endDate, form.endTime, form.timezone)
 
-		if (!form.title.trim() || !startDateTime || !endDateTime || !form.location.trim()) {
+		if (!form.title.trim() || !startDateTime || !endDateTime) {
 			setStatus('error')
-			setMessage('Title, start date/time, end date/time and location are required.')
+			setMessage('Title, start date/time, and end date/time are required.')
+			return
+		}
+		if (!form.country.trim()) {
+			setStatus('error')
+			setMessage('Country is required.')
+			return
+		}
+		if (!form.city.trim()) {
+			setStatus('error')
+			setMessage('City is required.')
+			return
+		}
+		if (!form.address.trim()) {
+			setStatus('error')
+			setMessage('Address is required.')
 			return
 		}
 
@@ -132,7 +147,9 @@ export function CreatePlanPage() {
 					minAge: parseOptionalNumber(form.minAge),
 					maxAge: parseOptionalNumber(form.maxAge),
 					interests: form.interests,
-					location: form.location.trim(),
+					country: form.country.trim(),
+					city: form.city.trim(),
+					address: form.address.trim(),
 					latitude,
 					longitude,
 					images,

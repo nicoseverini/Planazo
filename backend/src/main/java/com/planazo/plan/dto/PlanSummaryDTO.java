@@ -16,6 +16,12 @@ public record PlanSummaryDTO(
 
         String location,
 
+        String country,
+
+        String city,
+
+        String address,
+
         Double latitude,
 
         Double longitude,

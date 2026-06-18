@@ -113,9 +113,19 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
                 </div>
             </div>
 
+			<label className="field">
+				Country
+				<input value={form.country} onChange={(event) => onChange('country', event.target.value)} required placeholder="e.g. Argentina" />
+			</label>
+
+			<label className="field">
+				City
+				<input value={form.city} onChange={(event) => onChange('city', event.target.value)} required placeholder="e.g. Buenos Aires" />
+			</label>
+
 			<label className="field field--wide">
-				Location
-				<input value={form.location} onChange={(event) => onChange('location', event.target.value)} required />
+				Address
+				<input value={form.address} onChange={(event) => onChange('address', event.target.value)} required placeholder="e.g. Av. Paseo Colón 850" />
 			</label>
 
 			<label className="field">

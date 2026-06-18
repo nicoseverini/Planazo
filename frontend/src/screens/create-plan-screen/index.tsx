@@ -134,7 +134,9 @@ export default function CreatePlanScreen() {
 
     const mapRef = useRef<MapView>(null);
     const [isSearchingLoc, setIsSearchingLoc] = useState(false);
-    const [location, setLocation] = useState('');
+    const [country, setCountry] = useState('');
+    const [city, setCity] = useState('');
+    const [address, setAddress] = useState('');
     const [isFetchingAddress, setIsFetchingAddress] = useState(false);
     const [pinLocation, setPinLocation] = useState<{latitude: number, longitude: number} | null>(null);
     const [minAge, setMinAge] = useState('');
@@ -195,8 +197,16 @@ export default function CreatePlanScreen() {
             setError('End date and time are required');
             return false;
         }
-        if (!location.trim()) {
-            setError('Location is required');
+        if (!country.trim()) {
+            setError('Country is required.');
+            return false;
+        }
+        if (!city.trim()) {
+            setError('City is required.');
+            return false;
+        }
+        if (!address.trim()) {
+            setError('Address is required.');
             return false;
         }
         if (selectedCategories.length === 0) {
@@ -239,10 +249,11 @@ export default function CreatePlanScreen() {
     };
 
     const handleSearchAddress = async () => {
-        if (!location.trim()) return;
+        const query = [address.trim(), city.trim(), country.trim()].filter(Boolean).join(', ');
+        if (!query) return;
         setIsSearchingLoc(true);
         try {
-            const geocoded = await Location.geocodeAsync(location);
+            const geocoded = await Location.geocodeAsync(query);
             if (geocoded.length > 0) {
                 const { latitude, longitude } = geocoded[0];
                 const newCoords = { latitude, longitude };
@@ -254,7 +265,7 @@ export default function CreatePlanScreen() {
                     longitudeDelta: 0.02,
                 }, 1000);
             } else {
-                Alert.alert('Not found', 'Try being more specific (e.g., add city).');
+                Alert.alert('Not found', 'Try being more specific or check the address.');
             }
         } catch (e) {
             console.log(e);
@@ -272,28 +283,24 @@ export default function CreatePlanScreen() {
             const geocoded = await Location.reverseGeocodeAsync(coordinate);
 
             if (geocoded && geocoded.length > 0) {
-                const addr = geocoded[0];
+                const result = geocoded[0];
 
-                let formattedAddress = '';
+                if (result.country) setCountry(result.country);
 
-                if (addr.street) {
-                    formattedAddress += addr.street;
-                    if (addr.streetNumber) {
-                        formattedAddress += ` ${addr.streetNumber}`;
-                    }
-                } else if (addr.name) {
-                    formattedAddress += addr.name;
+                const cityPart = result.city || result.subregion || '';
+                setCity(cityPart);
+
+                let streetAddress = '';
+                if (result.street) {
+                    streetAddress = result.street;
+                    if (result.streetNumber) streetAddress += ` ${result.streetNumber}`;
+                } else if (result.name) {
+                    streetAddress = result.name;
                 }
-
-                const cityPart = addr.city || addr.subregion;
-                if (cityPart) {
-                    formattedAddress += formattedAddress ? `, ${cityPart}` : cityPart;
-                }
-
-                setLocation(formattedAddress.trim());
+                setAddress(streetAddress.trim());
             }
         } catch (error) {
-            console.error("Error obteniendo la dirección:", error);
+            console.error("Error fetching address:", error);
         } finally {
             setIsFetchingAddress(false);
         }
@@ -385,13 +392,19 @@ export default function CreatePlanScreen() {
         setError(null);
 
         try {
+            let finalLat = pinLocation?.latitude;
+            let finalLng = pinLocation?.longitude;
 
-            const geocodedLocation = await Location.geocodeAsync(location.trim());
-
-            if (!geocodedLocation || geocodedLocation.length === 0) {
-                setError('We could not find the location on the map. Try adding the city (e.g., Obelisco, Buenos Aires).');
-                setSaving(false);
-                return;
+            if (!finalLat || !finalLng) {
+                const query = [address.trim(), city.trim(), country.trim()].filter(Boolean).join(', ');
+                const geocodedLocation = await Location.geocodeAsync(query);
+                if (!geocodedLocation || geocodedLocation.length === 0) {
+                    setError('We could not find the location on the map. Try being more specific (e.g., add city and country).');
+                    setSaving(false);
+                    return;
+                }
+                finalLat = geocodedLocation[0].latitude;
+                finalLng = geocodedLocation[0].longitude;
             }
 
             const mappedInterests = selectedCategories
@@ -405,14 +418,16 @@ export default function CreatePlanScreen() {
                 description: description.trim(),
                 startDateTime,
                 endDateTime,
-                latitude: pinLocation?.latitude ?? geocodedLocation[0].latitude,
-                longitude: pinLocation?.longitude ?? geocodedLocation[0].longitude,
+                latitude: finalLat,
+                longitude: finalLng,
                 visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
                 maxSubscribers: parsedMaxSubscribers,
                 minAge: parseAge(minAge),
                 maxAge: parseAge(maxAge),
                 interests: mappedInterests,
-                location: location.trim(),
+                country: country.trim(),
+                city: city.trim(),
+                address: address.trim(),
                 images: images.length > 0 ? images : undefined,
                 budget: parsedBudget,
                 timezone: getDeviceTimezone(),
@@ -659,17 +674,44 @@ export default function CreatePlanScreen() {
                 </View>
             </View>
 
-            {/* Ubicación híbrida: Texto + Mapa */}
+            {/* Location: Country / City / Address + Map */}
             <View style={styles.inputGroup}>
                 <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
-                    Area / Address
+                    Country
                 </ThemedText>
+                <TextInput
+                    value={country}
+                    onChangeText={setCountry}
+                    placeholder="e.g. Argentina"
+                    placeholderTextColor={mutedText}
+                    style={[
+                        styles.input,
+                        { marginTop: 0, marginBottom: 12, backgroundColor: surface, borderColor: border, color: text },
+                    ]}
+                />
 
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                    City
+                </ThemedText>
+                <TextInput
+                    value={city}
+                    onChangeText={setCity}
+                    placeholder="e.g. Buenos Aires"
+                    placeholderTextColor={mutedText}
+                    style={[
+                        styles.input,
+                        { marginTop: 0, marginBottom: 12, backgroundColor: surface, borderColor: border, color: text },
+                    ]}
+                />
+
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
+                    Address
+                </ThemedText>
                 <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                     <TextInput
-                        value={location}
-                        onChangeText={setLocation}
-                        placeholder="e.g. : FIUBA, Buenos Aires"
+                        value={address}
+                        onChangeText={setAddress}
+                        placeholder="e.g. Av. Paseo Colón 850"
                         placeholderTextColor={mutedText}
                         style={[
                             styles.input,
@@ -696,7 +738,7 @@ export default function CreatePlanScreen() {
                 </View>
 
                 <ThemedText type="label" style={{ color: mutedText, marginBottom: 8, fontSize: 12 }}>
-                    Tap the map or drag the pin to set coordinates.
+                    Tap the map or drag the pin to auto-fill location fields.
                 </ThemedText>
 
                 <View style={{ height: 200, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: border }}>

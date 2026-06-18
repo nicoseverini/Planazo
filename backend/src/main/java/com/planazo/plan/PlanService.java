@@ -75,7 +75,9 @@ public class PlanService {
                 normalizedMin,
                 normalizedMax,
                 data.interests(),
-                data.location(),
+                data.country().trim(),
+                data.city().trim(),
+                data.address().trim(),
                 data.latitude(),
                 data.longitude(),
                 data.images(),
@@ -323,7 +325,23 @@ public class PlanService {
         if (data.minAge() != null)          plan.setMinAge(incomingMin);
         if (data.maxAge() != null)          plan.setMaxAge(incomingMax);
         if (data.interests() != null)       plan.setInterests(data.interests());
-        if (data.location() != null)        plan.setLocation(data.location());
+
+        boolean hasNewLocationParts = data.country() != null || data.city() != null || data.address() != null;
+        if (hasNewLocationParts) {
+            String newCountry = data.country() != null ? data.country().trim() : plan.getCountry();
+            String newCity    = data.city()    != null ? data.city().trim()    : plan.getCity();
+            String newAddress = data.address() != null ? data.address().trim() : plan.getAddress();
+            if (newCountry == null || newCountry.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Country is required.");
+            if (newCity == null || newCity.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "City is required.");
+            if (newAddress == null || newAddress.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Address is required.");
+            plan.setLocationParts(newCountry, newCity, newAddress);
+        } else if (data.location() != null) {
+            plan.setLocation(data.location());
+        }
+
         if (data.latitude() != null)        plan.setLatitude(data.latitude());
         if (data.longitude() != null)       plan.setLongitude(data.longitude());
         if (data.images() != null)          plan.setImages(data.images());
@@ -435,6 +453,9 @@ public class PlanService {
                 plan.getMaxAge(),
                 List.copyOf(plan.getInterests()),
                 plan.getLocation(),
+                plan.getCountry(),
+                plan.getCity(),
+                plan.getAddress(),
                 plan.getLatitude(),
                 plan.getLongitude(),
                 List.copyOf(plan.getImages()),
@@ -457,6 +478,9 @@ public class PlanService {
                 plan.getTitle(),
                 plan.getStartDateTime().atOffset(ZoneOffset.UTC),
                 plan.getLocation(),
+                plan.getCountry(),
+                plan.getCity(),
+                plan.getAddress(),
                 plan.getLatitude(),
                 plan.getLongitude(),
                 List.copyOf(plan.getInterests()),
