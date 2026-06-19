@@ -8,13 +8,15 @@ public record TuristicPlaceSummaryDTO(
         Long id,
         String name,
         Double cost,
+        List<Interest> interests,
+        String country,
+        String city,
+        String address,
         String location,
         Double latitude,
         Double longitude,
         Integer minAge,
         Integer maxAge,
-        Interest interest,
         List<String> images,
         Long creatorId
-) {
-}
+) {}

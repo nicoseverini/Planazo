@@ -18,7 +18,10 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 public record PlanCreateDTO(
-        @NotBlank(message = "Plan title is required.") String title,
+        @NotBlank(message = "Plan title is required.") 
+        @Size(max = 100, message = "Plan title must be 100 characters or less.")
+        String title,
+        @Size(max = 1000, message = "Description must be 1,000 characters or less.")
         String description,
         @NotNull(message = "Start date and time is required.")
         @Future(message = "Start date and time must be set in the future.")
@@ -43,8 +46,8 @@ public record PlanCreateDTO(
         Double latitude,
         Double longitude,
         List<String> images,
-        @DecimalMin(value = "0.0", message = "Budget must be at least 0")
-        @DecimalMax(value = "9999999.0", message = "Budget cannot exceed 9,999,999")
+        @DecimalMin(value = "0.0", message = "Budget must be between 0 and 9,999,999")
+        @DecimalMax(value = "9999999.0", message = "Budget must be between 0 and 9,999,999")
         Double budget,
         @NotBlank(message = "Time zone is required. Please use a valid IANA time zone identifier (e.g., \"America/New_York\", \"Europe/Madrid\").")
         String timezone

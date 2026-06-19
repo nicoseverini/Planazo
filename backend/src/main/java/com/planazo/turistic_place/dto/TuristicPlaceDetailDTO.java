@@ -10,12 +10,14 @@ public record TuristicPlaceDetailDTO(
         Double cost,
         Integer minAge,
         Integer maxAge,
-        Interest interest,
+        List<Interest> interests,
+        String country,
+        String city,
+        String address,
         String location,
         Double latitude,
         Double longitude,
         List<String> images,
         String description,
         Long creatorId
-) {
-}
+) {}
