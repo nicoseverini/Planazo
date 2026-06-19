@@ -30,8 +30,10 @@ export type TuristicPlaceFormValues = {
     cost: string;
     minAge: string;
     maxAge: string;
-    interest: Interest;
-    location: string;
+    interests: Interest[];
+    country: string;
+    city: string;
+    address: string;
     latitude: string;
     longitude: string;
     images: string[];
@@ -43,8 +45,10 @@ export const DEFAULT_FORM_VALUES: TuristicPlaceFormValues = {
     cost: '',
     minAge: '',
     maxAge: '',
-    interest: 'ADVENTURE',
-    location: '',
+    interests: [],
+    country: '',
+    city: '',
+    address: '',
     latitude: '-34.6037',
     longitude: '-58.3816',
     images: [],
@@ -83,8 +87,10 @@ export default function TuristicPlaceFormScreen({
     const [cost, setCost] = useState(initialValues.cost);
     const [minAge, setMinAge] = useState(initialValues.minAge);
     const [maxAge, setMaxAge] = useState(initialValues.maxAge);
-    const [interest, setInterest] = useState<Interest>(initialValues.interest);
-    const [location, setLocation] = useState(initialValues.location);
+    const [interests, setInterests] = useState<Interest[]>(initialValues.interests);
+    const [country, setCountry] = useState(initialValues.country);
+    const [city, setCity] = useState(initialValues.city);
+    const [address, setAddress] = useState(initialValues.address);
     const [latitude, setLatitude] = useState(initialValues.latitude);
     const [longitude, setLongitude] = useState(initialValues.longitude);
     const [images, setImages] = useState<string[]>(initialValues.images);
@@ -94,6 +100,12 @@ export default function TuristicPlaceFormScreen({
         latitude && longitude
             ? { latitude: parseFloat(latitude), longitude: parseFloat(longitude) }
             : null;
+
+    const toggleInterest = (value: Interest) => {
+        setInterests(prev =>
+            prev.includes(value) ? prev.filter(i => i !== value) : [...prev, value]
+        );
+    };
 
     const handleAddImage = async () => {
         const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -114,18 +126,19 @@ export default function TuristicPlaceFormScreen({
             return;
         }
         const mimeType = asset.mimeType ?? 'image/jpeg';
-        setImages([...images, `data:${mimeType};base64,${asset.base64}`]);
+        setImages(prev => [...prev, `data:${mimeType};base64,${asset.base64}`]);
     };
 
     const handleRemoveImage = (index: number) => {
-        setImages(images.filter((_, i) => i !== index));
+        setImages(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleSearchAddress = async () => {
-        if (!location.trim()) return;
+        const searchTerm = [address, city, country].filter(Boolean).join(', ').trim();
+        if (!searchTerm) return;
         setIsSearchingLoc(true);
         try {
-            const geocoded = await Location.geocodeAsync(location);
+            const geocoded = await Location.geocodeAsync(searchTerm);
             if (geocoded.length > 0) {
                 const { latitude: lat, longitude: lng } = geocoded[0];
                 setLatitude(lat.toString());
@@ -135,7 +148,7 @@ export default function TuristicPlaceFormScreen({
                     1000
                 );
             } else {
-                Alert.alert('Not found', 'Try being more specific (e.g., add city).');
+                Alert.alert('Not found', 'Try being more specific (e.g., add city or country).');
             }
         } catch {
             Alert.alert('Error', 'There was a problem searching the address.');
@@ -151,16 +164,17 @@ export default function TuristicPlaceFormScreen({
             const geocoded = await Location.reverseGeocodeAsync(coordinate);
             if (geocoded?.length) {
                 const addr = geocoded[0];
-                let formatted = '';
+                if (addr.country) setCountry(addr.country);
+                const resolvedCity = addr.city || addr.subregion;
+                if (resolvedCity) setCity(resolvedCity);
+                let resolvedAddress = '';
                 if (addr.street) {
-                    formatted += addr.street;
-                    if (addr.streetNumber) formatted += ` ${addr.streetNumber}`;
+                    resolvedAddress = addr.street;
+                    if (addr.streetNumber) resolvedAddress += ` ${addr.streetNumber}`;
                 } else if (addr.name) {
-                    formatted += addr.name;
+                    resolvedAddress = addr.name;
                 }
-                const city = addr.city || addr.subregion;
-                if (city) formatted += formatted ? `, ${city}` : city;
-                if (formatted.trim()) setLocation(formatted.trim());
+                if (resolvedAddress.trim()) setAddress(resolvedAddress.trim());
             }
         } catch {
             // ignore reverse geocoding errors
@@ -169,12 +183,32 @@ export default function TuristicPlaceFormScreen({
 
     const validateForm = (): boolean => {
         if (!name.trim()) {
-            setError('Name is required');
+            setError('Name is required.');
             return false;
         }
-        if (!cost.trim() || isNaN(parseFloat(cost))) {
-            setError('A valid cost is required');
+        if (interests.length === 0) {
+            setError('Please select at least one category.');
             return false;
+        }
+        if (!country.trim()) {
+            setError('Country is required.');
+            return false;
+        }
+        if (!city.trim()) {
+            setError('City is required.');
+            return false;
+        }
+        if (!address.trim()) {
+            setError('Address is required.');
+            return false;
+        }
+        const costTrimmed = cost.trim();
+        if (costTrimmed) {
+            const parsedCost = parseFloat(costTrimmed);
+            if (isNaN(parsedCost) || parsedCost < 0) {
+                setError('Cost must be a valid number greater than or equal to 0.');
+                return false;
+            }
         }
         const ageError = validateAgeFields(minAge, maxAge);
         if (ageError) { setError(ageError); return false; }
@@ -188,14 +222,17 @@ export default function TuristicPlaceFormScreen({
         try {
             const parsedLat = latitude.trim() ? parseFloat(latitude) : undefined;
             const parsedLng = longitude.trim() ? parseFloat(longitude) : undefined;
+            const costTrimmed = cost.trim();
 
             const payload: TuristicPlaceCreateRequest = {
                 name: name.trim(),
-                cost: parseFloat(cost),
-                interest,
+                cost: costTrimmed ? parseFloat(costTrimmed) : undefined,
+                interests,
                 minAge: parseAge(minAge),
                 maxAge: parseAge(maxAge),
-                location: location.trim() || undefined,
+                country: country.trim(),
+                city: city.trim(),
+                address: address.trim(),
                 latitude: parsedLat && !isNaN(parsedLat) ? parsedLat : undefined,
                 longitude: parsedLng && !isNaN(parsedLng) ? parsedLng : undefined,
                 images: images.length > 0 ? images : undefined,
@@ -248,11 +285,11 @@ export default function TuristicPlaceFormScreen({
             {/* Cost + Age */}
             <View style={styles.row}>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Cost ($) *</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Cost ($)</ThemedText>
                     <TextInput
                         value={cost}
                         onChangeText={setCost}
-                        placeholder="0"
+                        placeholder="Optional"
                         placeholderTextColor={mutedText}
                         keyboardType="decimal-pad"
                         style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
@@ -263,7 +300,7 @@ export default function TuristicPlaceFormScreen({
                     <TextInput
                         value={minAge}
                         onChangeText={setMinAge}
-                        placeholder="0"
+                        placeholder="None"
                         placeholderTextColor={mutedText}
                         keyboardType="numeric"
                         style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
@@ -274,7 +311,7 @@ export default function TuristicPlaceFormScreen({
                     <TextInput
                         value={maxAge}
                         onChangeText={setMaxAge}
-                        placeholder="99"
+                        placeholder="None"
                         placeholderTextColor={mutedText}
                         keyboardType="numeric"
                         style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
@@ -282,41 +319,68 @@ export default function TuristicPlaceFormScreen({
                 </View>
             </View>
 
-            {/* Interest */}
+            {/* Categories (multi-select) */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Category *</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Categories *</ThemedText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.categoryRow}>
-                        {INTEREST_OPTIONS.map((opt) => (
-                            <Pressable
-                                key={opt.value}
-                                onPress={() => setInterest(opt.value)}
-                                style={[
-                                    styles.categoryChip,
-                                    { borderColor: border },
-                                    interest === opt.value && { backgroundColor: tint, borderColor: tint },
-                                ]}
-                            >
-                                <ThemedText
-                                    type="label"
-                                    style={{ color: interest === opt.value ? tintText : text }}
+                        {INTEREST_OPTIONS.map((opt) => {
+                            const selected = interests.includes(opt.value);
+                            return (
+                                <Pressable
+                                    key={opt.value}
+                                    onPress={() => toggleInterest(opt.value)}
+                                    style={[
+                                        styles.categoryChip,
+                                        { borderColor: border },
+                                        selected && { backgroundColor: tint, borderColor: tint },
+                                    ]}
                                 >
-                                    {opt.label}
-                                </ThemedText>
-                            </Pressable>
-                        ))}
+                                    <ThemedText
+                                        type="label"
+                                        style={{ color: selected ? tintText : text }}
+                                    >
+                                        {opt.label}
+                                    </ThemedText>
+                                </Pressable>
+                            );
+                        })}
                     </View>
                 </ScrollView>
             </View>
 
-            {/* Location + Map */}
+            {/* Country */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Location</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Country *</ThemedText>
+                <TextInput
+                    value={country}
+                    onChangeText={setCountry}
+                    placeholder="e.g. Argentina"
+                    placeholderTextColor={mutedText}
+                    style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
+                />
+            </View>
+
+            {/* City */}
+            <View style={styles.inputGroup}>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>City *</ThemedText>
+                <TextInput
+                    value={city}
+                    onChangeText={setCity}
+                    placeholder="e.g. Buenos Aires"
+                    placeholderTextColor={mutedText}
+                    style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
+                />
+            </View>
+
+            {/* Address + Map */}
+            <View style={styles.inputGroup}>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Address *</ThemedText>
                 <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                     <TextInput
-                        value={location}
-                        onChangeText={setLocation}
-                        placeholder="e.g. Obelisco, Buenos Aires"
+                        value={address}
+                        onChangeText={setAddress}
+                        placeholder="e.g. Av. Corrientes 1234"
                         placeholderTextColor={mutedText}
                         style={[
                             styles.input,

@@ -27,13 +27,16 @@ export const INTEREST_LABEL: Record<Interest, string> = Object.fromEntries(
 export type TuristicPlaceSummary = {
     id: number;
     name: string;
-    cost: number;
+    cost: number | null;
+    interests: Interest[];
+    country: string | null;
+    city: string | null;
+    address: string | null;
     location: string | null;
     latitude: number | null;
     longitude: number | null;
     minAge: number | null;
     maxAge: number | null;
-    interest: Interest;
     images: string[];
     creatorId: number | null;
 };
@@ -44,11 +47,13 @@ export type TuristicPlaceDetail = TuristicPlaceSummary & {
 
 export type TuristicPlaceCreateRequest = {
     name: string;
-    cost: number;
+    cost?: number;
     minAge?: number;
     maxAge?: number;
-    interest: Interest;
-    location?: string;
+    interests: Interest[];
+    country: string;
+    city: string;
+    address: string;
     latitude?: number;
     longitude?: number;
     images?: string[];

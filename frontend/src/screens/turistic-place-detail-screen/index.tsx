@@ -126,6 +126,10 @@ export default function TuristicPlaceDetailScreen() {
     };
 
     const images = place.images ?? [];
+    const interests = place.interests ?? [];
+
+    const locationLine = [place.address, place.city, place.country].filter(Boolean).join(', ')
+        || place.location;
 
     return (
         <AppScreen scrollable>
@@ -144,19 +148,29 @@ export default function TuristicPlaceDetailScreen() {
                 <ThemedText type="title" style={{ flex: 1 }} numberOfLines={1}>
                     {place.name}
                 </ThemedText>
-                <View style={[styles.badge, { backgroundColor: `${tint}20` }]}>
-                    <ThemedText type="label" style={{ color: tint, fontSize: 11 }}>
-                        {INTEREST_LABEL[place.interest] ?? place.interest}
-                    </ThemedText>
-                </View>
             </View>
+
+            {/* Category chips */}
+            {interests.length > 0 && (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginHorizontal: 16, marginBottom: 12 }}>
+                    {interests.map((interest) => (
+                        <View key={interest} style={[styles.badge, { backgroundColor: `${tint}20` }]}>
+                            <ThemedText type="label" style={{ color: tint, fontSize: 11 }}>
+                                {INTEREST_LABEL[interest] ?? interest}
+                            </ThemedText>
+                        </View>
+                    ))}
+                </View>
+            )}
 
             {/* Info card */}
             <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
-                <View style={styles.infoRow}>
-                    <Ionicons name="cash-outline" size={18} color={mutedText} />
-                    <ThemedText type="body">Cost: ${place.cost}</ThemedText>
-                </View>
+                {place.cost != null && (
+                    <View style={styles.infoRow}>
+                        <Ionicons name="cash-outline" size={18} color={mutedText} />
+                        <ThemedText type="body">Cost: ${place.cost}</ThemedText>
+                    </View>
+                )}
                 <View style={styles.infoRow}>
                     <Ionicons name="people-outline" size={18} color={mutedText} />
                     <ThemedText type="body">
@@ -176,13 +190,13 @@ export default function TuristicPlaceDetailScreen() {
             )}
 
             {/* Location + map */}
-            {(place.location || (place.latitude && place.longitude)) && (
+            {(locationLine || (place.latitude && place.longitude)) && (
                 <View style={[styles.locationCard, { borderColor: border }]}>
-                    {place.location && (
+                    {locationLine && (
                         <View style={[styles.locationHeader, { borderBottomWidth: place.latitude && place.longitude ? 1 : 0, borderColor: border }]}>
                             <Ionicons name="location-outline" size={20} color={tint} />
                             <ThemedText type="body" style={{ flex: 1, fontWeight: '500' }}>
-                                {place.location}
+                                {locationLine}
                             </ThemedText>
                         </View>
                     )}

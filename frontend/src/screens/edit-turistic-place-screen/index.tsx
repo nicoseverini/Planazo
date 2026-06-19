@@ -4,20 +4,19 @@ import { ActivityIndicator, Alert, View } from 'react-native';
 
 import { AppScreen } from '@/components/ui';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import {
-    TuristicPlaceDetail,
-    useTuristicPlaces,
-} from '@/services/turistic-place';
+import { TuristicPlaceDetail, useTuristicPlaces } from '@/services/turistic-place';
 import TuristicPlaceFormScreen, { TuristicPlaceFormValues } from '@/screens/turistic-place-form-screen';
 
 function toFormValues(place: TuristicPlaceDetail): TuristicPlaceFormValues {
     return {
         name: place.name,
-        cost: place.cost.toString(),
+        cost: place.cost != null ? place.cost.toString() : '',
         minAge: place.minAge?.toString() ?? '',
         maxAge: place.maxAge?.toString() ?? '',
-        interest: place.interest,
-        location: place.location ?? '',
+        interests: place.interests ?? [],
+        country: place.country ?? '',
+        city: place.city ?? '',
+        address: place.address ?? place.location ?? '',
         latitude: place.latitude?.toString() ?? '-34.6037',
         longitude: place.longitude?.toString() ?? '-58.3816',
         images: place.images,
