@@ -3,6 +3,7 @@ import { useRouter, usePathname } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
+import { ACTIVITY_TYPES } from '@/config/activity-types';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
 import { styles } from './styles';
@@ -28,10 +29,10 @@ const NAV_ITEMS: NavItem[] = [
         route: '/map',
     },
     {
-        icon: 'calendar-outline',
-        iconFocused: 'calendar',
-        label: 'Plans',
-        route: '/search-plans',
+        icon: 'compass-outline',
+        iconFocused: 'compass',
+        label: 'Activities',
+        route: '/activities',
     },
     {
         icon: 'bookmark-outline',
@@ -40,18 +41,26 @@ const NAV_ITEMS: NavItem[] = [
         route: '/my-plans',
     },
     {
-        icon: 'location-outline',
-        iconFocused: 'location',
-        label: 'Places',
-        route: '/turistic-places',
-    },
-    {
         icon: 'person-outline',
         iconFocused: 'person',
         label: 'User',
         route: '/profile',
     },
 ];
+
+const ACTIVITIES_CHILD_ROUTES: string[] = ACTIVITY_TYPES.flatMap(
+    (a) => a.childRoutes ?? []
+);
+
+function isNavItemActive(item: NavItem, pathname: string): boolean {
+    if (pathname === item.route || pathname.startsWith(item.route + '/')) return true;
+    if (item.route === '/activities') {
+        return ACTIVITIES_CHILD_ROUTES.some(
+            (r) => pathname === r || pathname.startsWith(r + '/')
+        );
+    }
+    return false;
+}
 
 type NavItemButtonProps = {
     item: NavItem;
@@ -111,7 +120,7 @@ export function BottomNavBar() {
                 <NavItemButton
                     key={item.route}
                     item={item}
-                    isActive={pathname === item.route || pathname.startsWith(item.route + '/')}
+                    isActive={isNavItemActive(item, pathname)}
                     tint={tint}
                     mutedText={mutedText}
                     onPress={() => handleNavigation(item.route)}
