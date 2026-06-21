@@ -1,0 +1,75 @@
+import { Ionicons } from '@expo/vector-icons';
+import { Pressable, View } from 'react-native';
+
+import { ThemedText } from '@/components/ThemedText';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { TuristicPlaceSummary } from '@/services/turistic-place';
+import { formatInterest } from '@/utils/interests';
+
+import { styles } from './styles';
+
+export type TuristicPlaceCardProps = {
+    place: TuristicPlaceSummary;
+    onPress: (placeId: number) => void;
+};
+
+export function TuristicPlaceCard({ place, onPress }: TuristicPlaceCardProps) {
+    const cardBg = useThemeColor({}, 'surface');
+    const border = useThemeColor({}, 'border');
+    const tint = useThemeColor({}, 'tint');
+    const mutedText = useThemeColor({}, 'mutedText');
+
+    const categoryLabel = (place.interests ?? []).map(formatInterest).join(' · ');
+    const locationLine = [place.address, place.city, place.country].filter(Boolean).join(', ') || place.location;
+    const costLabel = place.cost == null ? null : place.cost === 0 ? 'Free' : `$${place.cost.toLocaleString()}`;
+
+    return (
+        <Pressable
+            onPress={() => onPress(place.id)}
+            style={({ pressed }) => [
+                styles.card,
+                { backgroundColor: cardBg, borderColor: border },
+                pressed && styles.buttonPressed,
+            ]}
+        >
+            <View style={styles.cardContent}>
+                <ThemedText type="subtitle" style={styles.cardTitle} numberOfLines={1}>
+                    {place.name}
+                </ThemedText>
+
+                {categoryLabel ? (
+                    <ThemedText type="label" style={[styles.categoryLabel, { color: tint }]}>
+                        {categoryLabel}
+                    </ThemedText>
+                ) : null}
+
+                <View style={styles.metaSection}>
+                    <View style={styles.metaRow}>
+                        <Ionicons name="time-outline" size={14} color={mutedText} />
+                        <ThemedText type="label" style={[styles.metaText, { color: mutedText }]}>
+                            Hours coming soon
+                        </ThemedText>
+                    </View>
+
+                    {locationLine ? (
+                        <View style={styles.metaRow}>
+                            <Ionicons name="location-outline" size={14} color={mutedText} />
+                            <ThemedText type="label" style={[styles.metaText, { color: mutedText }]} numberOfLines={1}>
+                                {locationLine}
+                            </ThemedText>
+                        </View>
+                    ) : null}
+
+                    {costLabel != null && (
+                        <View style={styles.metaRow}>
+                            <Ionicons name="cash-outline" size={14} color={mutedText} />
+                            <ThemedText type="label" style={[styles.metaText, { color: mutedText }]}>
+                                {costLabel}
+                            </ThemedText>
+                        </View>
+                    )}
+                </View>
+            </View>
+        </Pressable>
+    );
+}

@@ -28,33 +28,6 @@ export const styles = StyleSheet.create({
         borderWidth: 1,
         alignItems: 'center',
     },
-    card: {
-        borderRadius: Layout.buttonRadius,
-        borderWidth: 1,
-        padding: 16,
-        marginBottom: 12,
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 8,
-    },
-    badge: {
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 10,
-    },
-    cardMeta: {
-        flexDirection: 'row',
-        gap: 12,
-        marginTop: 4,
-    },
-    metaItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-    },
     emptyContainer: {
         flex: 1,
         alignItems: 'center',

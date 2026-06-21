@@ -4,72 +4,15 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
+import { TuristicPlaceCard } from '@/components/TuristicPlaceCard';
 import { AppScreen } from '@/components/ui';
 import { useToken } from '@/context/token-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import {
-    INTEREST_LABEL,
-    TuristicPlaceSummary,
-    useTuristicPlaces,
-} from '@/services/turistic-place';
+import { TuristicPlaceSummary, useTuristicPlaces } from '@/services/turistic-place';
 
 import { styles } from './styles';
 
 type Tab = 'all' | 'mine';
-
-function PlaceCard({
-    place,
-    onPress,
-    tint,
-    surface,
-    border,
-    mutedText,
-}: {
-    place: TuristicPlaceSummary;
-    onPress: () => void;
-    tint: string;
-    surface: string;
-    border: string;
-    mutedText: string;
-}) {
-    return (
-        <Pressable
-            onPress={onPress}
-            style={({ pressed }) => [
-                styles.card,
-                { backgroundColor: surface, borderColor: border },
-                pressed && styles.pressed,
-            ]}
-        >
-            <View style={styles.cardHeader}>
-                <ThemedText type="subtitle" style={{ flex: 1, marginRight: 8 }} numberOfLines={1}>
-                    {place.name}
-                </ThemedText>
-                <View style={[styles.badge, { backgroundColor: `${tint}20` }]}>
-                    <ThemedText type="label" style={{ color: tint, fontSize: 11 }}>
-                        {INTEREST_LABEL[place.interest] ?? place.interest}
-                    </ThemedText>
-                </View>
-            </View>
-            <View style={styles.cardMeta}>
-                {place.location ? (
-                    <View style={styles.metaItem}>
-                        <Ionicons name="location-outline" size={14} color={mutedText} />
-                        <ThemedText type="label" style={{ color: mutedText }} numberOfLines={1}>
-                            {place.location}
-                        </ThemedText>
-                    </View>
-                ) : null}
-                <View style={styles.metaItem}>
-                    <Ionicons name="cash-outline" size={14} color={mutedText} />
-                    <ThemedText type="label" style={{ color: mutedText }}>
-                        ${place.cost}
-                    </ThemedText>
-                </View>
-            </View>
-        </Pressable>
-    );
-}
 
 export default function TuristicPlaceListScreen() {
     const router = useRouter();
@@ -78,7 +21,6 @@ export default function TuristicPlaceListScreen() {
 
     const tint = useThemeColor({}, 'tint');
     const tintText = useThemeColor({}, 'tintText');
-    const surface = useThemeColor({}, 'surface');
     const border = useThemeColor({}, 'border');
     const mutedText = useThemeColor({}, 'mutedText');
 
@@ -186,14 +128,10 @@ export default function TuristicPlaceListScreen() {
                 </View>
             ) : (
                 places.map((place) => (
-                    <PlaceCard
+                    <TuristicPlaceCard
                         key={place.id}
                         place={place}
                         onPress={() => router.push(`/turistic-place/${place.id}`)}
-                        tint={tint}
-                        surface={surface}
-                        border={border}
-                        mutedText={mutedText}
                     />
                 ))
             )}
