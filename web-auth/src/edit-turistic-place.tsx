@@ -102,7 +102,7 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 			return
 		}
 
-		const cost = form.cost.trim() ? Number(form.cost) : undefined
+		const cost = form.cost.trim() ? Number(form.cost) : 0
 		if (cost !== undefined && (!Number.isFinite(cost) || cost < 0 || cost > 9999999)) {
 			setStatus('error')
 			setMessage('Cost must be a number between 0 and 9999999.')

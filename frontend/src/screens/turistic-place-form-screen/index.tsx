@@ -226,7 +226,7 @@ export default function TuristicPlaceFormScreen({
 
             const payload: TuristicPlaceCreateRequest = {
                 name: name.trim(),
-                cost: costTrimmed ? parseFloat(costTrimmed) : undefined,
+                cost: costTrimmed ? parseFloat(costTrimmed) : 0,
                 interests,
                 minAge: parseAge(minAge),
                 maxAge: parseAge(maxAge),
@@ -289,7 +289,7 @@ export default function TuristicPlaceFormScreen({
                     <TextInput
                         value={cost}
                         onChangeText={setCost}
-                        placeholder="Optional"
+                        placeholder="Leave empty for free"
                         placeholderTextColor={mutedText}
                         keyboardType="decimal-pad"
                         style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}

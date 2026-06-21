@@ -14,7 +14,7 @@ export function TuristicPlaceFormFields({ form, onChange }: TuristicPlaceFormFie
 			</label>
 
 			<label className="field">
-				Cost (optional)
+				Cost (leave empty for free)
 				<input type="number" min="0" step="any" value={form.cost} onChange={(event) => onChange('cost', event.target.value)} />
 			</label>
 
