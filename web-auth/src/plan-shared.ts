@@ -56,8 +56,8 @@ export const defaultPlanFormState: PlanFormState = {
 	country: '',
 	city: '',
 	address: '',
-	latitude: '-34.6037',
-	longitude: '-58.3816',
+	latitude: '',
+	longitude: '',
 	budget: '',
 	timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
 }
@@ -189,6 +189,26 @@ export function parseBudget(budget: string): number {
 	if (!trimmed) return 0
 	const parsed = Number(trimmed)
 	return Number.isFinite(parsed) ? parsed : 0
+}
+
+export async function geocodeAddress(
+	address: string,
+	city: string,
+	country: string,
+): Promise<{ lat: number; lng: number } | null> {
+	const query = [address, city, country].filter(Boolean).join(', ')
+	if (!query) return null
+	try {
+		const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`
+		const response = await fetch(url, { headers: { 'Accept-Language': 'en' } })
+		const data = (await response.json()) as Array<{ lat: string; lon: string }>
+		if (Array.isArray(data) && data.length > 0) {
+			return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }
+		}
+	} catch {
+		// network or parse error
+	}
+	return null
 }
 
 export function readFileAsDataUrl(file: File) {

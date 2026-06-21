@@ -49,8 +49,8 @@ export const DEFAULT_FORM_VALUES: TuristicPlaceFormValues = {
     country: '',
     city: '',
     address: '',
-    latitude: '-34.6037',
-    longitude: '-58.3816',
+    latitude: '',
+    longitude: '',
     images: [],
     description: '',
 };

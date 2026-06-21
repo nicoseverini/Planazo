@@ -14,19 +14,8 @@ export function TuristicPlaceFormFields({ form, onChange }: TuristicPlaceFormFie
 			</label>
 
 			<label className="field">
-				Cost
-				<input type="number" min="0" step="any" value={form.cost} onChange={(event) => onChange('cost', event.target.value)} required />
-			</label>
-
-			<label className="field">
-				Interest
-				<select value={form.interest} onChange={(event) => onChange('interest', event.target.value as TuristicPlaceFormState['interest'])}>
-					{turisticPlaceInterestOptions.map((option) => (
-						<option key={option.value} value={option.value}>
-							{option.label}
-						</option>
-					))}
-				</select>
+				Cost (optional)
+				<input type="number" min="0" step="any" value={form.cost} onChange={(event) => onChange('cost', event.target.value)} />
 			</label>
 
 			<label className="field">
@@ -39,9 +28,43 @@ export function TuristicPlaceFormFields({ form, onChange }: TuristicPlaceFormFie
 				<input type="number" min="0" value={form.maxAge} onChange={(event) => onChange('maxAge', event.target.value)} />
 			</label>
 
+			<div className="field field--wide">
+				<span className="field-label">Categories *</span>
+				<div className="checkbox-group">
+					{turisticPlaceInterestOptions.map((option) => {
+						const isChecked = form.interests.includes(option.value)
+						return (
+							<label key={option.value} className="checkbox-item">
+								<input
+									type="checkbox"
+									checked={isChecked}
+									onChange={() => {
+										const updated = isChecked
+											? form.interests.filter((i) => i !== option.value)
+											: [...form.interests, option.value]
+										onChange('interests', updated)
+									}}
+								/>
+								<span className="checkbox-label">{option.label}</span>
+							</label>
+						)
+					})}
+				</div>
+			</div>
+
+			<label className="field">
+				Country *
+				<input value={form.country} onChange={(event) => onChange('country', event.target.value)} required placeholder="e.g. Argentina" />
+			</label>
+
+			<label className="field">
+				City *
+				<input value={form.city} onChange={(event) => onChange('city', event.target.value)} required placeholder="e.g. Buenos Aires" />
+			</label>
+
 			<label className="field field--wide">
-				Location
-				<input value={form.location} onChange={(event) => onChange('location', event.target.value)} required />
+				Address *
+				<input value={form.address} onChange={(event) => onChange('address', event.target.value)} required placeholder="e.g. Av. Corrientes 1234" />
 			</label>
 
 			<label className="field field--wide">
@@ -49,15 +72,6 @@ export function TuristicPlaceFormFields({ form, onChange }: TuristicPlaceFormFie
 				<textarea rows={4} value={form.description} onChange={(event) => onChange('description', event.target.value)} />
 			</label>
 
-			<label className="field">
-				Latitude
-				<input type="number" step="any" value={form.latitude} onChange={(event) => onChange('latitude', event.target.value)} required />
-			</label>
-
-			<label className="field">
-				Longitude
-				<input type="number" step="any" value={form.longitude} onChange={(event) => onChange('longitude', event.target.value)} required />
-			</label>
 		</div>
 	)
 }

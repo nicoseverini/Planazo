@@ -128,15 +128,6 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 				<input value={form.address} onChange={(event) => onChange('address', event.target.value)} required placeholder="e.g. Av. Paseo Colón 850" />
 			</label>
 
-			<label className="field">
-				Latitude
-				<input type="number" step="any" value={form.latitude} onChange={(event) => onChange('latitude', event.target.value)} required />
-			</label>
-
-			<label className="field">
-				Longitude
-				<input type="number" step="any" value={form.longitude} onChange={(event) => onChange('longitude', event.target.value)} required />
-			</label>
 		</div>
 	)
 }

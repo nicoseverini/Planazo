@@ -10,6 +10,7 @@ import {
 	type PlanVisibility,
 	buildDateTime,
 	defaultPlanFormState,
+	geocodeAddress,
 	isFutureDateTime,
 	parseBudget,
 	parseOptionalNumber,
@@ -185,14 +186,6 @@ export function EditPlanPage({ planId }: { planId: number }) {
 			return
 		}
 
-		const latitude = Number(form.latitude)
-		const longitude = Number(form.longitude)
-		if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-			setStatus('error')
-			setMessage('The coordinates must be valid numbers.')
-			return
-		}
-
 		if (form.interests.length === 0) {
 			setStatus('error')
 			setMessage('Please select at least one interest.')
@@ -224,6 +217,20 @@ export function EditPlanPage({ planId }: { planId: number }) {
 		setMessage('')
 
 		try {
+			let latitude = form.latitude.trim() ? Number(form.latitude) : NaN
+			let longitude = form.longitude.trim() ? Number(form.longitude) : NaN
+
+			if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+				const coords = await geocodeAddress(form.address, form.city, form.country)
+				if (!coords) {
+					setStatus('error')
+					setMessage('Could not find coordinates for this address. Please be more specific (e.g. add street number, city, and country).')
+					return
+				}
+				latitude = coords.lat
+				longitude = coords.lng
+			}
+
 			const backendUrl = getBackendUrl()
 			const response = await fetch(`${backendUrl}/api/v1/plans/admin/${planId}`, {
 				method: 'PATCH',

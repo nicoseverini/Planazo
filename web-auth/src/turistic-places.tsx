@@ -81,8 +81,12 @@ export function TuristicPlacesPage() {
 								<div className="plan-title">
 									<a href={`/turistic-places/${place.id}`}>{place.name}</a>
 								</div>
-								<div className="plan-creator">{toTitleCase(place.interest)} · {place.location}</div>
-								<div className="plan-meta">Cost: {place.cost}</div>
+								<div className="plan-creator">
+									{(place.interests ?? []).map((i) => toTitleCase(i)).join(', ') || '—'}
+									{' · '}
+									{[place.address, place.city, place.country].filter(Boolean).join(', ') || place.location || '—'}
+								</div>
+								{place.cost != null && <div className="plan-meta">Cost: ${place.cost}</div>}
 								<div className="plan-item-actions">
 									<a className="button button--secondary" href={`/turistic-places/${place.id}`}>
 										View details

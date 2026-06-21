@@ -13,6 +13,11 @@ function formatAgeRestriction(minAge: number | null, maxAge: number | null): str
 	return 'No age restrictions.'
 }
 
+function formatLocation(place: TuristicPlaceDetailResponse): string {
+	const structured = [place.address, place.city, place.country].filter(Boolean).join(', ')
+	return structured || place.location || 'Not available'
+}
+
 type TuristicPlaceDetailPageProps = {
 	placeId: number
 }
@@ -141,20 +146,24 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 					<section className="plan-detail-hero">
 						<div className="plan-detail-heading">
 							<div className="plan-badges">
-								<span className="plan-badge">{toTitleCase(place.interest)}</span>
-								<span className="plan-badge plan-badge--muted">{place.location}</span>
+								{(place.interests ?? []).map((interest) => (
+									<span key={interest} className="plan-badge">{toTitleCase(interest)}</span>
+								))}
+								<span className="plan-badge plan-badge--muted">{formatLocation(place)}</span>
 							</div>
 							<h2>{place.name}</h2>
 							{place.description && <p className="plan-description">{place.description}</p>}
 						</div>
 						<div className="plan-detail-summary">
-							<div>
-								<span className="summary-label">Cost</span>
-								<strong>{place.cost}</strong>
-							</div>
+							{place.cost != null && (
+								<div>
+									<span className="summary-label">Cost</span>
+									<strong>${place.cost}</strong>
+								</div>
+							)}
 							<div>
 								<span className="summary-label">Location</span>
-								<strong>{place.location}</strong>
+								<strong>{formatLocation(place)}</strong>
 							</div>
 						</div>
 					</section>
@@ -163,8 +172,12 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 						<h3>General Information</h3>
 						<dl className="detail-list">
 							<div>
-								<dt>Interest</dt>
-								<dd>{toTitleCase(place.interest)}</dd>
+								<dt>Categories</dt>
+								<dd>
+									{(place.interests ?? []).length > 0
+										? (place.interests ?? []).map((i) => toTitleCase(i)).join(', ')
+										: '—'}
+								</dd>
 							</div>
 							<div>
 								<dt>Age restrictions</dt>
@@ -173,13 +186,17 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 							<div>
 								<dt>Coordinates</dt>
 								<dd>
-									{place.latitude !== null && place.longitude !== null ? `${place.latitude}, ${place.longitude}` : 'Not available'}
+									{place.latitude !== null && place.longitude !== null
+										? `${place.latitude}, ${place.longitude}`
+										: 'Not available'}
 								</dd>
 							</div>
-							<div>
-								<dt>Cost</dt>
-								<dd>{place.cost}</dd>
-							</div>
+							{place.cost != null && (
+								<div>
+									<dt>Cost</dt>
+									<dd>${place.cost}</dd>
+								</div>
+							)}
 						</dl>
 					</section>
 

@@ -11,7 +11,7 @@ import {
 	type TuristicPlaceDetailResponse,
 	type TuristicPlaceFormState,
 } from './turistic-place-shared'
-import { validateAgeRange } from './plan-shared'
+import { geocodeAddress, validateAgeRange } from './plan-shared'
 
 export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 	const [form, setForm] = useState<TuristicPlaceFormState>({ ...defaultTuristicPlaceFormState })
@@ -84,25 +84,28 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 
 		const accessToken = sessionStorage.getItem('accessToken')
 
-		if (!form.name.trim() || !form.location.trim()) {
+		if (!form.name.trim()) {
 			setStatus('error')
-			setMessage('Name and location are required.')
+			setMessage('Name is required.')
 			return
 		}
 
-		const cost = Number(form.cost)
-		const latitude = Number(form.latitude)
-		const longitude = Number(form.longitude)
-
-		if (!Number.isFinite(cost) || cost < 0) {
+		if (form.interests.length === 0) {
 			setStatus('error')
-			setMessage('The cost must be a valid number.')
+			setMessage('Please select at least one category.')
 			return
 		}
 
-		if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+		if (!form.country.trim() || !form.city.trim() || !form.address.trim()) {
 			setStatus('error')
-			setMessage('The coordinates must be valid numbers.')
+			setMessage('Country, city, and address are required.')
+			return
+		}
+
+		const cost = form.cost.trim() ? Number(form.cost) : undefined
+		if (cost !== undefined && (!Number.isFinite(cost) || cost < 0 || cost > 9999999)) {
+			setStatus('error')
+			setMessage('Cost must be a number between 0 and 9999999.')
 			return
 		}
 
@@ -117,6 +120,20 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 		setMessage('')
 
 		try {
+			let latitude = form.latitude.trim() ? Number(form.latitude) : NaN
+			let longitude = form.longitude.trim() ? Number(form.longitude) : NaN
+
+			if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+				const coords = await geocodeAddress(form.address, form.city, form.country)
+				if (!coords) {
+					setStatus('error')
+					setMessage('Could not find coordinates for this address. Please be more specific (e.g. add street number, city, and country).')
+					return
+				}
+				latitude = coords.lat
+				longitude = coords.lng
+			}
+
 			const backendUrl = getBackendUrl()
 			const response = await fetch(`${backendUrl}/api/v1/turistic-places/${placeId}`, {
 				method: 'PATCH',
@@ -131,8 +148,10 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 					cost,
 					minAge: parseTuristicPlaceOptionalNumber(form.minAge),
 					maxAge: parseTuristicPlaceOptionalNumber(form.maxAge),
-					interest: form.interest,
-					location: form.location.trim(),
+					interests: form.interests,
+					country: form.country.trim(),
+					city: form.city.trim(),
+					address: form.address.trim(),
 					latitude,
 					longitude,
 					images,
