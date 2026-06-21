@@ -14,6 +14,7 @@ import { AppScreen } from '@/components/ui';
 import { decodeJwt, useToken } from '@/context/token-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PlanFilters, PlanSummary, usePlans } from '@/services/plan';
+import { normalizeSearch } from '@/utils/search';
 import { styles } from './styles';
 
 const INTERESTS = [
@@ -127,12 +128,11 @@ export function SearchPlansScreen() {
 
     useEffect(() => {
         if (!searchQuery.trim()) { setFilteredPlans(plans); return; }
-        const strip = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-        const q = strip(searchQuery);
+        const q = normalizeSearch(searchQuery);
         setFilteredPlans(plans.filter(p =>
-            strip(p.title).includes(q) ||
-            (p.location ? strip(p.location).includes(q) : false) ||
-            (p.interests ?? []).some((interest) => strip(interest).includes(q))
+            normalizeSearch(p.title).includes(q) ||
+            (p.location ? normalizeSearch(p.location).includes(q) : false) ||
+            (p.interests ?? []).some((interest) => normalizeSearch(interest).includes(q))
         ));
     }, [searchQuery, plans]);
 
