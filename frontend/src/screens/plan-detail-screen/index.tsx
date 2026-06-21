@@ -17,6 +17,7 @@ import MapView, { Marker } from 'react-native-maps';
 
 import { decodeJwt, useToken } from '@/context/token-context';
 import { AppScreen } from '@/components/ui';
+import { StarRating } from '@/components/StarRating';
 import { ThemedText } from '@/components/ThemedText';
 import { StatusBadgeColors } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -30,24 +31,6 @@ import { styles } from './styles';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type TabType = 'description' | 'subscribe' | 'reviews';
-
-function StarRating({ rating }: { rating: number }) {
-    const stars = [];
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-
-    for (let i = 0; i < 5; i++) {
-        if (i < fullStars) {
-            stars.push(<Ionicons key={i} name="star" size={16} color="#22c55e" />);
-        } else if (i === fullStars && hasHalfStar) {
-            stars.push(<Ionicons key={i} name="star-half" size={16} color="#22c55e" />);
-        } else {
-            stars.push(<Ionicons key={i} name="star-outline" size={16} color="#22c55e" />);
-        }
-    }
-
-    return <View style={styles.starContainer}>{stars}</View>;
-}
 
 const parsePlanId = (value?: string | string[]): number | null => {
     const raw = Array.isArray(value) ? value[0] : value;

@@ -80,7 +80,12 @@ export async function getTuristicPlaceById(id: number): Promise<TuristicPlaceDet
     const response = await fetch(url, {
         headers: { Accept: 'application/json' },
     });
-    if (!response.ok) throw new Error(await response.text());
+    if (response.status === 404) {
+        throw Object.assign(new Error('Tourist place not found.'), { status: 404 });
+    }
+    if (!response.ok) {
+        throw new Error((await response.text()) || 'Unable to load tourist place information.');
+    }
     return response.json();
 }
 

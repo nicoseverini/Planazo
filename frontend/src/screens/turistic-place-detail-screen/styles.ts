@@ -22,34 +22,28 @@ export const styles = StyleSheet.create({
         justifyContent: 'center',
         borderWidth: 1,
     },
-    badge: {
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 10,
-    },
-    infoCard: {
-        borderRadius: Layout.buttonRadius,
-        borderWidth: 1,
-        padding: 16,
-        marginBottom: 16,
-        gap: 10,
+    ratingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 12,
     },
     infoRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        gap: 16,
+        marginBottom: 8,
+    },
+    infoItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     locationCard: {
         borderRadius: Layout.buttonRadius,
         borderWidth: 1,
+        marginTop: 8,
         marginBottom: 16,
         overflow: 'hidden',
-    },
-    locationHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-        gap: 8,
     },
     imageSection: {
         marginBottom: 16,
@@ -69,6 +63,23 @@ export const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
+    },
+    tabContainer: {
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        marginBottom: 16,
+    },
+    tab: {
+        flex: 1,
+        paddingVertical: 12,
+        alignItems: 'center',
+    },
+    tabText: {
+        fontWeight: '600',
+        fontSize: 12,
+    },
+    tabContent: {
+        marginBottom: 24,
     },
     actionRow: {
         flexDirection: 'row',

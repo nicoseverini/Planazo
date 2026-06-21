@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
     Dimensions,
     Image,
     Pressable,
+    RefreshControl,
     ScrollView,
     StyleSheet,
     View,
@@ -15,14 +16,25 @@ import MapView, { Marker } from 'react-native-maps';
 
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
+import { StarRating } from '@/components/StarRating';
 import { useToken, decodeJwt } from '@/context/token-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { INTEREST_LABEL, TuristicPlaceDetail, useTuristicPlaces } from '@/services/turistic-place';
+import { TuristicPlaceDetail, useTuristicPlaces } from '@/services/turistic-place';
 import { formatAgeRestriction } from '@/utils/age-restriction';
+import { formatInterest } from '@/utils/interests';
 
 import { styles } from './styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+type TabType = 'description' | 'hours' | 'reviews';
+
+const parsePlaceId = (value?: string | string[]): number | null => {
+    const raw = Array.isArray(value) ? value[0] : value;
+    if (!raw) return null;
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+};
 
 export default function TuristicPlaceDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -39,21 +51,50 @@ export default function TuristicPlaceDetailScreen() {
 
     const [place, setPlace] = useState<TuristicPlaceDetail | null>(null);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const refreshingRef = useRef(false);
+    const [activeTab, setActiveTab] = useState<TabType>('description');
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const loadPlace = useCallback(async () => {
-        const placeId = parseInt(id ?? '', 10);
-        if (isNaN(placeId)) {
+        const placeId = parsePlaceId(id);
+        if (!placeId) {
+            Alert.alert('Error', 'The place identifier is not valid.');
             setLoading(false);
             return;
         }
         try {
             const data = await fetchById(placeId);
             setPlace(data);
-        } catch {
-            Alert.alert('Error', 'Could not load the place.');
+        } catch (err) {
+            // 404 → place stays null → empty state renders "not found", no redundant Alert needed
+            const isNotFound = (err as any)?.status === 404;
+            if (!isNotFound) {
+                Alert.alert('Error', err instanceof Error ? err.message : 'Unable to load tourist place information.');
+            }
         } finally {
             setLoading(false);
+        }
+    }, [id, fetchById]);
+
+    const handleRefresh = useCallback(async () => {
+        if (refreshingRef.current) return;
+        refreshingRef.current = true;
+        setRefreshing(true);
+        const placeId = parsePlaceId(id);
+        if (!placeId) {
+            setRefreshing(false);
+            refreshingRef.current = false;
+            return;
+        }
+        try {
+            const data = await fetchById(placeId);
+            setPlace(data);
+        } catch (err) {
+            Alert.alert('Error', 'Unable to refresh. Please try again.');
+        } finally {
+            setRefreshing(false);
+            refreshingRef.current = false;
         }
     }, [id, fetchById]);
 
@@ -79,7 +120,7 @@ export default function TuristicPlaceDetailScreen() {
                 <View style={styles.loadingContainer}>
                     <Ionicons name="alert-circle-outline" size={48} color={mutedText} />
                     <ThemedText type="body" style={{ color: mutedText, marginTop: 12 }}>
-                        Place not found
+                        Tourist place not found.
                     </ThemedText>
                     <Pressable
                         onPress={() => router.back()}
@@ -116,7 +157,7 @@ export default function TuristicPlaceDetailScreen() {
                                 { text: 'OK', onPress: () => router.back() },
                             ]);
                         } catch {
-                            Alert.alert('Error', 'Could not delete the place.');
+                            Alert.alert('Error', 'Could not delete the place. Check your connection.');
                             setLoading(false);
                         }
                     },
@@ -127,12 +168,25 @@ export default function TuristicPlaceDetailScreen() {
 
     const images = place.images ?? [];
     const interests = place.interests ?? [];
+    const locationLine = [place.address, place.city, place.country].filter(Boolean).join(', ') || place.location;
+    const costLabel = place.cost == null ? null : place.cost === 0 ? 'Free' : `$${place.cost.toLocaleString()}`;
+    const interestLabel = interests.map(formatInterest).join(' · ');
 
-    const locationLine = [place.address, place.city, place.country].filter(Boolean).join(', ')
-        || place.location;
+    const reviewCount = 0;
+    const averageRating = 0;
 
     return (
-        <AppScreen scrollable>
+        <AppScreen
+            scrollable
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                    tintColor={tint}
+                    colors={[tint]}
+                />
+            }
+        >
             {/* Header */}
             <View style={styles.header}>
                 <Pressable
@@ -145,63 +199,70 @@ export default function TuristicPlaceDetailScreen() {
                 >
                     <Ionicons name="arrow-back" size={24} color={text} />
                 </Pressable>
-                <ThemedText type="title" style={{ flex: 1 }} numberOfLines={1}>
+                <ThemedText type="title" style={{ flex: 1 }}>
                     {place.name}
                 </ThemedText>
             </View>
 
-            {/* Category chips */}
-            {interests.length > 0 && (
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginHorizontal: 16, marginBottom: 12 }}>
-                    {interests.map((interest) => (
-                        <View key={interest} style={[styles.badge, { backgroundColor: `${tint}20` }]}>
-                            <ThemedText type="label" style={{ color: tint, fontSize: 11 }}>
-                                {INTEREST_LABEL[interest] ?? interest}
-                            </ThemedText>
-                        </View>
-                    ))}
-                </View>
-            )}
+            {/* Rating row (static — ready for real reviews integration) */}
+            <View style={styles.ratingRow}>
+                <ThemedText type="body" style={{ fontWeight: '600' }}>{averageRating.toFixed(1)}</ThemedText>
+                <StarRating rating={averageRating} />
+                <ThemedText type="body" style={{ color: mutedText }}>
+                    ({reviewCount} reviews)
+                </ThemedText>
+                <Pressable onPress={() => setActiveTab('reviews')}>
+                    <ThemedText type="body" style={{ color: tint, marginLeft: 8 }}>
+                        View reviews
+                    </ThemedText>
+                </Pressable>
+            </View>
 
-            {/* Info card */}
-            <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
-                {place.cost != null && (
-                    <View style={styles.infoRow}>
-                        <Ionicons name="cash-outline" size={18} color={mutedText} />
-                        <ThemedText type="body">Cost: ${place.cost}</ThemedText>
-                    </View>
-                )}
-                <View style={styles.infoRow}>
-                    <Ionicons name="people-outline" size={18} color={mutedText} />
-                    <ThemedText type="body">
+            {/* Info rows */}
+            <View style={styles.infoRow}>
+                <View style={styles.infoItem}>
+                    <Ionicons name="people-outline" size={16} color={mutedText} />
+                    <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>
                         {formatAgeRestriction(place.minAge, place.maxAge)}
                     </ThemedText>
                 </View>
             </View>
 
-            {/* Description */}
-            {!!place.description && (
-                <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
-                    <ThemedText type="subtitle" style={{ marginBottom: 8 }}>About this place</ThemedText>
-                    <ThemedText type="body" style={{ color: mutedText, lineHeight: 22 }}>
-                        {place.description}
-                    </ThemedText>
+            {costLabel != null && (
+                <View style={styles.infoRow}>
+                    <View style={styles.infoItem}>
+                        <Ionicons name="cash-outline" size={16} color={mutedText} />
+                        <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>
+                            {costLabel}
+                        </ThemedText>
+                    </View>
                 </View>
             )}
 
+            {interestLabel ? (
+                <View style={styles.infoRow}>
+                    <View style={styles.infoItem}>
+                        <Ionicons name="pricetag-outline" size={16} color={mutedText} />
+                        <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>
+                            {interestLabel}
+                        </ThemedText>
+                    </View>
+                </View>
+            ) : null}
+
             {/* Location + map */}
-            {(locationLine || (place.latitude && place.longitude)) && (
-                <View style={[styles.locationCard, { borderColor: border }]}>
-                    {locationLine && (
-                        <View style={[styles.locationHeader, { borderBottomWidth: place.latitude && place.longitude ? 1 : 0, borderColor: border }]}>
+            {(locationLine || (place.latitude && place.longitude)) ? (
+                <View style={[styles.locationCard, { backgroundColor: surface, borderColor: border }]}>
+                    {locationLine ? (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12 }}>
                             <Ionicons name="location-outline" size={20} color={tint} />
-                            <ThemedText type="body" style={{ flex: 1, fontWeight: '500' }}>
+                            <ThemedText type="body" style={{ flex: 1, marginLeft: 8, fontWeight: '500' }}>
                                 {locationLine}
                             </ThemedText>
                         </View>
-                    )}
-                    {place.latitude && place.longitude && (
-                        <View style={{ height: 160 }}>
+                    ) : null}
+                    {place.latitude && place.longitude ? (
+                        <View style={{ height: 160, width: '100%', borderTopWidth: locationLine ? 1 : 0, borderColor: border }}>
                             <MapView
                                 style={{ ...StyleSheet.absoluteFillObject }}
                                 initialRegion={{
@@ -221,9 +282,9 @@ export default function TuristicPlaceDetailScreen() {
                                 />
                             </MapView>
                         </View>
-                    )}
+                    ) : null}
                 </View>
-            )}
+            ) : null}
 
             {/* Image carousel */}
             {images.length > 0 && (
@@ -260,6 +321,80 @@ export default function TuristicPlaceDetailScreen() {
                             ))}
                         </View>
                     )}
+                </View>
+            )}
+
+            {/* Tab navigation */}
+            <View style={[styles.tabContainer, { borderColor: border }]}>
+                <Pressable
+                    onPress={() => setActiveTab('description')}
+                    style={[
+                        styles.tab,
+                        activeTab === 'description' && { borderBottomColor: tint, borderBottomWidth: 2 },
+                    ]}
+                >
+                    <ThemedText
+                        type="body"
+                        style={[styles.tabText, { color: activeTab === 'description' ? tint : mutedText }]}
+                    >
+                        DESCRIPTION
+                    </ThemedText>
+                </Pressable>
+                <Pressable
+                    onPress={() => setActiveTab('hours')}
+                    style={[
+                        styles.tab,
+                        activeTab === 'hours' && { borderBottomColor: tint, borderBottomWidth: 2 },
+                    ]}
+                >
+                    <ThemedText
+                        type="body"
+                        style={[styles.tabText, { color: activeTab === 'hours' ? tint : mutedText }]}
+                    >
+                        HOURS
+                    </ThemedText>
+                </Pressable>
+                <Pressable
+                    onPress={() => setActiveTab('reviews')}
+                    style={[
+                        styles.tab,
+                        activeTab === 'reviews' && { borderBottomColor: tint, borderBottomWidth: 2 },
+                    ]}
+                >
+                    <ThemedText
+                        type="body"
+                        style={[styles.tabText, { color: activeTab === 'reviews' ? tint : mutedText }]}
+                    >
+                        REVIEWS
+                    </ThemedText>
+                </Pressable>
+            </View>
+
+            {/* Tab content */}
+            {activeTab === 'description' && (
+                <View style={styles.tabContent}>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Description</ThemedText>
+                    <ThemedText type="body" style={{ color: mutedText, lineHeight: 22 }}>
+                        {place.description || 'No description available.'}
+                    </ThemedText>
+                </View>
+            )}
+
+            {activeTab === 'hours' && (
+                <View style={styles.tabContent}>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Opening Hours</ThemedText>
+                    <ThemedText type="body" style={{ color: mutedText }}>
+                        Opening hours coming soon.
+                    </ThemedText>
+                </View>
+            )}
+
+            {activeTab === 'reviews' && (
+                <View style={styles.tabContent}>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Reviews</ThemedText>
+                    <ThemedText type="body" style={{ color: mutedText }}>
+                        No reviews yet. Be the first to leave one!
+                    </ThemedText>
                 </View>
             )}
 
