@@ -147,14 +147,16 @@ export default function CreatePlanScreen() {
     const [images, setImages] = useState<string[]>([]);
 
     const handleAddImage = async () => {
-        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (Platform.OS !== 'ios') {
+            const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (permission.status !== 'granted') {
                 Alert.alert('Permission required', 'We need access to your gallery to choose images.');
-            return;
+                return;
+            }
         }
 
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             quality: 0.8,
             base64: true,
@@ -307,9 +309,6 @@ export default function CreatePlanScreen() {
     };
 
     const handleStartDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-        if (Platform.OS === 'android') {
-            setShowStartDatePicker(false);
-        }
         if (event.type === 'set' && selectedDate) {
             setInternalStartDate(selectedDate);
             const day = selectedDate.getDate().toString().padStart(2, '0');
@@ -320,15 +319,13 @@ export default function CreatePlanScreen() {
             // Auto-copy start date to end date
             setEndDate(formatted);
             setInternalEndDate(selectedDate);
+            setShowStartDatePicker(false);
         } else if (event.type === 'dismissed') {
             setShowStartDatePicker(false);
         }
     };
 
     const handleStartTimeChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-        if (Platform.OS === 'android') {
-            setShowStartTimePicker(false);
-        }
         if (event.type === 'set' && selectedDate) {
             setInternalStartDate(selectedDate);
             const hours = selectedDate.getHours().toString().padStart(2, '0');
@@ -337,35 +334,32 @@ export default function CreatePlanScreen() {
             setStartTime(formatted);
             // Auto-set end time to 1 hour later
             setEndTime(addOneHour(formatted));
+            setShowStartTimePicker(false);
         } else if (event.type === 'dismissed') {
             setShowStartTimePicker(false);
         }
     };
 
     const handleEndDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-        if (Platform.OS === 'android') {
-            setShowEndDatePicker(false);
-        }
         if (event.type === 'set' && selectedDate) {
             setInternalEndDate(selectedDate);
             const day = selectedDate.getDate().toString().padStart(2, '0');
             const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
             const year = selectedDate.getFullYear();
             setEndDate(`${day}/${month}/${year}`);
+            setShowEndDatePicker(false);
         } else if (event.type === 'dismissed') {
             setShowEndDatePicker(false);
         }
     };
 
     const handleEndTimeChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-        if (Platform.OS === 'android') {
-            setShowEndTimePicker(false);
-        }
         if (event.type === 'set' && selectedDate) {
             setInternalEndDate(selectedDate);
             const hours = selectedDate.getHours().toString().padStart(2, '0');
             const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
             setEndTime(`${hours}:${minutes}`);
+            setShowEndTimePicker(false);
         } else if (event.type === 'dismissed') {
             setShowEndTimePicker(false);
         }
@@ -524,41 +518,59 @@ export default function CreatePlanScreen() {
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
                         Start Date
                     </ThemedText>
-                    <View style={dateTimeInputStyle}>
-                        <TextInput
-                            value={startDate}
-                            onChangeText={setStartDate}
-                            placeholder="DD/MM/YYYY"
-                            placeholderTextColor={mutedText}
-                            style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 12, color: text }}
-                        />
-                        <Pressable
-                            onPress={() => setShowStartDatePicker(!showStartDatePicker)}
-                            style={{ padding: 12, backgroundColor: background }}
-                        >
-                            <Ionicons name="calendar-outline" size={20} color={tint} />
-                        </Pressable>
-                    </View>
+                    <Pressable
+                        onPress={() => setShowStartDatePicker(!showStartDatePicker)}
+                        style={({ pressed }) => [
+                            styles.input,
+                            { backgroundColor: surface, borderColor: border, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+                            pressed && styles.pressed
+                        ]}
+                    >
+                        <ThemedText style={[{ color: text, fontSize: 16 }, !startDate && { color: mutedText }]}>
+                            {startDate || 'DD/MM/YYYY'}
+                        </ThemedText>
+                        <Ionicons name="calendar-outline" size={20} color={tint} />
+                    </Pressable>
+                    {showStartDatePicker && (
+                        <View style={[styles.inlinePicker, { borderColor: border }]}>
+                            <DateTimePicker
+                                value={internalStartDate}
+                                mode="date"
+                                display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
+                                minimumDate={new Date()}
+                                onChange={handleStartDateChange}
+                            />
+                        </View>
+                    )}
                 </View>
                 <View style={styles.halfInput}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
                         Start Time
                     </ThemedText>
-                    <View style={dateTimeInputStyle}>
-                        <TextInput
-                            value={startTime}
-                            onChangeText={setStartTime}
-                            placeholder="HH:MM"
-                            placeholderTextColor={mutedText}
-                            style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 12, color: text }}
-                        />
-                        <Pressable
-                            onPress={() => setShowStartTimePicker(!showStartTimePicker)}
-                            style={{ padding: 12, backgroundColor: background }}
-                        >
-                            <Ionicons name="time-outline" size={20} color={tint} />
-                        </Pressable>
-                    </View>
+                    <Pressable
+                        onPress={() => setShowStartTimePicker(!showStartTimePicker)}
+                        style={({ pressed }) => [
+                            styles.input,
+                            { backgroundColor: surface, borderColor: border, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+                            pressed && styles.pressed
+                        ]}
+                    >
+                        <ThemedText style={[{ color: text, fontSize: 16 }, !startTime && { color: mutedText }]}>
+                            {startTime || 'HH:MM'}
+                        </ThemedText>
+                        <Ionicons name="time-outline" size={20} color={tint} />
+                    </Pressable>
+                    {showStartTimePicker && (
+                        <View style={[styles.inlinePicker, { borderColor: border }]}>
+                            <DateTimePicker
+                                value={internalStartDate}
+                                mode="time"
+                                display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
+                                is24Hour={true}
+                                onChange={handleStartTimeChange}
+                            />
+                        </View>
+                    )}
                 </View>
             </View>
 
@@ -568,81 +580,61 @@ export default function CreatePlanScreen() {
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
                         End Date
                     </ThemedText>
-                    <View style={dateTimeInputStyle}>
-                        <TextInput
-                            value={endDate}
-                            onChangeText={setEndDate}
-                            placeholder="DD/MM/YYYY"
-                            placeholderTextColor={mutedText}
-                            style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 12, color: text }}
-                        />
-                        <Pressable
-                            onPress={() => setShowEndDatePicker(!showEndDatePicker)}
-                            style={{ padding: 12, backgroundColor: background }}
-                        >
-                            <Ionicons name="calendar-outline" size={20} color={tint} />
-                        </Pressable>
-                    </View>
+                    <Pressable
+                        onPress={() => setShowEndDatePicker(!showEndDatePicker)}
+                        style={({ pressed }) => [
+                            styles.input,
+                            { backgroundColor: surface, borderColor: border, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+                            pressed && styles.pressed
+                        ]}
+                    >
+                        <ThemedText style={[{ color: text, fontSize: 16 }, !endDate && { color: mutedText }]}>
+                            {endDate || 'DD/MM/YYYY'}
+                        </ThemedText>
+                        <Ionicons name="calendar-outline" size={20} color={tint} />
+                    </Pressable>
+                    {showEndDatePicker && (
+                        <View style={[styles.inlinePicker, { borderColor: border }]}>
+                            <DateTimePicker
+                                value={internalEndDate}
+                                mode="date"
+                                display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
+                                minimumDate={new Date()}
+                                onChange={handleEndDateChange}
+                            />
+                        </View>
+                    )}
                 </View>
                 <View style={styles.halfInput}>
                     <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>
                         End Time
                     </ThemedText>
-                    <View style={dateTimeInputStyle}>
-                        <TextInput
-                            value={endTime}
-                            onChangeText={setEndTime}
-                            placeholder="HH:MM"
-                            placeholderTextColor={mutedText}
-                            style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 12, color: text }}
-                        />
-                        <Pressable
-                            onPress={() => setShowEndTimePicker(!showEndTimePicker)}
-                            style={{ padding: 12, backgroundColor: background }}
-                        >
-                            <Ionicons name="time-outline" size={20} color={tint} />
-                        </Pressable>
-                    </View>
+                    <Pressable
+                        onPress={() => setShowEndTimePicker(!showEndTimePicker)}
+                        style={({ pressed }) => [
+                            styles.input,
+                            { backgroundColor: surface, borderColor: border, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+                            pressed && styles.pressed
+                        ]}
+                    >
+                        <ThemedText style={[{ color: text, fontSize: 16 }, !endTime && { color: mutedText }]}>
+                            {endTime || 'HH:MM'}
+                        </ThemedText>
+                        <Ionicons name="time-outline" size={20} color={tint} />
+                    </Pressable>
+                    {showEndTimePicker && (
+                        <View style={[styles.inlinePicker, { borderColor: border }]}>
+                            <DateTimePicker
+                                value={internalEndDate}
+                                mode="time"
+                                display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
+                                is24Hour={true}
+                                onChange={handleEndTimeChange}
+                            />
+                        </View>
+                    )}
                 </View>
             </View>
-
-            {/* Native pickers */}
-            {showStartDatePicker && (
-                <DateTimePicker
-                    value={internalStartDate}
-                    mode="date"
-                    display="default"
-                    onChange={handleStartDateChange}
-                    minimumDate={new Date()}
-                />
-            )}
-            {showStartTimePicker && (
-                <DateTimePicker
-                    value={internalStartDate}
-                    mode="time"
-                    display="default"
-                    is24Hour={true}
-                    onChange={handleStartTimeChange}
-                />
-            )}
-            {showEndDatePicker && (
-                <DateTimePicker
-                    value={internalEndDate}
-                    mode="date"
-                    display="default"
-                    onChange={handleEndDateChange}
-                    minimumDate={new Date()}
-                />
-            )}
-            {showEndTimePicker && (
-                <DateTimePicker
-                    value={internalEndDate}
-                    mode="time"
-                    display="default"
-                    is24Hour={true}
-                    onChange={handleEndTimeChange}
-                />
-            )}
 
             {/* Restricciones de edad */}
             <View style={styles.row}>

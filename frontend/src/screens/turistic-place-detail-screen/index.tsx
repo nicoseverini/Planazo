@@ -19,6 +19,7 @@ import { useToken, decodeJwt } from '@/context/token-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { INTEREST_LABEL, TuristicPlaceDetail, useTuristicPlaces } from '@/services/turistic-place';
 import { formatAgeRestriction } from '@/utils/age-restriction';
+import { openInMaps } from '@/utils/navigation';
 
 import { styles } from './styles';
 
@@ -179,15 +180,40 @@ export default function TuristicPlaceDetailScreen() {
             {(place.location || (place.latitude && place.longitude)) && (
                 <View style={[styles.locationCard, { borderColor: border }]}>
                     {place.location && (
-                        <View style={[styles.locationHeader, { borderBottomWidth: place.latitude && place.longitude ? 1 : 0, borderColor: border }]}>
+                        <View style={[styles.locationHeader, { borderBottomWidth: place.latitude && place.longitude ? 1 : 0, borderColor: border, flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
                             <Ionicons name="location-outline" size={20} color={tint} />
                             <ThemedText type="body" style={{ flex: 1, fontWeight: '500' }}>
                                 {place.location}
                             </ThemedText>
+                            {place.latitude && place.longitude ? (
+                                <Pressable
+                                    onPress={() => openInMaps(place.latitude, place.longitude, place.name)}
+                                    style={({ pressed }) => [
+                                        {
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            backgroundColor: tint,
+                                            paddingVertical: 6,
+                                            paddingHorizontal: 12,
+                                            borderRadius: 8,
+                                            gap: 4,
+                                        },
+                                        pressed && { opacity: 0.8 }
+                                    ]}
+                                >
+                                    <Ionicons name="map-outline" size={14} color={tintText} />
+                                    <ThemedText type="label" style={{ color: tintText, fontWeight: '700', fontSize: 11 }}>
+                                        Directions
+                                    </ThemedText>
+                                </Pressable>
+                            ) : null}
                         </View>
                     )}
                     {place.latitude && place.longitude && (
-                        <View style={{ height: 160 }}>
+                        <Pressable
+                            onPress={() => openInMaps(place.latitude, place.longitude, place.name)}
+                            style={{ height: 160 }}
+                        >
                             <MapView
                                 style={{ ...StyleSheet.absoluteFillObject }}
                                 initialRegion={{
@@ -206,7 +232,7 @@ export default function TuristicPlaceDetailScreen() {
                                     pinColor={tint}
                                 />
                             </MapView>
-                        </View>
+                        </Pressable>
                     )}
                 </View>
             )}

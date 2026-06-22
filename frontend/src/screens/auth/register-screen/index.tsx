@@ -115,7 +115,7 @@ function SelectField({
 
 function BirthDateField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const [open, setOpen] = useState(false);
-  const selectedDate = fromIsoDate(value) ?? new Date();
+  const selectedDate = fromIsoDate(value) ?? new Date(2013, 11, 31);
 
   return (
     <View style={styles.pickerGroup}>
@@ -138,7 +138,7 @@ function BirthDateField({ value, onChange }: { value: string; onChange: (value: 
             value={selectedDate}
             mode="date"
             display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
-            maximumDate={new Date()}
+            maximumDate={new Date(2013, 11, 31)}
             onChange={(_, nextDate) => {
               if (nextDate) {
                 onChange(toIsoDate(nextDate));

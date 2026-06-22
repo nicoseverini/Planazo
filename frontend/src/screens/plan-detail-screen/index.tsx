@@ -7,6 +7,7 @@ import {
     Alert,
     Dimensions,
     Image,
+    Modal,
     Pressable,
     RefreshControl,
     ScrollView,
@@ -24,6 +25,7 @@ import { PendingSubscriber, PlanDetail, usePlans } from '@/services/plan';
 import { formatAgeRestriction } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
 import { formatDateTimeInTimezone } from '@/utils/date';
+import { openInMaps } from '@/utils/navigation';
 
 import { styles } from './styles';
 
@@ -82,6 +84,8 @@ export default function PlanDetailScreen() {
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [pendingSubscribers, setPendingSubscribers] = useState<PendingSubscriber[]>([]);
     const [pendingLoading, setPendingLoading] = useState(false);
+    const [isImageModalVisible, setIsImageModalVisible] = useState(false);
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
     const interestLabel = (plan?.interests ?? [])
         .map(formatInterest)
@@ -447,15 +451,40 @@ export default function PlanDetailScreen() {
             ) : null}
 
             <View style={[styles.locationCard, { backgroundColor: surface, borderColor: border, flexDirection: 'column', alignItems: 'stretch', padding: 0, overflow: 'hidden' }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12, gap: 8 }}>
                     <Ionicons name="location-outline" size={20} color={tint} />
-                    <ThemedText type="body" style={{ flex: 1, marginLeft: 8, fontWeight: '500' }}>
+                    <ThemedText type="body" style={{ flex: 1, fontWeight: '500' }}>
                         {plan.location}
                     </ThemedText>
+                    {plan.latitude && plan.longitude ? (
+                        <Pressable
+                            onPress={() => openInMaps(plan.latitude, plan.longitude, plan.title)}
+                            style={({ pressed }) => [
+                                {
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    backgroundColor: tint,
+                                    paddingVertical: 6,
+                                    paddingHorizontal: 12,
+                                    borderRadius: 8,
+                                    gap: 4,
+                                },
+                                pressed && { opacity: 0.8 }
+                            ]}
+                        >
+                            <Ionicons name="map-outline" size={14} color={tintText} />
+                            <ThemedText type="label" style={{ color: tintText, fontWeight: '700', fontSize: 11 }}>
+                                Directions
+                            </ThemedText>
+                        </Pressable>
+                    ) : null}
                 </View>
 
                 {plan.latitude && plan.longitude ? (
-                    <View style={{ height: 160, width: '100%', borderTopWidth: 1, borderColor: border }}>
+                    <Pressable
+                        onPress={() => openInMaps(plan.latitude, plan.longitude, plan.title)}
+                        style={{ height: 160, width: '100%', borderTopWidth: 1, borderColor: border }}
+                    >
                         <MapView
                             style={{ ...StyleSheet.absoluteFillObject }}
                             initialRegion={{
@@ -474,7 +503,7 @@ export default function PlanDetailScreen() {
                                 pinColor={tint}
                             />
                         </MapView>
-                    </View>
+                    </Pressable>
                 ) : null}
             </View>
 
@@ -488,12 +517,19 @@ export default function PlanDetailScreen() {
                         scrollEventThrottle={16}
                     >
                         {images.map((img, index) => (
-                            <Image
+                            <Pressable
                                 key={index}
-                                source={{ uri: img }}
-                                style={[styles.planImage, { width: SCREEN_WIDTH - 32 }]}
-                                resizeMode="cover"
-                            />
+                                onPress={() => {
+                                    setSelectedImageIndex(index);
+                                    setIsImageModalVisible(true);
+                                }}
+                            >
+                                <Image
+                                    source={{ uri: img }}
+                                    style={[styles.planImage, { width: SCREEN_WIDTH - 32 }]}
+                                    resizeMode="cover"
+                                />
+                            </Pressable>
                         ))}
                     </ScrollView>
                     {images.length > 1 && (
@@ -692,6 +728,55 @@ export default function PlanDetailScreen() {
                     </Pressable>
                 )}
             </View>
+
+            <Modal
+                visible={isImageModalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setIsImageModalVisible(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <Pressable
+                        style={styles.closeButton}
+                        onPress={() => setIsImageModalVisible(false)}
+                    >
+                        <Ionicons name="close" size={30} color="#ffffff" />
+                    </Pressable>
+
+                    {isImageModalVisible && (
+                        <ScrollView
+                            horizontal
+                            pagingEnabled
+                            showsHorizontalScrollIndicator={false}
+                            contentOffset={{ x: selectedImageIndex * SCREEN_WIDTH, y: 0 }}
+                            onScroll={(e) => {
+                                const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+                                setSelectedImageIndex(idx);
+                            }}
+                            scrollEventThrottle={16}
+                            style={styles.scrollView}
+                        >
+                            {images.map((img, index) => (
+                                <View key={index} style={{ width: SCREEN_WIDTH, justifyContent: 'center', alignItems: 'center' }}>
+                                    <Image
+                                        source={{ uri: img }}
+                                        style={{ width: '100%', height: '80%' }}
+                                        resizeMode="contain"
+                                    />
+                                </View>
+                            ))}
+                        </ScrollView>
+                    )}
+
+                    {images.length > 1 && (
+                        <View style={styles.indicatorContainer}>
+                            <ThemedText style={{ color: '#ffffff', fontWeight: '600' }}>
+                                {`${selectedImageIndex + 1} / ${images.length}`}
+                            </ThemedText>
+                        </View>
+                    )}
+                </View>
+            </Modal>
         </AppScreen>
     );
 }

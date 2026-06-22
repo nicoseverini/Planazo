@@ -1,42 +1,759 @@
-import { useEffect } from 'react';
-import { View, Alert } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  ImageBackground,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  View,
+  Dimensions,
+} from 'react-native';
 import * as Location from 'expo-location';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
+import { PlanCard } from '@/components/PlanCard';
+import { TuristicPlaceCard } from '@/components/TuristicPlaceCard';
+import { useToken, decodeJwt } from '@/context/token-context';
+import { useProfile, UserProfile } from '@/services/user';
+import { PlanSummary, usePlans } from '@/services/plan';
+import { useTuristicPlaces, TuristicPlaceSummary } from '@/services/turistic-place';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
 import { styles } from './styles';
 
-export default function HomeScreen() {
-  useEffect(() => {
-    (async () => {
-      const { status, canAskAgain } = await Location.getForegroundPermissionsAsync();
-      if (status !== 'granted' && canAskAgain) {
-        Alert.alert(
-          "Location Permission",
-          "We need access to your location to show you nearby plans and tourist places on the map. Please grant location access in the following prompt.",
-          [
-            { text: "Cancel", style: "cancel" },
-            { 
-              text: "OK", 
-              onPress: async () => {
-                await Location.requestForegroundPermissionsAsync();
-              }
-            }
-          ]
-        );
-      }
-    })();
-  }, []);
+const INTEREST_LABELS_EN: Record<string, string> = {
+  FOOD: 'Food 🍔',
+  CULTURE: 'Culture 🏛️',
+  NATURE: 'Nature 🌳',
+  BEACH: 'Beach 🏖️',
+  ADVENTURE: 'Adventure 🧗',
+  SPORTS: 'Sports ⚽',
+  NIGHTLIFE: 'Nightlife 🍹',
+  SHOPPING: 'Shopping 🛍️',
+  HISTORY: 'History 📜',
+  MOUNTAINS: 'Mountains 🏔️',
+  OTHER: 'Other ✨',
+};
 
-  return (
-    <AppScreen centered>
-      <View style={styles.center}>
-        <ThemedText type="heading">Welcome!</ThemedText>
-        <ThemedText type="body" style={styles.subtitle}>
-          Welcome to the app.
+const DEFAULT_PROFILE: UserProfile = {
+  name: '',
+  lastname: '',
+  email: '',
+  interests: [],
+};
+
+const DEFAULT_COORDS = {
+  latitude: -34.6037, // Buenos Aires Center / FIUBA fallback
+  longitude: -58.3816,
+};
+
+const FALLBACK_IMAGES: Record<string, string> = {
+  FOOD: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600',
+  CULTURE: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?q=80&w=600',
+  NATURE: 'https://images.unsplash.com/photo-1472214222541-d510753a8707?q=80&w=600',
+  BEACH: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600',
+  ADVENTURE: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600',
+  SPORTS: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=600',
+  NIGHTLIFE: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=600',
+  SHOPPING: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600',
+  HISTORY: 'https://images.unsplash.com/photo-1448697138198-9fa6d09c44d6?q=80&w=600',
+  MOUNTAINS: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=600',
+  OTHER: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=600',
+};
+
+// Converts ISO 2-letter country code to Unicode Flag Emoji
+function getFlagEmoji(countryCode: string) {
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map((char) => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
+const CARD_WIDTH = Dimensions.get('window').width * 0.88;
+
+
+
+export default function HomeScreen() {
+  const router = useRouter();
+  const { tokenData, getAccessToken } = useToken();
+  const { fetchProfile } = useProfile();
+  const { fetchFilteredPlans, fetchPublicPlans, fetchMyJoinedPlans, subscribe } = usePlans();
+  const { fetchAll: fetchAllTuristicPlaces } = useTuristicPlaces();
+
+  const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
+  const [locationPermission, setLocationPermission] = useState<Location.PermissionStatus | null>(null);
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [userCountry, setUserCountry] = useState<string | null>(null);
+  const [userCountryCode, setUserCountryCode] = useState<string | null>(null);
+  const [plans, setPlans] = useState<PlanSummary[]>([]);
+  const [fomoPlans, setFomoPlans] = useState<PlanSummary[]>([]);
+  const [turisticPlaces, setTuristicPlaces] = useState<TuristicPlaceSummary[]>([]);
+  const [secondaryPlans, setSecondaryPlans] = useState<PlanSummary[]>([]);
+  const [joinedIds, setJoinedIds] = useState<Set<number>>(new Set());
+  const [subscribingId, setSubscribingId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [myUserId, setMyUserId] = useState<number | null>(null);
+
+  // Business logic fallback labels
+  const [listLabel, setListLabel] = useState('Recommended plans');
+  const [businessCase, setBusinessCase] = useState('CASE_4');
+
+  const tint = useThemeColor({}, 'tint');
+  const tintText = useThemeColor({}, 'tintText');
+  const surface = useThemeColor({}, 'surface');
+  const border = useThemeColor({}, 'border');
+  const mutedText = useThemeColor({}, 'mutedText');
+  const textColor = useThemeColor({}, 'text');
+
+  // Decode user ID on mount or token change
+  useEffect(() => {
+    if (tokenData.state === 'LOGGED_IN') {
+      const token = getAccessToken();
+      if (token) {
+        try {
+          const decoded = decodeJwt(token) as any;
+          if (decoded && decoded.id) {
+            setMyUserId(Number(decoded.id));
+          }
+        } catch (e) {
+          console.error('[HomeScreen] Error decoding jwt', e);
+        }
+      }
+    }
+  }, [tokenData, getAccessToken]);
+
+  // Main load function managing the 4 business cases
+  const loadData = useCallback(
+    async (
+      currentPermStatus: Location.PermissionStatus | null,
+      currentCoords: { latitude: number; longitude: number } | null
+    ) => {
+      if (tokenData.state !== 'LOGGED_IN') {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // 1. Fetch profile to get name and interests
+        let userProfile = DEFAULT_PROFILE;
+        try {
+          userProfile = await fetchProfile();
+          setProfile(userProfile);
+        } catch (err) {
+          console.error('[HomeScreen] Error loading profile:', err);
+        }
+
+        // 2. Fetch my joined plans to mark subscribed state
+        let joinedSet = new Set<number>();
+        try {
+          const joinedPlans = await fetchMyJoinedPlans();
+          joinedSet = new Set(joinedPlans.map((p) => p.id));
+          setJoinedIds(joinedSet);
+        } catch (err) {
+          console.error('[HomeScreen] Error fetching joined plans:', err);
+        }
+
+        const interests = userProfile.interests || [];
+        let fetchedPlans: PlanSummary[] = [];
+        let fetchedSecondary: PlanSummary[] = [];
+        let label = 'Featured Plans';
+        let activeCase = 'CASE_4';
+
+        // Decode current user ID
+        let currentUserId = myUserId;
+        if (!currentUserId) {
+          const token = getAccessToken();
+          if (token) {
+            const decoded = decodeJwt(token) as any;
+            currentUserId = decoded?.id ? Number(decoded.id) : null;
+          }
+        }
+
+        // Fetch general public list first to populate secondary list/grid and FOMO
+        let allPublicList: PlanSummary[] = [];
+        try {
+          allPublicList = await fetchPublicPlans();
+        } catch (err) {
+          console.error('[HomeScreen] Error fetching public list:', err);
+        }
+
+        // Fetch tourist places only if location is granted
+        if (currentPermStatus === 'granted' && currentCoords) {
+          try {
+            const allPlaces = await fetchAllTuristicPlaces();
+            const sortedByDistance = [...allPlaces].sort((a, b) => {
+              if (a.latitude == null || a.longitude == null) return 1;
+              if (b.latitude == null || b.longitude == null) return -1;
+              const distA =
+                Math.pow(a.latitude - currentCoords.latitude, 2) +
+                Math.pow(a.longitude - currentCoords.longitude, 2);
+              const distB =
+                Math.pow(b.latitude - currentCoords.latitude, 2) +
+                Math.pow(b.longitude - currentCoords.longitude, 2);
+              return distA - distB;
+            });
+            setTuristicPlaces(sortedByDistance.slice(0, 5));
+          } catch (err) {
+            console.error('[HomeScreen] Error fetching tourist places:', err);
+          }
+        } else {
+          setTuristicPlaces([]);
+        }
+
+        // Evaluate location state and interest configuration
+        if (currentPermStatus === 'granted' && currentCoords) {
+          if (interests.length > 0) {
+            // Case 1: Permission GRANTED + Interests Configured
+            try {
+              fetchedPlans = await fetchFilteredPlans({
+                lat: currentCoords.latitude,
+                lng: currentCoords.longitude,
+                radius: 50,
+                interests: interests,
+              });
+              activeCase = 'CASE_1';
+              label = 'Recommended near you';
+            } catch (err) {
+              console.error('[HomeScreen] Case 1 fetch error:', err);
+            }
+          }
+
+          // Fallback to Case 2 if Case 1 has no results, or if user has no interests configured
+          if (fetchedPlans.length === 0) {
+            // Case 2: Permission GRANTED + NO Interests
+            try {
+              fetchedPlans = await fetchFilteredPlans({
+                lat: currentCoords.latitude,
+                lng: currentCoords.longitude,
+                radius: 50,
+              });
+              activeCase = 'CASE_2';
+              label = 'Popular near you now';
+            } catch (err) {
+              console.error('[HomeScreen] Case 2 fetch error:', err);
+            }
+          }
+        } else {
+          // Permission DENIED (or unavailable)
+          if (interests.length > 0) {
+            // Case 3: Permission DENIED + Interests Configured
+            // Fetch plans matching interests, using default fallback coordinates (FIUBA/BA Center)
+            try {
+              fetchedPlans = await fetchFilteredPlans({
+                lat: DEFAULT_COORDS.latitude,
+                lng: DEFAULT_COORDS.longitude,
+                radius: 50,
+                interests: interests,
+              });
+
+              // Local fallback inside Case 3 if API returns empty
+              if (fetchedPlans.length === 0) {
+                fetchedPlans = allPublicList.filter((p) =>
+                  p.interests?.some((i) => interests.includes(i))
+                );
+              }
+              activeCase = 'CASE_3';
+              label = 'Matching your interests';
+            } catch (err) {
+              console.error('[HomeScreen] Case 3 fetch error:', err);
+            }
+          }
+
+          // Fallback to Case 4 if Case 3 has no results, or if user has no interests configured
+          if (fetchedPlans.length === 0) {
+            // Case 4: Permission DENIED + NO Interests (Critical Case)
+            // Shuffle public list and select featured plans
+            fetchedPlans = [...allPublicList].sort(() => 0.5 - Math.random()).slice(0, 6);
+            activeCase = 'CASE_4';
+            label = 'Trending plans today';
+          }
+        }
+
+        // Setup FOMO plans (Happening in the future, sorted by date ascending)
+        let fomoList: PlanSummary[] = [];
+        if (currentPermStatus === 'granted' && currentCoords) {
+          const now = new Date();
+          fomoList = allPublicList
+            .filter((p) => {
+              if (!p.startDateTime) return false;
+              const startDate = new Date(p.startDateTime);
+              if (startDate <= now) return false; // Must be in the future
+              if (joinedSet.has(p.id)) return false; // Not already joined
+              if (currentUserId !== null && p.creatorId === currentUserId) return false; // Not created by me
+
+              // Proximity check
+              if (p.latitude != null && p.longitude != null) {
+                const distanceSq =
+                  Math.pow(p.latitude - currentCoords.latitude, 2) +
+                  Math.pow(p.longitude - currentCoords.longitude, 2);
+                return distanceSq < 0.25; // within ~50km
+              }
+              return false;
+            })
+            .sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime())
+            .slice(0, 6);
+        }
+
+        // Setup secondary lists (Grid)
+        fetchedSecondary = allPublicList.filter(
+          (p) => !fetchedPlans.some((f) => f.id === p.id)
+        );
+
+        // Filter out plans where the user is creator or already subscribed
+        const filterPlans = (list: PlanSummary[]) =>
+          list.filter((p) => {
+            if (joinedSet.has(p.id)) return false;
+            if (currentUserId !== null && p.creatorId === currentUserId) return false;
+            return true;
+          });
+
+        setPlans(filterPlans(fetchedPlans));
+        setFomoPlans(fomoList);
+        setSecondaryPlans(filterPlans(fetchedSecondary).slice(0, 8));
+        setListLabel(label);
+        setBusinessCase(activeCase);
+      } catch (err) {
+        console.error('[HomeScreen] General load error:', err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [
+      tokenData.state,
+      fetchProfile,
+      fetchMyJoinedPlans,
+      fetchFilteredPlans,
+      fetchPublicPlans,
+      fetchAllTuristicPlaces,
+      getAccessToken,
+      myUserId,
+    ]
+  );
+
+  // Initialize and check permissions
+  const checkLocationPermissionAndLoad = async () => {
+    try {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      setLocationPermission(status);
+
+      if (status === 'granted') {
+        const loc = await Location.getCurrentPositionAsync({});
+        const currentCoords = {
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+        };
+        setCoords(currentCoords);
+
+        // Reverse geocode to find user country name and code
+        try {
+          const geocodes = await Location.reverseGeocodeAsync(currentCoords);
+          if (geocodes && geocodes.length > 0) {
+            setUserCountry(geocodes[0].country?.toUpperCase() || null);
+            setUserCountryCode(geocodes[0].isoCountryCode || null);
+          }
+        } catch (e) {
+          console.error('[HomeScreen] Error reverse geocoding:', e);
+        }
+
+        await loadData(status, currentCoords);
+      } else {
+        await loadData(status, null);
+      }
+    } catch (err) {
+      console.error('[HomeScreen] Error checking location permission:', err);
+      await loadData(null, null);
+    }
+  };
+
+  useEffect(() => {
+    if (tokenData.state === 'LOGGED_IN') {
+      checkLocationPermissionAndLoad();
+    } else {
+      setLoading(false);
+    }
+  }, [tokenData.state]);
+
+  const requestLocationPermission = async () => {
+    try {
+      const { status, canAskAgain } = await Location.requestForegroundPermissionsAsync();
+      setLocationPermission(status);
+      if (status === 'granted') {
+        const loc = await Location.getCurrentPositionAsync({});
+        const currentCoords = {
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+        };
+        setCoords(currentCoords);
+
+        // Fetch user country
+        try {
+          const geocodes = await Location.reverseGeocodeAsync(currentCoords);
+          if (geocodes && geocodes.length > 0) {
+            setUserCountry(geocodes[0].country?.toUpperCase() || null);
+            setUserCountryCode(geocodes[0].isoCountryCode || null);
+          }
+        } catch (e) {
+          console.error('[HomeScreen] Error reverse geocoding:', e);
+        }
+
+        setLoading(true);
+        await loadData(status, currentCoords);
+      } else {
+        if (!canAskAgain) {
+          Alert.alert(
+            'Location Disabled',
+            'You have permanently denied location access. Please enable it in your device settings to find plans near you.'
+          );
+        } else {
+          Alert.alert('Permission Denied', "We couldn't access your location, showing general fallback recommendations.");
+        }
+      }
+    } catch (err) {
+      console.error('[HomeScreen] Error requesting location permission:', err);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      setLocationPermission(status);
+      let currentCoords = null;
+      if (status === 'granted') {
+        const loc = await Location.getCurrentPositionAsync({});
+        currentCoords = {
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+        };
+        setCoords(currentCoords);
+
+        // Fetch user country
+        try {
+          const geocodes = await Location.reverseGeocodeAsync(currentCoords);
+          if (geocodes && geocodes.length > 0) {
+            setUserCountry(geocodes[0].country?.toUpperCase() || null);
+            setUserCountryCode(geocodes[0].isoCountryCode || null);
+          }
+        } catch (e) {
+          console.error('[HomeScreen] Error reverse geocoding:', e);
+        }
+      } else {
+        setUserCountry(null);
+        setUserCountryCode(null);
+      }
+      await loadData(status, currentCoords);
+    } catch (e) {
+      console.error('[HomeScreen] Error during refresh:', e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleSubscribe = async (planId: number) => {
+    const plan = plans.find((p) => p.id === planId) || secondaryPlans.find((p) => p.id === planId);
+    const isPrivate = plan?.visibility === 'PRIVATE';
+    setSubscribingId(planId);
+    try {
+      await subscribe(planId);
+      setJoinedIds((prev) => {
+        const next = new Set(prev);
+        next.add(planId);
+        return next;
+      });
+      // Remove subscribed card immediately from visible pools
+      setPlans((prev) => prev.filter((p) => p.id !== planId));
+      setSecondaryPlans((prev) => prev.filter((p) => p.id !== planId));
+      if (isPrivate) {
+        Alert.alert(
+          'Request sent',
+          'Your subscription request was sent. You can check its status in "My Plans".'
+        );
+      } else {
+        Alert.alert('Subscribed!', 'You have successfully subscribed to the plan.');
+      }
+    } catch (err) {
+      console.error('[HomeScreen] Error subscribing:', err);
+      const message = err instanceof Error ? err.message : 'Could not process the subscription';
+      Alert.alert('Error', message);
+    } finally {
+      setSubscribingId(null);
+    }
+  };
+
+  const renderAvatar = () => {
+    const name = profile.name || 'User';
+    const initial = name.charAt(0).toUpperCase();
+
+    if (profile.photo) {
+      return <Image source={{ uri: profile.photo }} style={styles.avatar} />;
+    }
+    return (
+      <View style={[styles.avatarPlaceholder, { backgroundColor: tint }]}>
+        <ThemedText type="subtitle" style={[styles.avatarText, { color: tintText }]}>
+          {initial}
         </ThemedText>
       </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <AppScreen centered>
+        <ActivityIndicator size="large" color={tint} />
+        <ThemedText type="body" style={{ color: mutedText, marginTop: 12 }}>
+          Loading recommendations...
+        </ThemedText>
+      </AppScreen>
+    );
+  }
+
+  // Not logged in fallback screen
+  if (tokenData.state !== 'LOGGED_IN') {
+    return (
+      <AppScreen centered>
+        <Ionicons name="compass-outline" size={64} color={tint} />
+        <ThemedText type="heading" style={{ marginTop: 16, textAlign: 'center' }}>
+          Welcome to Planazo!
+        </ThemedText>
+        <ThemedText type="body" style={{ color: mutedText, textAlign: 'center', marginHorizontal: 32, marginTop: 8 }}>
+          Sign in to discover and participate in amazing plans with people who share your interests.
+        </ThemedText>
+        <Pressable
+          onPress={() => router.replace('/')}
+          style={[styles.primaryButton, { backgroundColor: tint, marginTop: 24 }]}
+        >
+          <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
+            Sign in
+          </ThemedText>
+        </Pressable>
+      </AppScreen>
+    );
+  }
+
+  const userInterests = profile.interests || [];
+
+  return (
+    <AppScreen
+      scrollable
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={tint} />
+      }
+      contentStyle={{ paddingHorizontal: 0 }}
+    >
+      {/* Standard Screen Header */}
+      <View style={[styles.header, { marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+        <ThemedText type="heading" style={[styles.welcomeText, { flex: 1, marginRight: 16 }]} numberOfLines={1}>
+          Hello, {profile.name || 'Traveler'}! 👋
+        </ThemedText>
+        <Image 
+          source={require('../../../assets/images/icon.png')} 
+          style={{ width: 48, height: 48, borderRadius: 12, borderWidth: 1, borderColor: border }} 
+          resizeMode="cover"
+        />
+      </View>
+
+      {/* Introductory Welcome (Location) */}
+      <View style={[styles.header, { paddingTop: 0, marginTop: 0 }]}>
+        <View style={styles.headerLeft}>
+          <ThemedText
+            type="label"
+            style={{ color: tint, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}
+          >
+            {userCountry
+              ? `Welcome! You are in ${userCountry} ${userCountryCode ? getFlagEmoji(userCountryCode) : '📍'}`
+              : 'Welcome! Explore the world 🌍'}
+          </ThemedText>
+        </View>
+      </View>
+
+      {/* Selected Interest Category Pills */}
+      {userInterests.length > 0 && (
+        <View style={styles.interestsSection}>
+          <ThemedText type="label" style={[styles.sectionLabel, { color: mutedText }]}>
+            Your chosen interests:
+          </ThemedText>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsContainer}>
+            {userInterests.map((interest) => (
+              <View key={interest} style={[styles.chip, { backgroundColor: surface, borderColor: border }]}>
+                <ThemedText type="label" style={[styles.chipText, { color: textColor }]}>
+                  {INTEREST_LABELS_EN[interest] || interest}
+                </ThemedText>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* Subtle Location Permission Fallback Banner */}
+      {(businessCase === 'CASE_3' || businessCase === 'CASE_4') && (
+        <View style={[styles.locationBanner, { backgroundColor: surface, borderColor: '#FF9500' }]}>
+          <View style={styles.bannerIconContainer}>
+            <Ionicons name="location-outline" size={22} color="#FF9500" />
+          </View>
+          <View style={styles.bannerTextContainer}>
+            <ThemedText type="defaultSemiBold" style={{ fontSize: 14 }}>
+              Enable Location Proximity
+            </ThemedText>
+            <ThemedText type="body" style={{ color: mutedText, fontSize: 12, marginTop: 2 }}>
+              Enable location access to discover plans nearby matching your preferences.
+            </ThemedText>
+            <Pressable
+              onPress={requestLocationPermission}
+              style={({ pressed }) => [
+                styles.activateButton,
+                { backgroundColor: tint },
+                pressed && styles.pressed,
+              ]}
+            >
+              <ThemedText type="label" style={{ color: tintText, fontWeight: '700', fontSize: 11 }}>
+                Enable Proximity
+              </ThemedText>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
+      {/* Case 1 or 2 location active indicator (Non-blocking pill header) */}
+
+      {/* Horizontal Airbnb Slider for Featured Plans */}
+      <View style={styles.sectionHeader}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>
+          {listLabel}
+        </ThemedText>
+      </View>
+
+      {plans.length > 0 ? (
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={plans}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.carouselContainer}
+          snapToInterval={CARD_WIDTH + 16}
+          decelerationRate="fast"
+          renderItem={({ item }) => (
+            <View style={{ width: CARD_WIDTH, marginRight: 16 }}>
+              <PlanCard
+                plan={item}
+                onPress={(id) => router.push(`/plan/${id}` as any)}
+                onSubscribe={handleSubscribe}
+                subscribing={subscribingId === item.id}
+                isSubscribed={joinedIds.has(item.id)}
+              />
+            </View>
+          )}
+        />
+      ) : (
+        <View style={[styles.emptyContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24 }]}>
+          <Ionicons name="calendar-outline" size={40} color={mutedText} />
+          <ThemedText type="defaultSemiBold">No plans found here</ThemedText>
+          <ThemedText type="body" style={{ color: mutedText, textAlign: 'center', fontSize: 13 }}>
+            Be the first to create one!
+          </ThemedText>
+          <Pressable
+            onPress={() => router.push('/create-plan' as any)}
+            style={[styles.createPlanButton, { borderColor: tint, marginTop: 8 }]}
+          >
+            <ThemedText type="label" style={{ color: tint, fontWeight: '600' }}>
+              Create a Plan
+            </ThemedText>
+          </Pressable>
+        </View>
+      )}
+
+      {/* FOMO Section - Plans starting soon */}
+      {fomoPlans.length > 0 && (
+        <View style={{ marginBottom: 24 }}>
+          <View style={styles.sectionHeader}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name="flash" size={18} color="#FF3B30" />
+              <ThemedText type="subtitle" style={[styles.sectionTitle, { color: textColor }]}>
+                Starting soon near you
+              </ThemedText>
+            </View>
+          </View>
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={fomoPlans}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.carouselContainer}
+            snapToInterval={CARD_WIDTH + 16}
+            decelerationRate="fast"
+            renderItem={({ item }) => (
+              <View style={{ width: CARD_WIDTH, marginRight: 16 }}>
+                <PlanCard
+                  plan={item}
+                  onPress={(id) => router.push(`/plan/${id}` as any)}
+                  onSubscribe={handleSubscribe}
+                  subscribing={subscribingId === item.id}
+                  isSubscribed={joinedIds.has(item.id)}
+                />
+              </View>
+            )}
+          />
+        </View>
+      )}
+
+      {/* Famous Tourist Places Horizontal Slider */}
+      {turisticPlaces.length > 0 && (
+        <View style={{ marginBottom: 24 }}>
+          <View style={styles.sectionHeader}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              Famous places nearby
+            </ThemedText>
+          </View>
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={turisticPlaces}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.carouselContainer}
+            snapToInterval={CARD_WIDTH + 16}
+            decelerationRate="fast"
+            renderItem={({ item }) => (
+              <View style={{ width: CARD_WIDTH, marginRight: 16 }}>
+                <TuristicPlaceCard 
+                  place={item} 
+                  onPress={(id) => router.push(`/turistic-place/${id}` as any)} 
+                />
+              </View>
+            )}
+          />
+        </View>
+      )}
+
+      {/* Secondary list of plans (Airbnb Grid format) */}
+      {secondaryPlans.length > 0 && (
+        <>
+          <View style={styles.sectionHeader}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              Discover more adventures
+            </ThemedText>
+          </View>
+          <View style={styles.plansGrid}>
+            {secondaryPlans.map((item) => (
+              <PlanCard
+                key={item.id}
+                plan={item}
+                onPress={(id) => router.push(`/plan/${id}` as any)}
+                onSubscribe={handleSubscribe}
+                subscribing={subscribingId === item.id}
+                isSubscribed={joinedIds.has(item.id)}
+              />
+            ))}
+          </View>
+        </>
+      )}
+
     </AppScreen>
   );
 }

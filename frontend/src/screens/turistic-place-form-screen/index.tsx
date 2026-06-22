@@ -8,6 +8,7 @@ import {
     Image,
     Pressable,
     ScrollView,
+    Platform,
     TextInput,
     View,
 } from 'react-native';
@@ -96,13 +97,15 @@ export default function TuristicPlaceFormScreen({
             : null;
 
     const handleAddImage = async () => {
-        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (permission.status !== 'granted') {
-            Alert.alert('Permission required', 'We need access to your gallery to choose images.');
-            return;
+        if (Platform.OS !== 'ios') {
+            const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (permission.status !== 'granted') {
+                Alert.alert('Permission required', 'We need access to your gallery to choose images.');
+                return;
+            }
         }
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             quality: 0.8,
             base64: true,
