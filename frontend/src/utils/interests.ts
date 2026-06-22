@@ -1,25 +1,32 @@
-const INTEREST_LABELS: Record<string, string> = {
-    FOOD: 'Food 🍔',
-    CULTURE: 'Culture 🏛️',
-    NATURE: 'Nature 🌳',
-    BEACH: 'Beach 🏖️',
-    ADVENTURE: 'Adventure 🧗',
-    SPORTS: 'Sports ⚽',
-    NIGHTLIFE: 'Nightlife 🍹',
-    SHOPPING: 'Shopping 🛍️',
-    HISTORY: 'History 📜',
-    MOUNTAINS: 'Mountains 🏔️',
-    OTHER: 'Other ✨',
-};
+export type Interest =
+    | 'FOOD' | 'CULTURE' | 'NATURE' | 'BEACH' | 'ADVENTURE'
+    | 'NIGHTLIFE' | 'SPORTS' | 'SHOPPING' | 'HISTORY' | 'MOUNTAINS' | 'OTHER';
+
+export const INTEREST_OPTIONS: { label: string; value: Interest }[] = [
+    { label: 'Food',      value: 'FOOD' },
+    { label: 'Culture',   value: 'CULTURE' },
+    { label: 'Nature',    value: 'NATURE' },
+    { label: 'Beach',     value: 'BEACH' },
+    { label: 'Adventure', value: 'ADVENTURE' },
+    { label: 'Sports',    value: 'SPORTS' },
+    { label: 'Nightlife', value: 'NIGHTLIFE' },
+    { label: 'Shopping',  value: 'SHOPPING' },
+    { label: 'History',   value: 'HISTORY' },
+    { label: 'Mountains', value: 'MOUNTAINS' },
+    { label: 'Other',     value: 'OTHER' },
+];
+
+export const INTEREST_LABEL: Record<Interest, string> = Object.fromEntries(
+    INTEREST_OPTIONS.map(({ value, label }) => [value, label])
+) as Record<Interest, string>;
 
 /**
- * Converts a backend interest constant to a user-friendly label.
- * Known labels use an explicit mapping (e.g. FOOD → Food).
- * Everything else is title-cased with underscores replaced by spaces,
- * so future values like BOARD_GAMES → "Board Games" work automatically.
+ * Converts a backend interest key to a display label.
+ * Falls back to title-casing for unknown values (e.g. BOARD_GAMES → "Board Games").
  */
 export function formatInterest(interest: string): string {
-    if (INTEREST_LABELS[interest]) return INTEREST_LABELS[interest];
+    const known = INTEREST_LABEL[interest as Interest];
+    if (known) return known;
     return interest
         .toLowerCase()
         .replace(/_/g, ' ')

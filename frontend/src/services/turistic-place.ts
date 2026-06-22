@@ -1,28 +1,10 @@
 import { getBackendUrl } from './auth';
 import { useToken } from '@/context/token-context';
 import { useCallback, useState } from 'react';
+import { Interest, INTEREST_OPTIONS, INTEREST_LABEL } from '@/utils/interests';
 
-export type Interest =
-    | 'FOOD' | 'CULTURE' | 'NATURE' | 'BEACH' | 'ADVENTURE'
-    | 'NIGHTLIFE' | 'SPORTS' | 'SHOPPING' | 'HISTORY' | 'MOUNTAINS' | 'OTHER';
-
-export const INTEREST_OPTIONS: { label: string; value: Interest }[] = [
-    { label: 'Food', value: 'FOOD' },
-    { label: 'Culture', value: 'CULTURE' },
-    { label: 'Nature', value: 'NATURE' },
-    { label: 'Beach', value: 'BEACH' },
-    { label: 'Adventure', value: 'ADVENTURE' },
-    { label: 'Nightlife', value: 'NIGHTLIFE' },
-    { label: 'Sports', value: 'SPORTS' },
-    { label: 'Shopping', value: 'SHOPPING' },
-    { label: 'History', value: 'HISTORY' },
-    { label: 'Mountains', value: 'MOUNTAINS' },
-    { label: 'Other', value: 'OTHER' },
-];
-
-export const INTEREST_LABEL: Record<Interest, string> = Object.fromEntries(
-    INTEREST_OPTIONS.map(({ value, label }) => [value, label])
-) as Record<Interest, string>;
+export type { Interest };
+export { INTEREST_OPTIONS, INTEREST_LABEL };
 
 export type TuristicPlaceSummary = {
     id: number;

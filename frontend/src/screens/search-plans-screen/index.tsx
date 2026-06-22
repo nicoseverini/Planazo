@@ -16,25 +16,10 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useRefreshControl } from '@/hooks/use-refresh-control';
 import { PlanFilters, PlanSummary, usePlans } from '@/services/plan';
 import { normalizeSearch } from '@/utils/search';
+import { INTEREST_OPTIONS, formatInterest } from '@/utils/interests';
 import { styles } from './styles';
 
-const INTERESTS = [
-    'FOOD', 'CULTURE', 'NATURE', 'BEACH', 'ADVENTURE', 'SPORTS',
-    'NIGHTLIFE', 'SHOPPING', 'HISTORY', 'MOUNTAINS', 'OTHER',
-];
-const INTEREST_LABELS: Record<string, string> = {
-    FOOD: 'Food',
-    CULTURE: 'Culture',
-    NATURE: 'Nature',
-    BEACH: 'Beach',
-    SPORTS: 'Sports',
-    ADVENTURE: 'Adventure',
-    NIGHTLIFE: 'Nightlife',
-    SHOPPING: 'Shopping',
-    HISTORY: 'History',
-    MOUNTAINS: 'Mountains',
-    OTHER: 'Other',
-};
+const INTERESTS = INTEREST_OPTIONS.map(({ value }) => value);
 
 const fmt = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -186,7 +171,7 @@ export function SearchPlansScreen() {
                     {selectedInterests.map((interest) => (
                         <View key={interest} style={activeChipStyle}>
                             <ThemedText type="label" style={{ color: tintText }}>
-                                {INTEREST_LABELS[interest]}
+                                {formatInterest(interest)}
                             </ThemedText>
                         </View>
                     ))}
@@ -305,7 +290,7 @@ export function SearchPlansScreen() {
                                     }}
                                 >
                                     <ThemedText type="label" style={{ color: active ? tintText : textColor }}>
-                                        {INTEREST_LABELS[i]}
+                                        {formatInterest(i)}
                                     </ThemedText>
                                 </Pressable>
                             );

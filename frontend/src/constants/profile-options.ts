@@ -1,31 +1,13 @@
+import { INTEREST_OPTIONS as _INTEREST_OPTIONS, INTEREST_LABEL } from '@/utils/interests';
+
 export const GENDER_OPTIONS = ['MALE', 'FEMALE', 'OTHER', 'PREFER_NOT_TO_SAY'] as const;
-export const INTEREST_OPTIONS = [
-  'FOOD',
-  'CULTURE',
-  'NATURE',
-  'BEACH',
-  'ADVENTURE',
-  'SPORTS',
-  'NIGHTLIFE',
-  'SHOPPING',
-  'HISTORY',
-  'MOUNTAINS',
-] as const;
+
+export const INTEREST_OPTIONS = _INTEREST_OPTIONS.map(({ value }) => value);
+
+export const INTEREST_LABELS: Record<string, string> = INTEREST_LABEL;
+
 export const TRAVEL_TYPE_OPTIONS = ['SOLO', 'COUPLE', 'FRIENDS'] as const;
 export const LANGUAGE_OPTIONS = ['Spanish', 'English'] as const;
-
-export const INTEREST_LABELS: Record<string, string> = {
-  FOOD: 'Food',
-  CULTURE: 'Culture',
-  NATURE: 'Nature',
-  BEACH: 'Beach',
-  ADVENTURE: 'Adventure',
-  SPORTS: 'Sports',
-  NIGHTLIFE: 'Nightlife',
-  SHOPPING: 'Shopping',
-  HISTORY: 'History',
-  MOUNTAINS: 'Mountains',
-};
 
 export const TRAVEL_TYPE_LABELS: Record<string, string> = {
   SOLO: 'Solo',

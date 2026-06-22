@@ -6,6 +6,7 @@ import { StatusBadgeColors } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { PlanSummary } from '@/services/plan';
 import { formatDateInTimezone, formatTimeInTimezone } from '@/utils/date';
+import { formatInterest } from '@/utils/interests';
 
 import { styles } from './styles';
 
@@ -14,18 +15,10 @@ export type PlanCardProps = {
     onPress: (planId: number) => void;
 };
 
-const CATEGORY_BY_INTEREST: Record<string, string> = {
-    FOOD: 'Food', CULTURE: 'Culture', NATURE: 'Nature', BEACH: 'Beach',
-    ADVENTURE: 'Adventure', SPORTS: 'Sports', NIGHTLIFE: 'Nightlife',
-    SHOPPING: 'Shopping', HISTORY: 'History', MOUNTAINS: 'Mountains', OTHER: 'Other',
-};
-
 export function PlanCard({ plan, onPress }: PlanCardProps) {
     const { surface: cardBg, border, tint, mutedText } = useAppTheme();
 
-    const interestLabel = (plan.interests ?? [])
-        .map((i) => CATEGORY_BY_INTEREST[i] || i)
-        .join(' · ');
+    const interestLabel = (plan.interests ?? []).map(formatInterest).join(' · ');
 
     const isPublic = plan.visibility === 'PUBLIC';
 
