@@ -1,23 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { CategoryFilterSelector } from '@/components/CategoryFilterSelector';
 import { DistanceSlider } from '@/components/DistanceSlider';
 import { ThemedText } from '@/components/ThemedText';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { INTEREST_OPTIONS } from '@/services/turistic-place';
 
 export type ActivityFilter = 'ALL' | 'PLANS' | 'PLACES';
 export type VisibilityFilter = 'ANY' | 'PUBLIC' | 'PRIVATE';
 
 export type MapFilters = {
     activity: ActivityFilter;
-    category: string | null;
+    /** Selected category values. Empty array means "Any" (no category filter). */
+    categories: string[];
     visibility: VisibilityFilter;
     radius: number | null;
 };
 
 export const DEFAULT_MAP_FILTERS: MapFilters = {
     activity: 'ALL',
-    category: null,
+    categories: [],
     visibility: 'ANY',
     radius: null,
 };
@@ -34,12 +35,10 @@ const VISIBILITY_OPTIONS: { label: string; value: VisibilityFilter }[] = [
     { label: 'Private', value: 'PRIVATE' },
 ];
 
-const CATEGORY_OPTIONS = INTEREST_OPTIONS;
-
 type Props = {
     visible: boolean;
     filters: MapFilters;
-    onFiltersChange: (filters: MapFilters) => void;
+    onFiltersChange: (filters: MapFilters) => void | Promise<void>;
     onReset: () => void;
     onClose: () => void;
 };
@@ -99,28 +98,10 @@ export function MapFilterModal({ visible, filters, onFiltersChange, onReset, onC
                 {/* Category */}
                 <ThemedText type="subtitle" style={styles.sectionTitle}>Category</ThemedText>
                 <View style={styles.chips}>
-                    <Pressable
-                        onPress={() => onFiltersChange({ ...filters, category: null })}
-                        style={chipStyle(filters.category === null)}
-                    >
-                        <ThemedText type="label" style={{ color: filters.category === null ? tintText : text }}>
-                            Any
-                        </ThemedText>
-                    </Pressable>
-                    {CATEGORY_OPTIONS.map((opt) => {
-                        const active = filters.category === opt.value;
-                        return (
-                            <Pressable
-                                key={opt.value}
-                                onPress={() => onFiltersChange({ ...filters, category: opt.value })}
-                                style={chipStyle(active)}
-                            >
-                                <ThemedText type="label" style={{ color: active ? tintText : text }}>
-                                    {opt.label}
-                                </ThemedText>
-                            </Pressable>
-                        );
-                    })}
+                    <CategoryFilterSelector
+                        selected={filters.categories}
+                        onChange={(categories) => onFiltersChange({ ...filters, categories })}
+                    />
                 </View>
 
                 {/* Plan Visibility */}

@@ -22,6 +22,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
@@ -124,6 +125,13 @@ public class GlobalControllerExceptionHandler {
     public ResponseEntity<String> handleResponseStatus(ResponseStatusException ex) {
         String body = ex.getReason() != null ? ex.getReason() : ex.getMessage();
         return new ResponseEntity<>(body, ex.getStatusCode());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ApiResponse(responseCode = "400", description = "Invalid query parameter value", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
+    public ResponseEntity<String> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String message = String.format("Invalid value '%s' for parameter '%s'.", ex.getValue(), ex.getName());
+        return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Throwable.class)

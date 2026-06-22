@@ -1,26 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
-    ActivityIndicator, FlatList, Modal, Platform,
-    Pressable, RefreshControl, ScrollView, TextInput, View, Alert
+    ActivityIndicator, Alert, FlatList, Modal, Platform,
+    Pressable, RefreshControl, ScrollView, TextInput, View,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import * as Location from 'expo-location';
 
+import { CategoryFilterSelector } from '@/components/CategoryFilterSelector';
 import { DistanceSlider } from '@/components/DistanceSlider';
 import { PlanCard } from '@/components/PlanCard';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { decodeJwt, useToken } from '@/context/token-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useProximityFilter } from '@/hooks/use-proximity-filter';
 import { useRefreshControl } from '@/hooks/use-refresh-control';
 import { PlanFilters, PlanSummary, PlanVisibility, usePlans } from '@/services/plan';
 import { normalizeSearch } from '@/utils/search';
-import { INTEREST_OPTIONS, formatInterest } from '@/utils/interests';
+import { formatInterest } from '@/utils/interests';
 import { styles } from './styles';
-
-const INTERESTS = INTEREST_OPTIONS.map(({ value }) => value);
 
 const VISIBILITY_OPTIONS: { label: string; value: PlanVisibility | null }[] = [
     { label: 'Both', value: null },
@@ -41,30 +40,28 @@ export function SearchPlansScreen() {
     const [joinedIds, setJoinedIds] = useState<Set<number>>(new Set());
     const [showFilters, setShowFilters] = useState(false);
 
-    // Filtros
-    const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+    // Filters
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [locationFilter, setLocationFilter] = useState('');
     const [dateFrom, setDateFrom] = useState<Date | null>(null);
     const [dateTo, setDateTo] = useState<Date | null>(null);
-    const [radius, setRadius] = useState<number | null>(null);
     const [visibility, setVisibility] = useState<PlanVisibility | null>(null);
-    const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
-    // Date picker state
+    // Date picker visibility
     const [showDateFrom, setShowDateFrom] = useState(false);
     const [showDateTo, setShowDateTo] = useState(false);
 
-    const locationFetchingRef = useRef(false);
+    const { radius, userLocation, handleRadiusChange, clearRadius } = useProximityFilter();
 
     const { surface, border, tint, tintText, mutedText, text: textColor } = useAppTheme();
 
     const hasActiveFilters = !!(
-        selectedInterests.length > 0 || locationFilter || dateFrom || dateTo || radius || visibility
+        selectedCategories.length > 0 || locationFilter || dateFrom || dateTo || radius || visibility
     );
 
     const buildFilters = useCallback((): PlanFilters => {
         const f: PlanFilters = {};
-        if (selectedInterests.length > 0) f.interests = selectedInterests;
+        if (selectedCategories.length > 0) f.interests = selectedCategories;
         if (locationFilter) f.location = locationFilter;
         if (dateFrom) f.dateFrom = `${fmt(dateFrom)}T00:00:00`;
         if (dateTo) f.dateTo = `${fmt(dateTo)}T23:59:59`;
@@ -75,7 +72,7 @@ export function SearchPlansScreen() {
         }
         if (visibility) f.visibility = visibility;
         return f;
-    }, [selectedInterests, locationFilter, dateFrom, dateTo, radius, userLocation, visibility]);
+    }, [selectedCategories, locationFilter, dateFrom, dateTo, radius, userLocation, visibility]);
 
     const { tokenData, getAccessToken } = useToken();
 
@@ -108,11 +105,13 @@ export function SearchPlansScreen() {
 
             setPlans(visiblePlans);
             setFilteredPlans(visiblePlans);
-        } catch (err) {
-            console.error('Error loading plans:', err);
-            if (hasActiveFilters) {
-                Alert.alert('Error', 'Unable to apply filters. Please try again.');
-            }
+        } catch {
+            Alert.alert(
+                'Error',
+                hasActiveFilters
+                    ? 'Unable to apply filters. Please try again.'
+                    : 'Unable to load plans. Please try again.',
+            );
         }
     }, [fetchPublicPlans, fetchFilteredPlans, fetchMyJoinedPlans, hasActiveFilters, buildFilters, tokenData.state]);
 
@@ -123,7 +122,7 @@ export function SearchPlansScreen() {
     useEffect(() => {
         if (!searchQuery.trim()) { setFilteredPlans(plans); return; }
         const q = normalizeSearch(searchQuery);
-        setFilteredPlans(plans.filter(p =>
+        setFilteredPlans(plans.filter((p) =>
             normalizeSearch(p.title).includes(q) ||
             (p.location ? normalizeSearch(p.location).includes(q) : false) ||
             (p.interests ?? []).some((interest) => normalizeSearch(interest).includes(q))
@@ -131,39 +130,12 @@ export function SearchPlansScreen() {
     }, [searchQuery, plans]);
 
     const clearFilters = () => {
-        setSelectedInterests([]);
+        setSelectedCategories([]);
         setLocationFilter('');
         setDateFrom(null);
         setDateTo(null);
-        setRadius(null);
         setVisibility(null);
-    };
-
-    const handleRadiusChange = async (r: number | null) => {
-        if (r === null) {
-            setRadius(null);
-            return;
-        }
-        if (userLocation !== null) {
-            setRadius(r);
-            return;
-        }
-        if (locationFetchingRef.current) return;
-        locationFetchingRef.current = true;
-        try {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                Alert.alert('Permission denied', 'Location permission is required for proximity search.');
-                return;
-            }
-            const loc = await Location.getCurrentPositionAsync({});
-            setUserLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude });
-            setRadius(r);
-        } catch {
-            Alert.alert('Error', 'Could not get current location.');
-        } finally {
-            locationFetchingRef.current = false;
-        }
+        clearRadius();
     };
 
     const activeChipStyle = { backgroundColor: tint, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 };
@@ -185,11 +157,9 @@ export function SearchPlansScreen() {
             {/* Active filter chips */}
             {hasActiveFilters && (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginHorizontal: 20, marginBottom: 8 }}>
-                    {selectedInterests.map((interest) => (
-                        <View key={interest} style={activeChipStyle}>
-                            <ThemedText type="label" style={{ color: tintText }}>
-                                {formatInterest(interest)}
-                            </ThemedText>
+                    {selectedCategories.map((cat) => (
+                        <View key={cat} style={activeChipStyle}>
+                            <ThemedText type="label" style={{ color: tintText }}>{formatInterest(cat)}</ThemedText>
                         </View>
                     ))}
                     {locationFilter && (
@@ -295,29 +265,11 @@ export function SearchPlansScreen() {
 
                     {/* Category */}
                     <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Category</ThemedText>
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-                        {INTERESTS.map((i) => {
-                            const active = selectedInterests.includes(i);
-                            return (
-                                <Pressable
-                                    key={i}
-                                    onPress={() =>
-                                        setSelectedInterests((prev) =>
-                                            prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]
-                                        )
-                                    }
-                                    style={{
-                                        paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-                                        backgroundColor: active ? tint : 'transparent',
-                                        borderWidth: 1, borderColor: active ? tint : border,
-                                    }}
-                                >
-                                    <ThemedText type="label" style={{ color: active ? tintText : textColor }}>
-                                        {formatInterest(i)}
-                                    </ThemedText>
-                                </Pressable>
-                            );
-                        })}
+                    <View style={{ marginBottom: 24 }}>
+                        <CategoryFilterSelector
+                            selected={selectedCategories}
+                            onChange={setSelectedCategories}
+                        />
                     </View>
 
                     {/* Visibility */}
@@ -424,7 +376,7 @@ export function SearchPlansScreen() {
                         <DistanceSlider radius={radius} onChange={handleRadiusChange} />
                     </View>
 
-                    {/* Action buttons */}
+                    {/* Actions */}
                     <View style={{ gap: 12 }}>
                         <Pressable
                             onPress={() => { setShowFilters(false); loadPlans(); }}
