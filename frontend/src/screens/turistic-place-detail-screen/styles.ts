@@ -45,6 +45,12 @@ export const styles = StyleSheet.create({
         marginBottom: 16,
         overflow: 'hidden',
     },
+    locationHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        gap: 8,
+    },
     imageSection: {
         marginBottom: 16,
     },

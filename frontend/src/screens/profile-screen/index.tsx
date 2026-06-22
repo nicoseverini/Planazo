@@ -6,6 +6,8 @@ import {
     ActivityIndicator,
     Alert,
     Image,
+    Modal,
+    Platform,
     Pressable,
     TextInput,
     View,
@@ -152,6 +154,7 @@ export default function ProfileScreen() {
     const [error, setError] = useState<string | null>(null);
     const [loggingOut, setLoggingOut] = useState(false);
     const [deletingAccount, setDeletingAccount] = useState(false);
+    const [isViewerOpen, setIsViewerOpen] = useState(false);
 
     const displayUser = useMemo(() => normalizeProfile(user), [user]);
 
@@ -242,18 +245,22 @@ export default function ProfileScreen() {
     };
 
     async function handleChangePhoto() {
-        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (permission.status !== 'granted') {
-            Alert.alert('Permission required', 'We need access to your gallery to choose a photo.');
-            return;
+        if (Platform.OS !== 'ios') {
+            const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (permission.status !== 'granted') {
+                Alert.alert('Permission required', 'We need access to your gallery to choose a photo.');
+                return;
+            }
         }
 
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             quality: 0.8,
             base64: true,
         });
+
+        console.log(result);
 
         if (result.canceled || !result.assets?.length) {
             return;
@@ -282,7 +289,7 @@ export default function ProfileScreen() {
     }
 
     async function handleLogout() {
-            Alert.alert(
+        Alert.alert(
             'Log out',
             'Are you sure you want to log out?',
             [
@@ -305,7 +312,7 @@ export default function ProfileScreen() {
     }
 
     async function handleDeleteAccount() {
-            Alert.alert(
+        Alert.alert(
             'Delete account',
             'Are you sure? This action is irreversible and will delete all your data.',
             [
@@ -367,7 +374,7 @@ export default function ProfileScreen() {
                         onPress={() => router.replace('/')}
                         style={[styles.primaryButton, { backgroundColor: tint, marginTop: 24 }]}
                     >
-                            <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
+                        <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
                             Sign in
                         </ThemedText>
                     </Pressable>
@@ -381,10 +388,42 @@ export default function ProfileScreen() {
 
     return (
         <AppScreen scrollable>
+            <Modal
+                visible={isViewerOpen}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setIsViewerOpen(false)}
+            >
+                <Pressable 
+                    style={styles.modalOverlay} 
+                    onPress={() => setIsViewerOpen(false)}
+                >
+                    <Pressable 
+                        style={styles.modalCloseButton} 
+                        onPress={() => setIsViewerOpen(false)}
+                    >
+                        <Ionicons name="close" size={32} color="#fff" />
+                    </Pressable>
+                    {photoUrl ? (
+                        <Image 
+                            source={{ uri: photoUrl }} 
+                            style={styles.fullImage} 
+                            resizeMode="contain" 
+                        />
+                    ) : null}
+                </Pressable>
+            </Modal>
+
             {/* Header con avatar */}
             <View style={styles.header}>
                 <Pressable
-                    onPress={handleChangePhoto}
+                    onPress={() => {
+                        if (photoUrl) {
+                            setIsViewerOpen(true);
+                        } else if (editing) {
+                            handleChangePhoto();
+                        }
+                    }}
                     style={({ pressed }) => [
                         styles.avatarContainer,
                         { backgroundColor: surface, borderColor: border },
@@ -395,7 +434,7 @@ export default function ProfileScreen() {
                         <Image source={{ uri: photoUrl }} style={styles.avatar} />
                     ) : (
                         <View style={[styles.avatarPlaceholder, { backgroundColor: tint }]}
-                            >
+                        >
                             <ThemedText
                                 type="heading"
                                 lightColor={tintText}
@@ -406,9 +445,11 @@ export default function ProfileScreen() {
                             </ThemedText>
                         </View>
                     )}
-                    <View style={[styles.cameraIcon, { backgroundColor: tint }]}>
-                        <Ionicons name="camera" size={14} color={tintText} />
-                    </View>
+                    {editing && (
+                        <View style={[styles.cameraIcon, { backgroundColor: tint }]}>
+                            <Ionicons name="camera" size={14} color={tintText} />
+                        </View>
+                    )}
                 </Pressable>
 
                 <ThemedText type="title" style={styles.userName}>
@@ -556,7 +597,7 @@ export default function ProfileScreen() {
                             value={formData?.email || ''}
                             editable={false}
                         />
-                            <ThemedText type="label" style={{ color: mutedText, fontSize: 11, marginTop: 4 }}>
+                        <ThemedText type="label" style={{ color: mutedText, fontSize: 11, marginTop: 4 }}>
                             Email cannot be changed
                         </ThemedText>
                     </View>
@@ -580,7 +621,7 @@ export default function ProfileScreen() {
                                 onPress={handleChangePhoto}
                                 style={[styles.photoButton, { borderColor: border }]}
                             >
-                                    <ThemedText type="label" style={{ color: text }}>
+                                <ThemedText type="label" style={{ color: text }}>
                                     Select
                                 </ThemedText>
                             </Pressable>
@@ -588,7 +629,7 @@ export default function ProfileScreen() {
                                 onPress={handleClearPhoto}
                                 style={[styles.photoButton, { borderColor: border }]}
                             >
-                                    <ThemedText type="label" style={{ color: text }}>
+                                <ThemedText type="label" style={{ color: text }}>
                                     Clear
                                 </ThemedText>
                             </Pressable>
@@ -722,8 +763,8 @@ export default function ProfileScreen() {
                             {saving ? (
                                 <ActivityIndicator size="small" color={tintText} />
                             ) : (
-                                    <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                                        Save changes
+                                <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
+                                    Save changes
                                 </ThemedText>
                             )}
                         </Pressable>

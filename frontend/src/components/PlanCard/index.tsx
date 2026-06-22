@@ -67,7 +67,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
                         <ThemedText type="subtitle" style={styles.planTitle} numberOfLines={1}>
                             {plan.title}
                         </ThemedText>
-                            <View style={[styles.visibilityBadge, {
+                        <View style={[styles.visibilityBadge, {
                             backgroundColor: isPublic ? StatusBadgeColors.public.background : StatusBadgeColors.private.background,
                         }]}>
                             <ThemedText type="label" style={[styles.visibilityBadgeText, { color: isPublic ? StatusBadgeColors.public.text : StatusBadgeColors.private.text }]}>

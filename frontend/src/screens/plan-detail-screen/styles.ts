@@ -214,4 +214,30 @@ export const styles = StyleSheet.create({
     disabled: {
         opacity: 0.5,
     },
+    modalContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 50,
+        right: 20,
+        zIndex: 10,
+        padding: 10,
+    },
+    scrollView: {
+        flex: 1,
+        width: '100%',
+    },
+    indicatorContainer: {
+        position: 'absolute',
+        bottom: 50,
+        alignSelf: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        paddingVertical: 6,
+        paddingHorizontal: 16,
+        borderRadius: 20,
+    },
 });

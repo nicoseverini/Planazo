@@ -145,4 +145,11 @@ export const styles = StyleSheet.create({
     disabled: {
         opacity: 0.5,
     },
+    inlinePicker: {
+        borderRadius: Layout.buttonRadius,
+        borderWidth: 1,
+        overflow: 'hidden',
+        padding: 8,
+        marginTop: 8,
+    },
 });
