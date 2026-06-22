@@ -150,11 +150,12 @@ export async function deleteTuristicPlace(id: number, accessToken: string): Prom
 
 export function useTuristicPlaces() {
     const { getAccessToken } = useToken();
-    const [loading, setLoading] = useState(false);
+    const [loadingCount, setLoadingCount] = useState(0);
+    const loading = loadingCount > 0;
     const [error, setError] = useState<string | null>(null);
 
     const fetchAll = useCallback(async () => {
-        setLoading(true);
+        setLoadingCount((c) => c + 1);
         setError(null);
         try {
             return await getAllTuristicPlaces();
@@ -162,12 +163,12 @@ export function useTuristicPlaces() {
             setError(err instanceof Error ? err.message : 'Unknown error');
             throw err;
         } finally {
-            setLoading(false);
+            setLoadingCount((c) => c - 1);
         }
     }, []);
 
     const fetchById = useCallback(async (id: number) => {
-        setLoading(true);
+        setLoadingCount((c) => c + 1);
         setError(null);
         try {
             return await getTuristicPlaceById(id);
@@ -175,14 +176,14 @@ export function useTuristicPlaces() {
             setError(err instanceof Error ? err.message : 'Unknown error');
             throw err;
         } finally {
-            setLoading(false);
+            setLoadingCount((c) => c - 1);
         }
     }, []);
 
     const fetchMine = useCallback(async () => {
         const token = getAccessToken();
         if (!token) throw new Error('No access token');
-        setLoading(true);
+        setLoadingCount((c) => c + 1);
         setError(null);
         try {
             return await getMyTuristicPlaces(token);
@@ -190,14 +191,14 @@ export function useTuristicPlaces() {
             setError(err instanceof Error ? err.message : 'Unknown error');
             throw err;
         } finally {
-            setLoading(false);
+            setLoadingCount((c) => c - 1);
         }
     }, [getAccessToken]);
 
     const create = useCallback(async (data: TuristicPlaceCreateRequest) => {
         const token = getAccessToken();
         if (!token) throw new Error('No access token');
-        setLoading(true);
+        setLoadingCount((c) => c + 1);
         setError(null);
         try {
             return await createTuristicPlace(data, token);
@@ -205,14 +206,14 @@ export function useTuristicPlaces() {
             setError(err instanceof Error ? err.message : 'Unknown error');
             throw err;
         } finally {
-            setLoading(false);
+            setLoadingCount((c) => c - 1);
         }
     }, [getAccessToken]);
 
     const update = useCallback(async (id: number, data: TuristicPlaceUpdateRequest) => {
         const token = getAccessToken();
         if (!token) throw new Error('No access token');
-        setLoading(true);
+        setLoadingCount((c) => c + 1);
         setError(null);
         try {
             return await updateTuristicPlace(id, data, token);
@@ -220,14 +221,14 @@ export function useTuristicPlaces() {
             setError(err instanceof Error ? err.message : 'Unknown error');
             throw err;
         } finally {
-            setLoading(false);
+            setLoadingCount((c) => c - 1);
         }
     }, [getAccessToken]);
 
     const remove = useCallback(async (id: number) => {
         const token = getAccessToken();
         if (!token) throw new Error('No access token');
-        setLoading(true);
+        setLoadingCount((c) => c + 1);
         setError(null);
         try {
             await deleteTuristicPlace(id, token);
@@ -235,7 +236,7 @@ export function useTuristicPlaces() {
             setError(err instanceof Error ? err.message : 'Unknown error');
             throw err;
         } finally {
-            setLoading(false);
+            setLoadingCount((c) => c - 1);
         }
     }, [getAccessToken]);
 

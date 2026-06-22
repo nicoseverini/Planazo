@@ -5,13 +5,13 @@ import MapView, { Marker, Callout } from 'react-native-maps';
 
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { usePlans, PlanSummary } from '@/services/plan';
+import { useTuristicPlaces, TuristicPlaceSummary } from '@/services/turistic-place';
 import * as Location from 'expo-location';
 
 import { styles } from './styles';
 import { AppScreen } from '@/components/ui';
-import { TuristicPlaceSummary } from '@/services/turistic-place';
 
 function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
     const R = 6371; // Radius of the earth in km
@@ -52,14 +52,11 @@ type SelectedMapItem =
 
 export default function MapScreen() {
     const router = useRouter();
-    const { fetchPublicPlans, loading, fetchTouristicPlaces } = usePlans();
+    const { fetchPublicPlans, loading } = usePlans();
+    const { fetchAll: fetchTouristicPlaces } = useTuristicPlaces();
     const mapRef = useRef<MapView>(null);
 
-    const tint = useThemeColor({}, 'tint');
-    const tintText = useThemeColor({}, 'tintText');
-    const surface = useThemeColor({}, 'surface');
-    const border = useThemeColor({}, 'border');
-    const text = useThemeColor({}, 'text');
+    const { tint, tintText, surface, border, text } = useAppTheme();
 
     const [plans, setPlans] = useState<PlanSummary[]>([]);
     const [places, setPlaces] = useState<TuristicPlaceSummary[]>([]);

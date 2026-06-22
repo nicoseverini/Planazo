@@ -18,7 +18,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { StarRating } from '@/components/StarRating';
 import { useToken, decodeJwt } from '@/context/token-context';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { TuristicPlaceDetail, useTuristicPlaces } from '@/services/turistic-place';
 import { formatAgeRestriction } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
@@ -43,12 +43,7 @@ export default function TuristicPlaceDetailScreen() {
     const { getAccessToken } = useToken();
     const { fetchById, remove } = useTuristicPlaces();
 
-    const tint = useThemeColor({}, 'tint');
-    const tintText = useThemeColor({}, 'tintText');
-    const surface = useThemeColor({}, 'surface');
-    const border = useThemeColor({}, 'border');
-    const mutedText = useThemeColor({}, 'mutedText');
-    const text = useThemeColor({}, 'text');
+    const { tint, tintText, surface, border, mutedText, text } = useAppTheme();
 
     const [place, setPlace] = useState<TuristicPlaceDetail | null>(null);
     const [loading, setLoading] = useState(true);

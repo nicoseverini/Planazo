@@ -3,7 +3,7 @@ import { Pressable, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { StatusBadgeColors } from '@/constants/theme';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { PlanSummary } from '@/services/plan';
 import { formatDateInTimezone, formatTimeInTimezone } from '@/utils/date';
 
@@ -15,9 +15,7 @@ export type CreatedPlanCardProps = {
 };
 
 export function CreatedPlanCard({ plan, onPress }: CreatedPlanCardProps) {
-    const cardBg = useThemeColor({}, 'surface');
-    const border = useThemeColor({}, 'border');
-    const mutedText = useThemeColor({}, 'mutedText');
+    const { surface: cardBg, border, mutedText } = useAppTheme();
 
     const formatDate = (dateString: string) =>
         formatDateInTimezone(dateString, plan.timezone);

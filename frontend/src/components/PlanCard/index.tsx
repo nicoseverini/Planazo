@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { StatusBadgeColors } from '@/constants/theme';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { PlanSummary } from '@/services/plan';
 import { formatDateInTimezone, formatTimeInTimezone } from '@/utils/date';
 
@@ -18,11 +18,7 @@ export type PlanCardProps = {
 };
 
 export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed }: PlanCardProps) {
-    const cardBg = useThemeColor({}, 'surface');
-    const border = useThemeColor({}, 'border');
-    const tint = useThemeColor({}, 'tint');
-    const mutedText = useThemeColor({}, 'mutedText');
-    const tintText = useThemeColor({}, 'tintText');
+    const { surface: cardBg, border, tint, mutedText, tintText } = useAppTheme();
 
     const CATEGORY_BY_INTEREST: Record<string, string> = {
         FOOD:      'Food',

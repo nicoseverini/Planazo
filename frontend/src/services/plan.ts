@@ -472,29 +472,6 @@ export function usePlans() {
             setLoadingCount(c => c - 1);
         }
     }, []);
-    const fetchTouristicPlaces = useCallback(async () => {
-        setLoadingCount(c => c + 1);
-        setError(null);
-        try {
-            const response = await fetch(`${getBackendUrl()}/api/v1/turistic-places`, {
-                method: 'GET',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                },
-            });
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Failed to fetch touristic places: ${errorText}`);
-            }
-            return response.json();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
-            throw err;
-        } finally {
-            setLoadingCount(c => c - 1);
-        }
-    }, []);
     const fetchMyCreatedPlans = useCallback(async () => {
         const token = getAccessToken();
         if (!token) throw new Error('No access token');
@@ -720,6 +697,5 @@ export function usePlans() {
         remove,
         accept,
         reject,
-        fetchTouristicPlaces,
     };
 }

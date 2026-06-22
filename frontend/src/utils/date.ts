@@ -1,5 +1,12 @@
 const FALLBACK_TIMEZONE = 'UTC';
 
+export function addOneHour(timeValue: string): string {
+    const parts = timeValue.split(':');
+    if (parts.length < 2) return '';
+    const hours = (Number.parseInt(parts[0], 10) + 1) % 24;
+    return `${hours.toString().padStart(2, '0')}:${parts[1]}`;
+}
+
 export function formatDateInTimezone(utcString: string, timezone: string | undefined | null): string {
     const tz = timezone || FALLBACK_TIMEZONE;
     const date = new Date(utcString);

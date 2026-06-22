@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { PlanSummary } from '@/services/plan';
 import { formatDateInTimezone, formatTimeInTimezone } from '@/utils/date';
 
@@ -14,10 +14,7 @@ export type SubscribedPlanCardProps = {
 };
 
 export function SubscribedPlanCard({ plan, onPress }: SubscribedPlanCardProps) {
-    const cardBg = useThemeColor({}, 'surface');
-    const border = useThemeColor({}, 'border');
-    const tint = useThemeColor({}, 'tint');
-    const mutedText = useThemeColor({}, 'mutedText');
+    const { surface: cardBg, border, tint, mutedText } = useAppTheme();
 
     const statusLabel =
         plan.accepted === true ? 'Accepted' : plan.accepted === false ? 'Pending' : 'Public';

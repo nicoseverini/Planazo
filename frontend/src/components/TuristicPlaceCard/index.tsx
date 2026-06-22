@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { TuristicPlaceSummary } from '@/services/turistic-place';
 import { formatInterest } from '@/utils/interests';
 
@@ -14,10 +14,7 @@ export type TuristicPlaceCardProps = {
 };
 
 export function TuristicPlaceCard({ place, onPress }: TuristicPlaceCardProps) {
-    const cardBg = useThemeColor({}, 'surface');
-    const border = useThemeColor({}, 'border');
-    const tint = useThemeColor({}, 'tint');
-    const mutedText = useThemeColor({}, 'mutedText');
+    const { surface: cardBg, border, tint, mutedText } = useAppTheme();
 
     const categoryLabel = (place.interests ?? []).map(formatInterest).join(' · ');
     const locationLine = [place.address, place.city, place.country].filter(Boolean).join(', ') || place.location;
