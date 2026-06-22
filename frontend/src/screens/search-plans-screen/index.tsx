@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator, FlatList, Modal, Platform,
     Pressable, RefreshControl, ScrollView, TextInput, View, Alert
@@ -8,18 +8,25 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Location from 'expo-location';
 
+import { DistanceSlider } from '@/components/DistanceSlider';
 import { PlanCard } from '@/components/PlanCard';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { decodeJwt, useToken } from '@/context/token-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useRefreshControl } from '@/hooks/use-refresh-control';
-import { PlanFilters, PlanSummary, usePlans } from '@/services/plan';
+import { PlanFilters, PlanSummary, PlanVisibility, usePlans } from '@/services/plan';
 import { normalizeSearch } from '@/utils/search';
 import { INTEREST_OPTIONS, formatInterest } from '@/utils/interests';
 import { styles } from './styles';
 
 const INTERESTS = INTEREST_OPTIONS.map(({ value }) => value);
+
+const VISIBILITY_OPTIONS: { label: string; value: PlanVisibility | null }[] = [
+    { label: 'Both', value: null },
+    { label: 'Public', value: 'PUBLIC' },
+    { label: 'Private', value: 'PRIVATE' },
+];
 
 const fmt = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -40,15 +47,20 @@ export function SearchPlansScreen() {
     const [dateFrom, setDateFrom] = useState<Date | null>(null);
     const [dateTo, setDateTo] = useState<Date | null>(null);
     const [radius, setRadius] = useState<number | null>(null);
-    const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
+    const [visibility, setVisibility] = useState<PlanVisibility | null>(null);
+    const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
     // Date picker state
     const [showDateFrom, setShowDateFrom] = useState(false);
     const [showDateTo, setShowDateTo] = useState(false);
 
+    const locationFetchingRef = useRef(false);
+
     const { surface, border, tint, tintText, mutedText, text: textColor } = useAppTheme();
 
-    const hasActiveFilters = !!(selectedInterests.length > 0 || locationFilter || dateFrom || dateTo || radius);
+    const hasActiveFilters = !!(
+        selectedInterests.length > 0 || locationFilter || dateFrom || dateTo || radius || visibility
+    );
 
     const buildFilters = useCallback((): PlanFilters => {
         const f: PlanFilters = {};
@@ -61,8 +73,9 @@ export function SearchPlansScreen() {
             f.lng = userLocation.lng;
             f.radius = radius;
         }
+        if (visibility) f.visibility = visibility;
         return f;
-    }, [selectedInterests, locationFilter, dateFrom, dateTo, radius, userLocation]);
+    }, [selectedInterests, locationFilter, dateFrom, dateTo, radius, userLocation, visibility]);
 
     const { tokenData, getAccessToken } = useToken();
 
@@ -78,7 +91,6 @@ export function SearchPlansScreen() {
             const myJoinedSet = new Set(joinedPlans.map((p) => p.id));
             setJoinedIds(myJoinedSet);
 
-            // Obtener el id del usuario logueado
             let myUserId: number | null = null;
             if (tokenData.state === 'LOGGED_IN') {
                 const token = getAccessToken();
@@ -124,28 +136,33 @@ export function SearchPlansScreen() {
         setDateFrom(null);
         setDateTo(null);
         setRadius(null);
+        setVisibility(null);
     };
 
-    const handleRadiusSelect = async (r: number | null) => {
+    const handleRadiusChange = async (r: number | null) => {
         if (r === null) {
             setRadius(null);
             return;
         }
+        if (userLocation !== null) {
+            setRadius(r);
+            return;
+        }
+        if (locationFetchingRef.current) return;
+        locationFetchingRef.current = true;
         try {
             const { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
-                Alert.alert('Permission denied', 'Permission to access location was denied');
+                Alert.alert('Permission denied', 'Location permission is required for proximity search.');
                 return;
             }
-            const location = await Location.getCurrentPositionAsync({});
-            setUserLocation({
-                lat: location.coords.latitude,
-                lng: location.coords.longitude
-            });
+            const loc = await Location.getCurrentPositionAsync({});
+            setUserLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude });
             setRadius(r);
-        } catch (err) {
-            console.error('Error getting location:', err);
-            Alert.alert('Error', 'Could not get current location');
+        } catch {
+            Alert.alert('Error', 'Could not get current location.');
+        } finally {
+            locationFetchingRef.current = false;
         }
     };
 
@@ -165,7 +182,7 @@ export function SearchPlansScreen() {
                 </Pressable>
             </View>
 
-            {/* Chips de filtros activos */}
+            {/* Active filter chips */}
             {hasActiveFilters && (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginHorizontal: 20, marginBottom: 8 }}>
                     {selectedInterests.map((interest) => (
@@ -193,6 +210,13 @@ export function SearchPlansScreen() {
                     {radius && (
                         <View style={activeChipStyle}>
                             <ThemedText type="label" style={{ color: tintText }}>Dist: {radius}km</ThemedText>
+                        </View>
+                    )}
+                    {visibility && (
+                        <View style={activeChipStyle}>
+                            <ThemedText type="label" style={{ color: tintText }}>
+                                {visibility === 'PUBLIC' ? '🌐 Public' : '🔒 Private'}
+                            </ThemedText>
                         </View>
                     )}
                     <Pressable onPress={clearFilters} style={{ justifyContent: 'center' }}>
@@ -255,14 +279,13 @@ export function SearchPlansScreen() {
                 <Ionicons name="add" size={28} color={tintText} />
             </Pressable>
 
-            {/* ── Modal de filtros ── */}
+            {/* Filter modal */}
             <Modal visible={showFilters} animationType="slide" presentationStyle="pageSheet">
                 <ScrollView
                     style={{ flex: 1, backgroundColor: surface }}
                     contentContainerStyle={{ padding: 24, paddingBottom: 60 }}
                     keyboardShouldPersistTaps="handled"
                 >
-                    {/* Filter modal */}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                         <ThemedText type="heading">Filters</ThemedText>
                         <Pressable onPress={() => setShowFilters(false)}>
@@ -270,7 +293,7 @@ export function SearchPlansScreen() {
                         </Pressable>
                     </View>
 
-                    {/* Categoría */}
+                    {/* Category */}
                     <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Category</ThemedText>
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
                         {INTERESTS.map((i) => {
@@ -297,7 +320,30 @@ export function SearchPlansScreen() {
                         })}
                     </View>
 
-                    {/* Ubicación */}
+                    {/* Visibility */}
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Visibility</ThemedText>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                        {VISIBILITY_OPTIONS.map((opt) => {
+                            const active = visibility === opt.value;
+                            return (
+                                <Pressable
+                                    key={opt.label}
+                                    onPress={() => setVisibility(opt.value)}
+                                    style={{
+                                        paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
+                                        backgroundColor: active ? tint : 'transparent',
+                                        borderWidth: 1, borderColor: active ? tint : border,
+                                    }}
+                                >
+                                    <ThemedText type="label" style={{ color: active ? tintText : textColor }}>
+                                        {opt.label}
+                                    </ThemedText>
+                                </Pressable>
+                            );
+                        })}
+                    </View>
+
+                    {/* Location */}
                     <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Location</ThemedText>
                     <View style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24 }]}>
                         <Ionicons name="location-outline" size={18} color={mutedText} />
@@ -315,7 +361,7 @@ export function SearchPlansScreen() {
                         )}
                     </View>
 
-                    {/* Fecha desde */}
+                    {/* Start date */}
                     <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Start Date</ThemedText>
                     <Pressable
                         onPress={() => setShowDateFrom(true)}
@@ -343,7 +389,7 @@ export function SearchPlansScreen() {
                         />
                     )}
 
-                    {/* Fecha hasta */}
+                    {/* End date */}
                     <ThemedText type="subtitle" style={{ marginBottom: 12 }}>End Date</ThemedText>
                     <Pressable
                         onPress={() => setShowDateTo(true)}
@@ -372,42 +418,13 @@ export function SearchPlansScreen() {
                         />
                     )}
 
-                    {/* Proximity Radius */}
+                    {/* Proximity */}
                     <ThemedText type="subtitle" style={{ marginTop: 24, marginBottom: 12 }}>Proximity (Distance)</ThemedText>
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-                        {[5, 10, 20, 50, 100].map((r) => {
-                            const active = radius === r;
-                            return (
-                                <Pressable
-                                    key={r}
-                                    onPress={() => handleRadiusSelect(active ? null : r)}
-                                    style={{
-                                        paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-                                        backgroundColor: active ? tint : 'transparent',
-                                        borderWidth: 1, borderColor: active ? tint : border,
-                                    }}
-                                >
-                                    <ThemedText type="label" style={{ color: active ? tintText : textColor }}>
-                                        {r} km
-                                    </ThemedText>
-                                </Pressable>
-                            );
-                        })}
+                    <View style={{ marginBottom: 24 }}>
+                        <DistanceSlider radius={radius} onChange={handleRadiusChange} />
                     </View>
 
-                    {/* Max Price
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Max Price</ThemedText>
-                    <View style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 32 }]}>
-                        <Ionicons name="cash-outline" size={18} color={mutedText} />
-                        <TextInput
-                            style={[styles.searchInput, { color: textColor }]}
-                            placeholder="E.g.: 5000"
-                            placeholderTextColor={mutedText}
-                            keyboardType="numeric"
-                        />
-                    </View> */}
-
-                    {/* Botones */}
+                    {/* Action buttons */}
                     <View style={{ gap: 12 }}>
                         <Pressable
                             onPress={() => { setShowFilters(false); loadPlans(); }}

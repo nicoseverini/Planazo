@@ -7,6 +7,8 @@ import {
     RefreshControl, ScrollView, TextInput, View,
 } from 'react-native';
 
+import { DistanceSlider } from '@/components/DistanceSlider';
+
 import { ThemedText } from '@/components/ThemedText';
 import { TuristicPlaceCard } from '@/components/TuristicPlaceCard';
 import { AppScreen } from '@/components/ui';
@@ -132,8 +134,13 @@ export default function TuristicPlaceListScreen() {
         setRadius(null);
     };
 
-    const handleRadiusSelect = async (r: number | null) => {
+    const locationFetchingRef = useRef(false);
+
+    const handleRadiusChange = async (r: number | null) => {
         if (r === null) { setRadius(null); return; }
+        if (userLocation !== null) { setRadius(r); return; }
+        if (locationFetchingRef.current) return;
+        locationFetchingRef.current = true;
         try {
             const { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
@@ -145,6 +152,8 @@ export default function TuristicPlaceListScreen() {
             setRadius(r);
         } catch {
             Alert.alert('Error', 'Could not get current location.');
+        } finally {
+            locationFetchingRef.current = false;
         }
     };
 
@@ -351,25 +360,8 @@ export default function TuristicPlaceListScreen() {
 
                     {/* Proximity */}
                     <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Proximity (Distance)</ThemedText>
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-                        {[5, 10, 20, 50, 100].map((r) => {
-                            const active = radius === r;
-                            return (
-                                <Pressable
-                                    key={r}
-                                    onPress={() => handleRadiusSelect(active ? null : r)}
-                                    style={{
-                                        paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-                                        backgroundColor: active ? tint : 'transparent',
-                                        borderWidth: 1, borderColor: active ? tint : border,
-                                    }}
-                                >
-                                    <ThemedText type="label" style={{ color: active ? tintText : textColor }}>
-                                        {r} km
-                                    </ThemedText>
-                                </Pressable>
-                            );
-                        })}
+                    <View style={{ marginBottom: 24 }}>
+                        <DistanceSlider radius={radius} onChange={handleRadiusChange} />
                     </View>
 
                     {/* Buttons */}

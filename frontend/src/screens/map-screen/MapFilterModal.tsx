@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useState } from 'react';
+import { DistanceSlider } from '@/components/DistanceSlider';
 import { ThemedText } from '@/components/ThemedText';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { INTEREST_OPTIONS } from '@/services/turistic-place';
@@ -51,28 +51,11 @@ export function MapFilterModal({ visible, filters, onFiltersChange, onReset, onC
     const tintText = useThemeColor({}, 'tintText');
     const text = useThemeColor({}, 'text');
     const mutedText = useThemeColor({}, 'mutedText');
-    const [containerWidth, setContainerWidth] = useState(0);
 
     const chipStyle = (active: boolean) => [
         styles.chip,
         { backgroundColor: active ? tint : 'transparent', borderColor: active ? tint : border },
     ];
-
-    const handleSliderTouch = (event: any) => {
-        if (containerWidth === 0) return;
-        const x = event.nativeEvent.locationX;
-        let newPercentage = x / containerWidth;
-        newPercentage = Math.max(0, Math.min(1, newPercentage));
-        if (newPercentage > 0.95) {
-            onFiltersChange({ ...filters, radius: null });
-        } else {
-            const val = Math.max(1, Math.round(newPercentage * 100));
-            onFiltersChange({ ...filters, radius: val });
-        }
-    };
-
-    const isRadiusAny = filters.radius === null;
-    const radiusPercentage = isRadiusAny ? 1 : Math.max(0, Math.min(1, filters.radius! / 100));
 
     return (
         <Modal
@@ -162,34 +145,13 @@ export function MapFilterModal({ visible, filters, onFiltersChange, onReset, onC
                     })}
                 </View>
 
-                {/* Proximity Filter */}
+                {/* Proximity */}
                 <ThemedText type="subtitle" style={[styles.sectionTitle, { marginTop: 16 }]}>Proximity</ThemedText>
-                <View style={styles.sliderHeader}>
-                    <ThemedText type="label" style={{ color: text }}>Distance range</ThemedText>
-                    <ThemedText type="label" style={{ color: tint, fontWeight: 'bold' }}>
-                        {isRadiusAny ? 'Any distance' : `Up to ${filters.radius} km`}
-                    </ThemedText>
-                </View>
-                <View
-                    style={[styles.sliderContainer, styles.lastSection]}
-                    onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
-                    onStartShouldSetResponder={() => true}
-                    onResponderGrant={handleSliderTouch}
-                    onResponderMove={handleSliderTouch}
-                >
-                    <View style={[styles.sliderTrack, { backgroundColor: border }]}>
-                        <View style={[styles.sliderFill, { width: `${radiusPercentage * 100}%`, backgroundColor: tint }]} />
-                    </View>
-                    {containerWidth > 0 && (
-                        <View style={[styles.sliderThumb, {
-                            left: radiusPercentage * containerWidth - 12,
-                            backgroundColor: tint,
-                        }]} />
-                    )}
-                    <View style={styles.sliderLabels}>
-                        <ThemedText type="label" style={{ fontSize: 12, color: mutedText }}>1 km</ThemedText>
-                        <ThemedText type="label" style={{ fontSize: 12, color: mutedText }}>Any</ThemedText>
-                    </View>
+                <View style={styles.lastSection}>
+                    <DistanceSlider
+                        radius={filters.radius}
+                        onChange={(r) => onFiltersChange({ ...filters, radius: r })}
+                    />
                 </View>
 
                 {/* Actions */}
@@ -243,41 +205,6 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 20,
         borderWidth: 1,
-    },
-    sliderHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 12,
-    },
-    sliderContainer: {
-        height: 50,
-        justifyContent: 'center',
-        paddingHorizontal: 12,
-    },
-    sliderTrack: {
-        height: 6,
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    sliderFill: {
-        height: '100%',
-    },
-    sliderThumb: {
-        position: 'absolute',
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
-        elevation: 5,
-        pointerEvents: 'none',
-    },
-    sliderLabels: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 12,
     },
     actions: {
         gap: 12,

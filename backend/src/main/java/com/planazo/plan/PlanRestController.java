@@ -260,7 +260,7 @@ class PlanRestController {
 
     @PreAuthorize("permitAll()")
     @GetMapping(value = "/filter", produces = "application/json")
-    @Operation(summary = "Filter public plans by categories, date, location and proximity")
+    @Operation(summary = "Filter plans by categories, date, location, proximity and visibility")
     List<PlanSummaryDTO> filterPlans(
             @RequestParam(name = "interests", required = false) List<Interest> interests,
             @RequestParam(required = false)
@@ -270,8 +270,9 @@ class PlanRestController {
             @RequestParam(required = false) String location,
             @RequestParam(required = false) Double lat,
             @RequestParam(required = false) Double lng,
-            @RequestParam(required = false) Double radius
+            @RequestParam(required = false) Double radius,
+            @RequestParam(required = false) PlanVisibility visibility
     ) {
-        return planService.getFilteredPlans(interests, dateFrom, dateTo, location, lat, lng, radius);
+        return planService.getFilteredPlans(interests, dateFrom, dateTo, location, lat, lng, radius, visibility);
     }
 }
