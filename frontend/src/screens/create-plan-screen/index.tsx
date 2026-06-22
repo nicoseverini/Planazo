@@ -21,7 +21,7 @@ import { AppScreen } from '@/components/ui';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { PlanCreateRequest, usePlans } from '@/services/plan';
 import { validateAgeFields, parseAge } from '@/utils/age-restriction';
-import { getDeviceTimezone } from '@/utils/date';
+import { buildDateTimeWithTimezone, getDeviceTimezone } from '@/utils/date';
 
 import { styles } from './styles';
 
@@ -53,43 +53,6 @@ const INTEREST_BY_CATEGORY: Record<string, string> = {
     Other:     'OTHER',
 };
 
-const buildDateTime = (dateValue: string, timeValue: string): string | null => {
-    const dateText = dateValue.trim();
-    const timeText = timeValue.trim();
-    if (!dateText || !timeText) return null;
-
-    let day = '';
-    let month = '';
-    let year = '';
-
-    if (dateText.includes('/')) {
-        const parts = dateText.split('/');
-        if (parts.length !== 3) return null;
-        [day, month, year] = parts;
-    } else if (dateText.includes('-')) {
-        const parts = dateText.split('-');
-        if (parts.length !== 3) return null;
-        [year, month, day] = parts;
-    } else {
-        return null;
-    }
-
-    const timeParts = timeText.split(':');
-    if (timeParts.length < 2) return null;
-    const [hour, minute] = timeParts;
-
-    const normalizedDate = `${year.padStart(4, '0')}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    const normalizedTime = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
-
-    // Append the device's UTC offset so the backend validates against the correct instant.
-    // getTimezoneOffset() returns minutes behind UTC (negative for UTC+), so we negate it.
-    const offsetMin = -new Date().getTimezoneOffset();
-    const sign = offsetMin >= 0 ? '+' : '-';
-    const absMin = Math.abs(offsetMin);
-    const offsetStr = `${sign}${Math.floor(absMin / 60).toString().padStart(2, '0')}:${(absMin % 60).toString().padStart(2, '0')}`;
-
-    return `${normalizedDate}T${normalizedTime}:00${offsetStr}`;
-};
 
 const addOneHour = (timeValue: string): string => {
     const parts = timeValue.split(':');
@@ -190,7 +153,7 @@ export default function CreatePlanScreen() {
             setError('Start date and time are required');
             return false;
         }
-        const startDt = buildDateTime(startDate, startTime);
+        const startDt = buildDateTimeWithTimezone(startDate, startTime, getDeviceTimezone());
         if (startDt && new Date(startDt) <= new Date()) {
             setError('Start date and time must be set in the future.');
             return false;
@@ -368,8 +331,9 @@ export default function CreatePlanScreen() {
     const handleCreate = async () => {
         if (!validateForm()) return;
 
-        const startDateTime = buildDateTime(startDate, startTime);
-        const endDateTime = buildDateTime(endDate, endTime);
+        const timezone = getDeviceTimezone();
+        const startDateTime = buildDateTimeWithTimezone(startDate, startTime, timezone);
+        const endDateTime = buildDateTimeWithTimezone(endDate, endTime, timezone);
 
         if (!startDateTime) {
             setError('Start date or time has an invalid format.');

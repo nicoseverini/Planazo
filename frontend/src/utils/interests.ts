@@ -1,10 +1,15 @@
 const INTEREST_LABELS: Record<string, string> = {
-    // If we want to change the label for a specific interest,
-    // we can add it here without affecting the formatting of other interests.
-    // Add more explicit mappings here as needed.
-    // For example, if we want to change the label for FOOD from "Food" to "Food",
-    // we can do it here: 
-    // FOOD: 'Food',
+    FOOD: 'Food 🍔',
+    CULTURE: 'Culture 🏛️',
+    NATURE: 'Nature 🌳',
+    BEACH: 'Beach 🏖️',
+    ADVENTURE: 'Adventure 🧗',
+    SPORTS: 'Sports ⚽',
+    NIGHTLIFE: 'Nightlife 🍹',
+    SHOPPING: 'Shopping 🛍️',
+    HISTORY: 'History 📜',
+    MOUNTAINS: 'Mountains 🏔️',
+    OTHER: 'Other ✨',
 };
 
 /**

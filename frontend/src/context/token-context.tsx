@@ -77,7 +77,7 @@ export function TokenProvider({ children }: React.PropsWithChildren) {
                     state: 'LOGGED_IN',
                     accessToken: parsed.accessToken,
                     refreshToken: parsed.refreshToken,
-                    role: parsed.role,
+                    role: parsed.role ?? 'USER',
                 });
             } else {
                 setTokenData({ state: 'LOGGED_OUT' });
@@ -126,7 +126,7 @@ export function useToken() {
 }
 
 // Helper to decode JWT and extract role
-export function decodeJwt(token: string): { role: string; sub?: string; exp?: number } {
+export function decodeJwt(token: string): { role: string; id?: number; sub?: string; exp?: number } {
     try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');

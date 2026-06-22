@@ -1,5 +1,5 @@
 import { getBackendUrl } from '@/services/auth';
-import { useToken, decodeJwt } from '@/context/token-context';
+import { useToken } from '@/context/token-context';
 
 // ============================================
 // Types
@@ -21,25 +21,6 @@ export type UserProfile = {
   birthDate?: string;
 };
 
-export type LoginRequest = {
-  email: string;
-  password: string;
-};
-
-export type SignupRequest = {
-  name: string;
-  lastname: string;
-  email: string;
-  password: string;
-  gender?: string;
-  birthDate?: string;
-};
-
-export type LoginResponse = {
-  accessToken: string;
-  refreshToken: string | null;
-};
-
 export type UpdateProfileRequest = {
   photo?: string;
   name?: string;
@@ -50,64 +31,6 @@ export type UpdateProfileRequest = {
   languages?: string[];
   interests?: string[];
 };
-
-// ============================================
-// Auth Functions
-// ============================================
-
-export async function loginUser(req: LoginRequest): Promise<LoginResponse> {
-  const url = `${getBackendUrl()}/api/v1/sessions/login/user`;
-  console.log('[UserService] Login attempt:', url);
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(req),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Login failed: ${errorText}`);
-  }
-
-  return response.json();
-}
-
-export async function signupUser(
-  req: SignupRequest,
-  photo?: { uri: string; type: string; name: string }
-): Promise<{ status: string; message: string }> {
-  const url = `${getBackendUrl()}/api/v1/sessions/signup/user`;
-  console.log('[UserService] Signup attempt:', url);
-
-  const formData = new FormData();
-
-  // Append user data as JSON blob
-  formData.append('data', JSON.stringify(req));
-
-  // Append photo if provided
-  if (photo) {
-    formData.append('photo', photo as unknown as Blob);
-  }
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Signup failed: ${errorText}`);
-  }
-
-  return response.json();
-}
 
 // ============================================
 // Profile Functions
@@ -238,37 +161,6 @@ export async function deleteMyAccount(accessToken: string): Promise<void> {
 // ============================================
 // Hooks (usando el TokenContext)
 // ============================================
-
-export function useLogin() {
-  const { setTokenData } = useToken();
-
-  const login = async (req: LoginRequest) => {
-    const tokenData = await loginUser(req);
-    const decoded = decodeJwt(tokenData.accessToken);
-
-    setTokenData({
-      state: 'LOGGED_IN',
-      accessToken: tokenData.accessToken,
-      refreshToken: tokenData.refreshToken,
-      role: decoded.role,
-    });
-
-    return tokenData;
-  };
-
-  return { login };
-}
-
-export function useSignup() {
-  const signup = async (
-      req: SignupRequest,
-      photo?: { uri: string; type: string; name: string }
-  ) => {
-    return await signupUser(req, photo);
-  };
-
-  return { signup };
-}
 
 export function useProfile() {
   const { getAccessToken } = useToken();

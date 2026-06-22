@@ -137,7 +137,7 @@ export default function TuristicPlaceDetailScreen() {
     const token = getAccessToken();
     let isCreator = false;
     if (token && place.creatorId != null) {
-        const decoded = decodeJwt(token) as any;
+        const decoded = decodeJwt(token);
         isCreator = Number(decoded.id) === Number(place.creatorId);
     }
 
@@ -172,6 +172,9 @@ export default function TuristicPlaceDetailScreen() {
     const locationLine = [place.address, place.city, place.country].filter(Boolean).join(', ') || place.location;
     const costLabel = place.cost == null ? null : place.cost === 0 ? 'Free' : `$${place.cost.toLocaleString()}`;
     const interestLabel = interests.map(formatInterest).join(' · ');
+    const lat = place.latitude;
+    const lng = place.longitude;
+    const hasCoords = lat != null && lng != null;
 
     const reviewCount = 0;
     const averageRating = 0;
@@ -252,17 +255,17 @@ export default function TuristicPlaceDetailScreen() {
             ) : null}
 
             {/* Location + map */}
-            {(place.location || (place.latitude && place.longitude)) && (
+            {(place.location || hasCoords) && (
                 <View style={[styles.locationCard, { borderColor: border }]}>
                     {place.location && (
-                        <View style={[styles.locationHeader, { borderBottomWidth: place.latitude && place.longitude ? 1 : 0, borderColor: border, flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
+                        <View style={[styles.locationHeader, { borderBottomWidth: hasCoords ? 1 : 0, borderColor: border, flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
                             <Ionicons name="location-outline" size={20} color={tint} />
                             <ThemedText type="body" style={{ flex: 1, marginLeft: 8, fontWeight: '500' }}>
                                 {locationLine}
                             </ThemedText>
-                            {place.latitude && place.longitude ? (
+                            {hasCoords ? (
                                 <Pressable
-                                    onPress={() => openInMaps(place.latitude, place.longitude, place.name)}
+                                    onPress={() => openInMaps(lat!, lng!, place.name)}
                                     style={({ pressed }) => [
                                         {
                                             flexDirection: 'row',
@@ -284,16 +287,16 @@ export default function TuristicPlaceDetailScreen() {
                             ) : null}
                         </View>
                     )}
-                    {place.latitude && place.longitude && (
+                    {hasCoords && (
                         <Pressable
-                            onPress={() => openInMaps(place.latitude, place.longitude, place.name)}
+                            onPress={() => openInMaps(lat!, lng!, place.name)}
                             style={{ height: 160 }}
                         >
                             <MapView
                                 style={{ ...StyleSheet.absoluteFillObject }}
                                 initialRegion={{
-                                    latitude: place.latitude,
-                                    longitude: place.longitude,
+                                    latitude: lat!,
+                                    longitude: lng!,
                                     latitudeDelta: 0.012,
                                     longitudeDelta: 0.012,
                                 }}
@@ -303,7 +306,7 @@ export default function TuristicPlaceDetailScreen() {
                                 rotateEnabled={false}
                             >
                                 <Marker
-                                    coordinate={{ latitude: place.latitude, longitude: place.longitude }}
+                                    coordinate={{ latitude: lat!, longitude: lng! }}
                                     pinColor={tint}
                                 />
                             </MapView>

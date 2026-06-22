@@ -439,7 +439,7 @@ export default function PlanDetailScreen() {
                     <ThemedText type="body" style={{ flex: 1, fontWeight: '500' }}>
                         {plan.location}
                     </ThemedText>
-                    {plan.latitude && plan.longitude ? (
+                    {plan.latitude != null && plan.longitude != null ? (
                         <Pressable
                             onPress={() => openInMaps(plan.latitude, plan.longitude, plan.title)}
                             style={({ pressed }) => [

@@ -24,22 +24,9 @@ import { useProfile, UserProfile } from '@/services/user';
 import { PlanSummary, usePlans } from '@/services/plan';
 import { useTuristicPlaces, TuristicPlaceSummary } from '@/services/turistic-place';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { formatInterest } from '@/utils/interests';
 
 import { styles } from './styles';
-
-const INTEREST_LABELS_EN: Record<string, string> = {
-  FOOD: 'Food 🍔',
-  CULTURE: 'Culture 🏛️',
-  NATURE: 'Nature 🌳',
-  BEACH: 'Beach 🏖️',
-  ADVENTURE: 'Adventure 🧗',
-  SPORTS: 'Sports ⚽',
-  NIGHTLIFE: 'Nightlife 🍹',
-  SHOPPING: 'Shopping 🛍️',
-  HISTORY: 'History 📜',
-  MOUNTAINS: 'Mountains 🏔️',
-  OTHER: 'Other ✨',
-};
 
 const DEFAULT_PROFILE: UserProfile = {
   name: '',
@@ -119,7 +106,7 @@ export default function HomeScreen() {
       const token = getAccessToken();
       if (token) {
         try {
-          const decoded = decodeJwt(token) as any;
+          const decoded = decodeJwt(token);
           if (decoded && decoded.id) {
             setMyUserId(Number(decoded.id));
           }
@@ -172,7 +159,7 @@ export default function HomeScreen() {
         if (!currentUserId) {
           const token = getAccessToken();
           if (token) {
-            const decoded = decodeJwt(token) as any;
+            const decoded = decodeJwt(token);
             currentUserId = decoded?.id ? Number(decoded.id) : null;
           }
         }
@@ -584,7 +571,7 @@ export default function HomeScreen() {
             {userInterests.map((interest) => (
               <View key={interest} style={[styles.chip, { backgroundColor: surface, borderColor: border }]}>
                 <ThemedText type="label" style={[styles.chipText, { color: textColor }]}>
-                  {INTEREST_LABELS_EN[interest] || interest}
+                  {formatInterest(interest)}
                 </ThemedText>
               </View>
             ))}
