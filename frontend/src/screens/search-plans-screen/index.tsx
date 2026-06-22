@@ -41,12 +41,11 @@ const fmt = (d: Date) =>
 
 export function SearchPlansScreen() {
     const router = useRouter();
-    const { fetchPublicPlans, fetchMyJoinedPlans, fetchFilteredPlans, subscribe, loading } = usePlans();
+    const { fetchPublicPlans, fetchMyJoinedPlans, fetchFilteredPlans, loading } = usePlans();
 
     const [plans, setPlans] = useState<PlanSummary[]>([]);
     const [filteredPlans, setFilteredPlans] = useState<PlanSummary[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [subscribingId, setSubscribingId] = useState<number | null>(null);
     const [joinedIds, setJoinedIds] = useState<Set<number>>(new Set());
     const [showFilters, setShowFilters] = useState(false);
 
@@ -165,28 +164,6 @@ export function SearchPlansScreen() {
         }
     };
 
-    const handleSubscribe = async (planId: number) => {
-        const isPrivate = filteredPlans.find((p) => p.id === planId)?.visibility === 'PRIVATE';
-        setSubscribingId(planId);
-        try {
-            await subscribe(planId);
-            setJoinedIds(prev => new Set(prev).add(planId));
-            await loadPlans();
-            if (isPrivate) {
-                Alert.alert(
-                    'Request sent',
-                    'Your subscription request was sent. You can check its status in "My Plans".'
-                );
-            }
-        } catch (err) {
-            console.error('Error subscribing:', err);
-            const message = err instanceof Error ? err.message : 'Could not process the subscription';
-            Alert.alert('Error', message);
-        } finally {
-            setSubscribingId(null);
-        }
-    };
-
     const activeChipStyle = { backgroundColor: tint, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 };
 
     return (
@@ -269,9 +246,6 @@ export function SearchPlansScreen() {
                         <PlanCard
                             plan={item}
                             onPress={(id) => router.push(`/plan/${id}` as any)}
-                            onSubscribe={handleSubscribe}
-                            subscribing={subscribingId === item.id}
-                            isSubscribed={joinedIds.has(item.id)}
                         />
                     )}
                     contentContainerStyle={styles.listContent}

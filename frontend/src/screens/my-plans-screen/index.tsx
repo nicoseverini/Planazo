@@ -79,7 +79,7 @@ export function MyPlansScreen() {
     const renderSubscribedSection = () => (
         <View style={styles.section}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>
-                Subscribed Plans
+                Joined Plans
             </ThemedText>
             {filteredSubscribedPlans.length > 0 ? (
                 <ScrollView
@@ -95,7 +95,7 @@ export function MyPlansScreen() {
                 <View style={[styles.emptySubscribed, { backgroundColor: surface, borderColor: border }]}>
                     <Ionicons name="calendar-outline" size={24} color={mutedText} />
                     <ThemedText type="label" style={[styles.emptyText, { color: mutedText }]}>
-                        You are not subscribed to any plan
+                        You haven't joined any plan yet
                     </ThemedText>
                     {/* Only show Search Plan button when there are no subscribed plans */}
                     <View style={styles.sectionAction}>

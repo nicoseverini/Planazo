@@ -71,7 +71,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { tokenData, getAccessToken } = useToken();
   const { fetchProfile } = useProfile();
-  const { fetchFilteredPlans, fetchPublicPlans, fetchMyJoinedPlans, subscribe } = usePlans();
+  const { fetchFilteredPlans, fetchPublicPlans, fetchMyJoinedPlans } = usePlans();
   const { fetchAll: fetchAllTuristicPlaces } = useTuristicPlaces();
 
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
@@ -84,7 +84,6 @@ export default function HomeScreen() {
   const [turisticPlaces, setTuristicPlaces] = useState<TuristicPlaceSummary[]>([]);
   const [secondaryPlans, setSecondaryPlans] = useState<PlanSummary[]>([]);
   const [joinedIds, setJoinedIds] = useState<Set<number>>(new Set());
-  const [subscribingId, setSubscribingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [myUserId, setMyUserId] = useState<number | null>(null);
@@ -439,37 +438,6 @@ export default function HomeScreen() {
     }
   };
 
-  const handleSubscribe = async (planId: number) => {
-    const plan = plans.find((p) => p.id === planId) || secondaryPlans.find((p) => p.id === planId);
-    const isPrivate = plan?.visibility === 'PRIVATE';
-    setSubscribingId(planId);
-    try {
-      await subscribe(planId);
-      setJoinedIds((prev) => {
-        const next = new Set(prev);
-        next.add(planId);
-        return next;
-      });
-      // Remove subscribed card immediately from visible pools
-      setPlans((prev) => prev.filter((p) => p.id !== planId));
-      setSecondaryPlans((prev) => prev.filter((p) => p.id !== planId));
-      if (isPrivate) {
-        Alert.alert(
-          'Request sent',
-          'Your subscription request was sent. You can check its status in "My Plans".'
-        );
-      } else {
-        Alert.alert('Subscribed!', 'You have successfully subscribed to the plan.');
-      }
-    } catch (err) {
-      console.error('[HomeScreen] Error subscribing:', err);
-      const message = err instanceof Error ? err.message : 'Could not process the subscription';
-      Alert.alert('Error', message);
-    } finally {
-      setSubscribingId(null);
-    }
-  };
-
   const renderAvatar = () => {
     const name = profile.name || 'User';
     const initial = name.charAt(0).toUpperCase();
@@ -626,9 +594,6 @@ export default function HomeScreen() {
               <PlanCard
                 plan={item}
                 onPress={(id) => router.push(`/plan/${id}` as any)}
-                onSubscribe={handleSubscribe}
-                subscribing={subscribingId === item.id}
-                isSubscribed={joinedIds.has(item.id)}
               />
             </View>
           )}
@@ -675,9 +640,6 @@ export default function HomeScreen() {
                 <PlanCard
                   plan={item}
                   onPress={(id) => router.push(`/plan/${id}` as any)}
-                  onSubscribe={handleSubscribe}
-                  subscribing={subscribingId === item.id}
-                  isSubscribed={joinedIds.has(item.id)}
                 />
               </View>
             )}
@@ -727,9 +689,6 @@ export default function HomeScreen() {
                 key={item.id}
                 plan={item}
                 onPress={(id) => router.push(`/plan/${id}` as any)}
-                onSubscribe={handleSubscribe}
-                subscribing={subscribingId === item.id}
-                isSubscribed={joinedIds.has(item.id)}
               />
             ))}
           </View>

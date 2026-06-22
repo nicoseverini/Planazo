@@ -32,7 +32,7 @@ import { styles } from './styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-type TabType = 'description' | 'subscribe' | 'reviews';
+type TabType = 'description' | 'members' | 'reviews';
 
 const parsePlanId = (value?: string | string[]): number | null => {
     const raw = Array.isArray(value) ? value[0] : value;
@@ -47,7 +47,7 @@ const formatDateTime = (value: string, timezone: string | undefined | null) =>
 export default function PlanDetailScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
-    const { fetchPlanDetail, fetchMyJoinedPlans, fetchPendingSubscribers, subscribe, unsubscribe, remove, accept, reject} = usePlans();
+    const { fetchPlanDetail, fetchMyJoinedPlans, fetchPendingSubscribers, join, leave, remove, accept, reject} = usePlans();
     const { getAccessToken } = useToken();
 
     const { tint, tintText, surface, border, mutedText, text } = useAppTheme();
@@ -157,7 +157,7 @@ export default function PlanDetailScreen() {
     }, [fetchPendingSubscribers, isCreator, plan]);
 
     useEffect(() => {
-        if (activeTab === 'subscribe' && isCreator && plan && isPrivatePlan) {
+        if (activeTab === 'members' && isCreator && plan && isPrivatePlan) {
             loadPendingSubscribers();
             return;
         }
@@ -165,32 +165,32 @@ export default function PlanDetailScreen() {
         setPendingSubscribers([]);
     }, [activeTab, isCreator, loadPendingSubscribers, plan]);
 
-    const handleSubscribe = async () => {
+    const handleJoin = async () => {
         if (!plan) return;
 
         if (plan.isFull && !isSubscribed) {
-            Alert.alert('Plan full', 'This plan already reached the maximum number of participants.');
+            Alert.alert('Plan full', 'This plan has already reached its participant limit.');
             return;
         }
 
         setSubscribing(true);
         try {
             if (isSubscribed) {
-                await unsubscribe(plan.id);
+                await leave(plan.id);
                 await handleRefresh();
             } else {
-                await subscribe(plan.id);
+                await join(plan.id);
                 await handleRefresh();
                 if (isPrivatePlan) {
                     Alert.alert(
-                        'Request sent',
-                        'Your subscription request was sent. You can check its status in "My Plans".'
+                        'Join request sent',
+                        'Your join request has been sent. You can check its status in "My Plans".'
                     );
                 }
             }
         } catch (err) {
-            console.error('[PlanDetailScreen] Error subscribing:', err);
-            const message = err instanceof Error ? err.message : 'Could not process the subscription';
+            console.error('[PlanDetailScreen] Error joining/leaving plan:', err);
+            const message = err instanceof Error ? err.message : 'Could not process the request. Please try again.';
             Alert.alert('Error', message);
         } finally {
             setSubscribing(false);
@@ -226,7 +226,7 @@ export default function PlanDetailScreen() {
             setPendingLoading(true);
             await reject(plan!.id, id);
             await loadPendingSubscribers();
-            Alert.alert('Request rejected', `You've just rejected ${name}'s subscription request.`);
+            Alert.alert('Request rejected', `You've rejected ${name}'s join request.`);
         } catch (err) {
             console.error('[PlanDetailScreen] Error rejecting subscriber:', err);
             const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
@@ -542,17 +542,17 @@ export default function PlanDetailScreen() {
                     </ThemedText>
                 </Pressable>
                 <Pressable
-                    onPress={() => setActiveTab('subscribe')}
+                    onPress={() => setActiveTab('members')}
                     style={[
                         styles.tab,
-                        activeTab === 'subscribe' && { borderBottomColor: tint, borderBottomWidth: 2 },
+                        activeTab === 'members' && { borderBottomColor: tint, borderBottomWidth: 2 },
                     ]}
                 >
                     <ThemedText
                         type="body"
-                        style={[styles.tabText, { color: activeTab === 'subscribe' ? tint : mutedText }]}
+                        style={[styles.tabText, { color: activeTab === 'members' ? tint : mutedText }]}
                     >
-                        SUBSCRIPTIONS
+                        MEMBERS
                     </ThemedText>
                 </Pressable>
                 <Pressable
@@ -581,18 +581,18 @@ export default function PlanDetailScreen() {
                 </View>
             )}
 
-            {activeTab === 'subscribe' && (
+            {activeTab === 'members' && (
                 <View style={styles.tabContent}>
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Subscription</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Membership</ThemedText>
 
                     {isCreator && isPrivatePlan ? (
                         <ThemedText type="body" style={{ color: mutedText, marginBottom: 16 }}>
-                            Pending requests for your private plan are listed below.
+                            Join requests waiting for your approval are listed below.
                         </ThemedText>
                     ) : (
                         <ThemedText type="body" style={{ color: mutedText, marginBottom: 24 }}>
                             {isSubscribed
-                                ? 'You are already subscribed to this plan. You can cancel your subscription at any time.'
+                                ? 'You have already joined this plan. You can leave at any time.'
                                 : 'Join this plan and connect with others who share your interests.'}
                         </ThemedText>
                     )}
@@ -600,7 +600,7 @@ export default function PlanDetailScreen() {
                     {isCreator && isPrivatePlan ? (
                         <View style={[styles.pendingSection, { backgroundColor: surface, borderColor: border }]}>
                             <ThemedText type="subtitle" style={{ marginBottom: 12 }}>
-                                Pending subscriptions
+                                Pending join requests
                             </ThemedText>
                             {pendingLoading ? (
                                 <ActivityIndicator size="small" color={tint} />
@@ -636,7 +636,7 @@ export default function PlanDetailScreen() {
                                 </View>
                             ) : (
                                 <ThemedText type="body" style={{ color: mutedText }}>
-                                    No pending subscriptions yet.
+                                    No pending join requests yet.
                                 </ThemedText>
                             )}
                         </View>
@@ -687,7 +687,7 @@ export default function PlanDetailScreen() {
                     </View>
                 ) : (
                     <Pressable
-                        onPress={handleSubscribe}
+                        onPress={handleJoin}
                         disabled={subscribing || !canUseSubscriptionButton}
                         style={({ pressed }) => [
                             styles.subscribeButton,
@@ -700,7 +700,7 @@ export default function PlanDetailScreen() {
                             <ActivityIndicator size="small" color={tintText} />
                         ) : (
                             <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                                {isExpired ? 'PLAN ENDED' : (isSubscribed ? 'CANCEL SUBSCRIPTION' : (plan.isFull ? 'PLAN FULL' : 'SUBSCRIBE'))}
+                                {isExpired ? 'PLAN ENDED' : (isSubscribed ? 'LEAVE' : (plan.isFull ? 'PLAN FULL' : 'JOIN'))}
                             </ThemedText>
                         )}
                     </Pressable>

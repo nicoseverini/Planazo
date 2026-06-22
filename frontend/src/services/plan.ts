@@ -207,7 +207,7 @@ export async function acceptSubscriber(planId: number, userId: number, accessTok
 
     if (!response.ok) {
         if (response.status === 403) throw new Error('You are not allowed to manage this request.');
-        if (response.status === 404) throw new Error('This subscription request no longer exists.');
+        if (response.status === 404) throw new Error('This join request no longer exists.');
         if (response.status === 409) throw new Error('This plan has already reached its participant limit.');
         if (response.status === 410) {
             const errorText = await response.text();
@@ -231,7 +231,7 @@ export async function rejectSubscriber(planId: number, userId: number, accessTok
 
     if (!response.ok) {
         if (response.status === 403) throw new Error('You are not allowed to manage this request.');
-        if (response.status === 404) throw new Error('This subscription request no longer exists.');
+        if (response.status === 404) throw new Error('This join request no longer exists.');
         if (response.status === 410) {
             const errorText = await response.text();
             throw new Error(errorText || 'This plan has already ended.');
@@ -239,67 +239,38 @@ export async function rejectSubscriber(planId: number, userId: number, accessTok
         throw new Error('Something went wrong. Please try again.');
     }
 }
-// Subscribe to a plan
-export async function subscribeToPlan(planId: number, accessToken: string): Promise<void> {
-    const url = `${getBackendUrl()}/api/v1/plans/${planId}/subscribe`;
-    console.log('[PlanService] Subscribing to plan:', url);
-
+// Join a plan
+export async function joinPlan(planId: number, accessToken: string): Promise<void> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/join`;
     const response = await fetch(url, {
         method: 'POST',
-        headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { Accept: 'application/json', Authorization: `Bearer ${accessToken}` },
     });
 
     if (!response.ok) {
-        if (response.status === 410) {
-            const errorText = await response.text();
-            throw new Error(errorText || 'This plan has already ended.');
-        }
-        if (response.status === 422) {
-            const errorText = await response.text();
-            throw new Error(errorText || "You don't meet this plan's age requirements.");
-        }
-        if (response.status === 409) {
-            const errorText = await response.text();
-            throw new Error(errorText || 'Already subscribed or plan is full.');
-        }
-        if (response.status === 404) {
-            const errorText = await response.text();
-            throw new Error(errorText || 'Plan not found.');
-        }
-        if (response.status === 403) {
-            throw new Error('You are not allowed to join this plan.');
-        }
         const errorText = await response.text();
-        throw new Error(errorText || 'Something went wrong. Please try again.');
+        if (response.status === 410) throw new Error(errorText || 'This plan has already ended.');
+        if (response.status === 422) throw new Error(errorText || "You don't meet this plan's age requirements.");
+        if (response.status === 409) throw new Error(errorText || 'You have already joined this plan or it is full.');
+        if (response.status === 404) throw new Error(errorText || 'Plan not found.');
+        if (response.status === 403) throw new Error(errorText || 'You are not allowed to join this plan.');
+        throw new Error(errorText || 'Could not process the join request. Please try again.');
     }
 }
 
-// Unsubscribe from a plan
-export async function unsubscribeFromPlan(planId: number, accessToken: string): Promise<void> {
-    const url = `${getBackendUrl()}/api/v1/plans/${planId}/unsubscribe`;
-    console.log('[PlanService] Unsubscribing from plan:', url);
-
+// Leave a plan
+export async function leavePlan(planId: number, accessToken: string): Promise<void> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/leave`;
     const response = await fetch(url, {
         method: 'DELETE',
-        headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { Accept: 'application/json', Authorization: `Bearer ${accessToken}` },
     });
 
     if (!response.ok) {
-        if (response.status === 410) {
-            const errorText = await response.text();
-            throw new Error(errorText || 'This plan has already ended.');
-        }
-        if (response.status === 409) {
-            throw new Error('Not subscribed to this plan');
-        }
         const errorText = await response.text();
-        throw new Error(`Failed to unsubscribe: ${errorText}`);
+        if (response.status === 410) throw new Error(errorText || 'This plan has already ended.');
+        if (response.status === 409) throw new Error(errorText || 'You have not joined this plan.');
+        throw new Error(errorText || 'Could not leave the plan. Please try again.');
     }
 }
 
@@ -461,13 +432,13 @@ export function usePlans() {
         }
     }, []);
 
-    const subscribe = useCallback(async (planId: number) => {
+    const join = useCallback(async (planId: number) => {
         const token = getAccessToken();
         if (!token) throw new Error('No access token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
-            await subscribeToPlan(planId, token);
+            await joinPlan(planId, token);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
             throw err;
@@ -476,13 +447,13 @@ export function usePlans() {
         }
     }, [getAccessToken]);
 
-    const unsubscribe = useCallback(async (planId: number) => {
+    const leave = useCallback(async (planId: number) => {
         const token = getAccessToken();
         if (!token) throw new Error('No access token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
-            await unsubscribeFromPlan(planId, token);
+            await leavePlan(planId, token);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
             throw err;
@@ -576,8 +547,8 @@ export function usePlans() {
         fetchPendingSubscribers,
         fetchNearbyPlans,
         fetchFilteredPlans,
-        subscribe,
-        unsubscribe,
+        join,
+        leave,
         create,
         update,
         remove,

@@ -223,13 +223,13 @@ class PlanRestController {
         return ResponseEntity.notFound().build();
     }
 
-    // ── Subscribe ────────────────────────────────────────────────────────────
+    // ── Join ─────────────────────────────────────────────────────────────────
 
     @PreAuthorize("isAuthenticated()")
-    @PostMapping(value = "/{id}/subscribe", produces = "application/json")
+    @PostMapping(value = "/{id}/join", produces = "application/json")
     @Operation(summary = "Join a plan")
     @ApiResponse(responseCode = "409", description = "Already joined or plan is full", content = @Content)
-    ResponseEntity<Object> subscribe(
+    ResponseEntity<Object> join(
             @PathVariable Long id,
             @AuthenticationPrincipal(expression = "username") String email
     ) {
@@ -237,24 +237,24 @@ class PlanRestController {
             case OK             -> ResponseEntity.ok().build();
             case NOT_FOUND      -> ResponseEntity.status(HttpStatus.NOT_FOUND).body("Plan not found.");
             case FULL           -> ResponseEntity.status(HttpStatus.CONFLICT).body("This plan has already reached its participant limit.");
-            case ALREADY_JOINED -> ResponseEntity.status(HttpStatus.CONFLICT).body("You already have a pending request or are a participant of this plan.");
+            case ALREADY_JOINED -> ResponseEntity.status(HttpStatus.CONFLICT).body("You have already joined this plan or have a pending join request.");
         };
     }
 
-    // ── Unsubscribe ──────────────────────────────────────────────────────────
+    // ── Leave ────────────────────────────────────────────────────────────────
 
     @PreAuthorize("isAuthenticated()")
-    @DeleteMapping(value = "/{id}/unsubscribe", produces = "application/json")
+    @DeleteMapping(value = "/{id}/leave", produces = "application/json")
     @Operation(summary = "Leave a plan")
-    @ApiResponse(responseCode = "409", description = "Not subscribed to this plan", content = @Content)
-    ResponseEntity<Void> unsubscribe(
+    @ApiResponse(responseCode = "409", description = "Not a member of this plan", content = @Content)
+    ResponseEntity<Object> leave(
             @PathVariable Long id,
             @AuthenticationPrincipal(expression = "username") String email
     ) {
         return switch (planService.unsubscribe(id, email)) {
             case OK             -> ResponseEntity.ok().build();
-            case NOT_FOUND      -> ResponseEntity.notFound().build();
-            case NOT_SUBSCRIBED -> ResponseEntity.status(HttpStatus.CONFLICT).build();
+            case NOT_FOUND      -> ResponseEntity.status(HttpStatus.NOT_FOUND).body("Plan not found.");
+            case NOT_SUBSCRIBED -> ResponseEntity.status(HttpStatus.CONFLICT).body("You have not joined this plan.");
         };
     }
 
