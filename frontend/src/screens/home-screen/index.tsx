@@ -23,7 +23,7 @@ import { useToken, decodeJwt } from '@/context/token-context';
 import { useProfile, UserProfile } from '@/services/user';
 import { PlanSummary, usePlans } from '@/services/plan';
 import { useTuristicPlaces, TuristicPlaceSummary } from '@/services/turistic-place';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { formatInterest } from '@/utils/interests';
 
 import { styles } from './styles';
@@ -93,12 +93,7 @@ export default function HomeScreen() {
   const [listLabel, setListLabel] = useState('Recommended plans');
   const [businessCase, setBusinessCase] = useState('CASE_4');
 
-  const tint = useThemeColor({}, 'tint');
-  const tintText = useThemeColor({}, 'tintText');
-  const surface = useThemeColor({}, 'surface');
-  const border = useThemeColor({}, 'border');
-  const mutedText = useThemeColor({}, 'mutedText');
-  const textColor = useThemeColor({}, 'text');
+  const { tint, tintText, surface, border, mutedText, text: textColor } = useAppTheme();
 
   // Decode user ID on mount or token change
   useEffect(() => {

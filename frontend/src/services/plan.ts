@@ -1,5 +1,6 @@
 import { getBackendUrl } from './auth';
 import { useToken } from '@/context/token-context';
+import { apiFetch } from '@/utils/api';
 import { useCallback, useState } from 'react';
 
 export type PlanVisibility = 'PUBLIC' | 'PRIVATE';
@@ -86,134 +87,41 @@ export type PlanUpdateRequest = Partial<PlanCreateRequest>;
 // API Functions
 // ============================================
 
+const JSON_HEADERS = { Accept: 'application/json', 'Content-Type': 'application/json' };
+const authHeaders = (token: string) => ({ ...JSON_HEADERS, Authorization: `Bearer ${token}` });
+
 // Get all public plans
 export async function getPublicPlans(): Promise<PlanSummary[]> {
     const url = `${getBackendUrl()}/api/v1/plans`;
-    console.log('[PlanService] Fetching public plans:', url);
-
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-        },
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to fetch public plans: ${errorText}`);
-    }
-
-    return response.json();
+    return apiFetch<PlanSummary[]>(url, { headers: JSON_HEADERS });
 }
+
 // Get plan by ID
 export async function getPlanById(id: number, accessToken: string): Promise<PlanDetail> {
     const url = `${getBackendUrl()}/api/v1/plans/${id}`;
-    console.log('[PlanService] Fetching plan:', url);
-
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-        },
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to fetch plan: ${errorText}`);
-    }
-
-    return response.json();
+    return apiFetch<PlanDetail>(url, { headers: authHeaders(accessToken) });
 }
 
 // Get my created plans
 export async function getMyCreatedPlans(accessToken: string): Promise<PlanSummary[]> {
     const url = `${getBackendUrl()}/api/v1/plans/me/created`;
-    console.log('[PlanService] Fetching my created plans:', url);
-
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-        },
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to fetch created plans: ${errorText}`);
-    }
-
-    return response.json();
+    return apiFetch<PlanSummary[]>(url, { headers: authHeaders(accessToken) });
 }
 
 // Get plans I joined (subscribed)
 export async function getMyJoinedPlans(accessToken: string): Promise<PlanSummary[]> {
     const url = `${getBackendUrl()}/api/v1/plans/me/joined-all`;
-    console.log('[PlanService] Fetching joined plans:', url);
-
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-        },
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to fetch joined plans: ${errorText}`);
-    }
-
-    return response.json();
+    return apiFetch<PlanSummary[]>(url, { headers: authHeaders(accessToken) });
 }
+
 export async function getMyJoinedPlansButNotMine(accessToken: string): Promise<PlanSummary[]> {
     const url = `${getBackendUrl()}/api/v1/plans/me/joined-not-mine`;
-    console.log('[PlanService] Fetching joined plans:', url);
-
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-        },
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to fetch joined plans: ${errorText}`);
-    }
-
-    return response.json();
+    return apiFetch<PlanSummary[]>(url, { headers: authHeaders(accessToken) });
 }
 
-export async function getPendingSubscribers(
-    planId: number,
-    accessToken: string
-): Promise<PendingSubscriber[]> {
+export async function getPendingSubscribers(planId: number, accessToken: string): Promise<PendingSubscriber[]> {
     const url = `${getBackendUrl()}/api/v1/plans/${planId}/pending-subscribers`;
-    console.log('[PlanService] Fetching pending subscribers:', url);
-
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-        },
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to fetch pending subscribers: ${errorText}`);
-    }
-
-    return response.json();
+    return apiFetch<PendingSubscriber[]>(url, { headers: authHeaders(accessToken) });
 }
 
 // Create a new plan
@@ -398,22 +306,7 @@ export async function unsubscribeFromPlan(planId: number, accessToken: string): 
 // Get nearby public plans
 export async function getNearbyPlans(lat: number, lng: number, radius: number = 50): Promise<PlanSummary[]> {
     const url = `${getBackendUrl()}/api/v1/plans/nearby?lat=${lat}&lng=${lng}&radius=${radius}`;
-    console.log('[PlanService] Fetching nearby plans:', url);
-
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-        },
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to fetch nearby plans: ${errorText}`);
-    }
-
-    return response.json();
+    return apiFetch<PlanSummary[]>(url, { headers: JSON_HEADERS });
 }
 
 export type PlanFilters = {
@@ -439,14 +332,7 @@ export async function getFilteredPlans(filters: PlanFilters): Promise<PlanSummar
     if (filters.radius !== undefined) params.append('radius', filters.radius.toString());
 
     const url = `${getBackendUrl()}/api/v1/plans/filter?${params.toString()}`;
-    const response = await fetch(url, {
-        headers: { Accept: 'application/json' },
-    });
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Unable to apply filters. Please try again.');
-    }
-    return response.json();
+    return apiFetch<PlanSummary[]>(url, { headers: { Accept: 'application/json' } });
 }
 
 // ============================================

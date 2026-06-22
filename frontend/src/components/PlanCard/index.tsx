@@ -11,41 +11,86 @@ import { styles } from './styles';
 
 export type PlanCardProps = {
     plan: PlanSummary;
-    onSubscribe: (planId: number) => void;
     onPress: (planId: number) => void;
-    subscribing: boolean;
+    variant?: 'browse' | 'created';
+    onSubscribe?: (planId: number) => void;
+    subscribing?: boolean;
     isSubscribed?: boolean;
 };
 
-export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed }: PlanCardProps) {
+export function PlanCard({ plan, onPress, variant = 'browse', onSubscribe, subscribing = false, isSubscribed }: PlanCardProps) {
     const { surface: cardBg, border, tint, mutedText, tintText } = useAppTheme();
 
+    const formatDate = (dateString: string) => formatDateInTimezone(dateString, plan.timezone);
+    const formatTime = (dateString: string) => formatTimeInTimezone(dateString, plan.timezone);
+
     const CATEGORY_BY_INTEREST: Record<string, string> = {
-        FOOD:      'Food',
-        CULTURE:   'Culture',
-        NATURE:    'Nature',
-        BEACH:     'Beach',
-        ADVENTURE: 'Adventure',
-        SPORTS:    'Sports',
-        NIGHTLIFE: 'Nightlife',
-        SHOPPING:  'Shopping',
-        HISTORY:   'History',
-        MOUNTAINS: 'Mountains',
-        OTHER:     'Other',
+        FOOD: 'Food', CULTURE: 'Culture', NATURE: 'Nature', BEACH: 'Beach',
+        ADVENTURE: 'Adventure', SPORTS: 'Sports', NIGHTLIFE: 'Nightlife',
+        SHOPPING: 'Shopping', HISTORY: 'History', MOUNTAINS: 'Mountains', OTHER: 'Other',
     };
 
-    const formatDate = (dateString: string) =>
-        formatDateInTimezone(dateString, plan.timezone);
-
-    const formatTime = (dateString: string) =>
-        formatTimeInTimezone(dateString, plan.timezone);
-
-    const interestLabel = (plan.interests ?? [])
-        .map((interest) => CATEGORY_BY_INTEREST[interest] || interest)
-        .join(' · ');
-
+    const interestLabel = (plan.interests ?? []).map((i) => CATEGORY_BY_INTEREST[i] || i).join(' · ');
     const isPublic = plan.visibility === 'PUBLIC';
     const isFull = plan.maxSubscribers != null && plan.subscriberCount >= plan.maxSubscribers;
+
+    const visibilityBadge = (
+        <View style={[styles.visibilityBadge, {
+            backgroundColor: isPublic ? StatusBadgeColors.public.background : StatusBadgeColors.private.background,
+        }]}>
+            <ThemedText type="label" style={[styles.visibilityBadgeText, {
+                color: isPublic ? StatusBadgeColors.public.text : StatusBadgeColors.private.text,
+            }]}>
+                {isPublic ? 'Public' : 'Private'}
+            </ThemedText>
+        </View>
+    );
+
+    const metaRows = (
+        <>
+            <View style={styles.metaRow}>
+                <Ionicons name="calendar-outline" size={14} color={mutedText} />
+                <ThemedText type="label" style={[styles.metaText, { color: mutedText }]}>
+                    {formatDate(plan.startDateTime)} - {formatTime(plan.startDateTime)}
+                </ThemedText>
+            </View>
+            <View style={styles.metaRow}>
+                <Ionicons name="location-outline" size={14} color={mutedText} />
+                <ThemedText type="label" style={[styles.metaText, { color: mutedText }]}>
+                    {plan.location}
+                </ThemedText>
+            </View>
+            <View style={styles.metaRow}>
+                <Ionicons name="people-outline" size={14} color={mutedText} />
+                <ThemedText type="label" style={[styles.metaText, { color: mutedText }]}>
+                    {plan.subscriberCount}/{plan.maxSubscribers}{variant === 'created' ? ' Participants' : ''}
+                </ThemedText>
+            </View>
+        </>
+    );
+
+    if (variant === 'created') {
+        return (
+            <Pressable
+                onPress={() => onPress(plan.id)}
+                style={({ pressed }) => [
+                    styles.createdCard,
+                    { backgroundColor: cardBg, borderColor: border },
+                    pressed && styles.buttonPressed,
+                ]}
+            >
+                <View style={styles.createdCardHeader}>
+                    <ThemedText type="subtitle" style={styles.createdTitle} numberOfLines={1}>
+                        {plan.title}
+                    </ThemedText>
+                    {visibilityBadge}
+                </View>
+                <View style={styles.createdMeta}>
+                    {metaRows}
+                </View>
+            </Pressable>
+        );
+    }
 
     return (
         <Pressable
@@ -58,41 +103,17 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
         >
             <View style={styles.planCardContent}>
                 <View style={styles.planInfo}>
-                    {/* Title row with inline visibility badge */}
                     <View style={styles.titleRow}>
                         <ThemedText type="subtitle" style={styles.planTitle} numberOfLines={1}>
                             {plan.title}
                         </ThemedText>
-                        <View style={[styles.visibilityBadge, {
-                            backgroundColor: isPublic ? StatusBadgeColors.public.background : StatusBadgeColors.private.background,
-                        }]}>
-                            <ThemedText type="label" style={[styles.visibilityBadgeText, { color: isPublic ? StatusBadgeColors.public.text : StatusBadgeColors.private.text }]}>
-                                {isPublic ? 'Public' : 'Private'}
-                            </ThemedText>
-                        </View>
+                        {visibilityBadge}
                     </View>
                     <ThemedText type="label" style={[styles.planDescription, { color: tint }]}>
                         {interestLabel}
                     </ThemedText>
                     <View style={styles.planMeta}>
-                        <View style={styles.metaRow}>
-                            <Ionicons name="calendar-outline" size={14} color={mutedText} />
-                            <ThemedText type="label" style={[styles.metaText, { color: mutedText }]}>
-                                {formatDate(plan.startDateTime)} - {formatTime(plan.startDateTime)}
-                            </ThemedText>
-                        </View>
-                        <View style={styles.metaRow}>
-                            <Ionicons name="location-outline" size={14} color={mutedText} />
-                            <ThemedText type="label" style={[styles.metaText, { color: mutedText }]}>
-                                {plan.location}
-                            </ThemedText>
-                        </View>
-                        <View style={styles.metaRow}>
-                            <Ionicons name="people-outline" size={14} color={mutedText} />
-                            <ThemedText type="label" style={[styles.metaText, { color: mutedText }]}>
-                                {plan.subscriberCount}/{plan.maxSubscribers}
-                            </ThemedText>
-                        </View>
+                        {metaRows}
                     </View>
                 </View>
 
@@ -105,7 +126,7 @@ export function PlanCard({ plan, onSubscribe, onPress, subscribing, isSubscribed
                         </View>
                     ) : (
                         <Pressable
-                            onPress={() => onSubscribe(plan.id)}
+                            onPress={() => onSubscribe?.(plan.id)}
                             disabled={subscribing}
                             style={({ pressed }) => [
                                 styles.subscribeButton,

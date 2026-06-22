@@ -12,7 +12,8 @@ import { PlanCard } from '@/components/PlanCard';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { decodeJwt, useToken } from '@/context/token-context';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { useRefreshControl } from '@/hooks/use-refresh-control';
 import { PlanFilters, PlanSummary, usePlans } from '@/services/plan';
 import { normalizeSearch } from '@/utils/search';
 import { styles } from './styles';
@@ -45,7 +46,6 @@ export function SearchPlansScreen() {
     const [plans, setPlans] = useState<PlanSummary[]>([]);
     const [filteredPlans, setFilteredPlans] = useState<PlanSummary[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [refreshing, setRefreshing] = useState(false);
     const [subscribingId, setSubscribingId] = useState<number | null>(null);
     const [joinedIds, setJoinedIds] = useState<Set<number>>(new Set());
     const [showFilters, setShowFilters] = useState(false);
@@ -62,12 +62,7 @@ export function SearchPlansScreen() {
     const [showDateFrom, setShowDateFrom] = useState(false);
     const [showDateTo, setShowDateTo] = useState(false);
 
-    const surface = useThemeColor({}, 'surface');
-    const border = useThemeColor({}, 'border');
-    const tint = useThemeColor({}, 'tint');
-    const tintText = useThemeColor({}, 'tintText');
-    const mutedText = useThemeColor({}, 'mutedText');
-    const textColor = useThemeColor({}, 'text');
+    const { surface, border, tint, tintText, mutedText, text: textColor } = useAppTheme();
 
     const hasActiveFilters = !!(selectedInterests.length > 0 || locationFilter || dateFrom || dateTo || radius);
 
@@ -124,6 +119,9 @@ export function SearchPlansScreen() {
             }
         }
     }, [fetchPublicPlans, fetchFilteredPlans, fetchMyJoinedPlans, hasActiveFilters, buildFilters, tokenData.state]);
+
+    const { refreshing, onRefresh } = useRefreshControl(loadPlans);
+
     useEffect(() => { loadPlans(); }, [loadPlans]);
 
     useEffect(() => {
@@ -166,12 +164,6 @@ export function SearchPlansScreen() {
             Alert.alert('Error', 'Could not get current location');
         }
     };
-
-    const onRefresh = useCallback(async () => {
-        setRefreshing(true);
-        await loadPlans();
-        setRefreshing(false);
-    }, [loadPlans]);
 
     const handleSubscribe = async (planId: number) => {
         const isPrivate = filteredPlans.find((p) => p.id === planId)?.visibility === 'PRIVATE';

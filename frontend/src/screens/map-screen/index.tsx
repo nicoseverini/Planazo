@@ -118,7 +118,7 @@ export default function MapScreen() {
         if (filters.activity === 'PLANS') return [];
         return places.filter((place) => {
             if (!place.latitude || !place.longitude) return false;
-            if (filters.category && place.interest !== filters.category) return false;
+            if (filters.category && !(place.interests ?? []).includes(filters.category)) return false;
             if (filters.radius !== null && userLocation) {
                 const distance = getDistanceFromLatLonInKm(userLocation.latitude, userLocation.longitude, place.latitude!, place.longitude!);
                 if (distance > filters.radius) return false;

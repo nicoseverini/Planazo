@@ -21,7 +21,7 @@ import { AppScreen } from '@/components/ui';
 import { StarRating } from '@/components/StarRating';
 import { ThemedText } from '@/components/ThemedText';
 import { StatusBadgeColors } from '@/constants/theme';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { PendingSubscriber, PlanDetail, usePlans } from '@/services/plan';
 import { formatAgeRestriction } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
@@ -50,12 +50,7 @@ export default function PlanDetailScreen() {
     const { fetchPlanDetail, fetchMyJoinedPlans, fetchPendingSubscribers, subscribe, unsubscribe, remove, accept, reject} = usePlans();
     const { getAccessToken } = useToken();
 
-    const tint = useThemeColor({}, 'tint');
-    const tintText = useThemeColor({}, 'tintText');
-    const surface = useThemeColor({}, 'surface');
-    const border = useThemeColor({}, 'border');
-    const mutedText = useThemeColor({}, 'mutedText');
-    const text = useThemeColor({}, 'text');
+    const { tint, tintText, surface, border, mutedText, text } = useAppTheme();
 
     const [plan, setPlan] = useState<PlanDetail | null>(null);
     const [loading, setLoading] = useState(true);

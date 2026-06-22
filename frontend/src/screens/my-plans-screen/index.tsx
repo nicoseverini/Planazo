@@ -15,7 +15,8 @@ import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { StatusBadgeColors } from '@/constants/theme';
 import { useToken } from '@/context/token-context';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { useRefreshControl } from '@/hooks/use-refresh-control';
 import { PlanSummary, usePlans } from '@/services/plan';
 
 import { styles } from './styles';
@@ -27,15 +28,9 @@ export function MyPlansScreen() {
     const [subscribedPlans, setSubscribedPlans] = useState<PlanSummary[]>([]);
     const [createdPlans, setCreatedPlans] = useState<PlanSummary[]>([]);
     const [filteredCreatedPlans, setFilteredCreatedPlans] = useState<PlanSummary[]>([]);
-    const [refreshing, setRefreshing] = useState(false);
     const [visibilityFilter, setVisibilityFilter] = useState<'ALL' | 'PUBLIC' | 'PRIVATE'>('ALL');
 
-    const surface = useThemeColor({}, 'surface');
-    const border = useThemeColor({}, 'border');
-    const tint = useThemeColor({}, 'tint');
-    const tintText = useThemeColor({}, 'tintText');
-    const mutedText = useThemeColor({}, 'mutedText');
-    const textColor = useThemeColor({}, 'text');
+    const { surface, border, tint, tintText, mutedText, text: textColor } = useAppTheme();
 
     const { tokenData } = useToken();
 
@@ -52,6 +47,8 @@ export function MyPlansScreen() {
         }
     }, [tokenData.state, fetchMyCreatedPlans, fetchMyJoinedPlansButNotMine]);
 
+    const { refreshing, onRefresh } = useRefreshControl(loadPlans);
+
     useEffect(() => {
         loadPlans();
     }, [loadPlans]);
@@ -62,12 +59,6 @@ export function MyPlansScreen() {
             : createdPlans.filter((plan) => plan.visibility === visibilityFilter);
         setFilteredCreatedPlans(filtered);
     }, [createdPlans, visibilityFilter]);
-
-    const onRefresh = useCallback(async () => {
-        setRefreshing(true);
-        await loadPlans();
-        setRefreshing(false);
-    }, [loadPlans]);
 
     const handlePlanPress = (planId: number) => {
         router.push(`/plan/${planId}` as any);

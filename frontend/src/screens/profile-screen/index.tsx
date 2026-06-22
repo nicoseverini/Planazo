@@ -25,7 +25,7 @@ import {
     TRAVEL_TYPE_OPTIONS,
 } from '@/constants/profile-options';
 import { useToken } from '@/context/token-context';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import {
     UserProfile,
     UpdateProfileRequest,
@@ -101,9 +101,7 @@ type MenuItemProps = {
 };
 
 function MenuItem({ icon, label, onPress, danger = false }: MenuItemProps) {
-    const surface = useThemeColor({}, 'surface');
-    const border = useThemeColor({}, 'border');
-    const mutedText = useThemeColor({}, 'mutedText');
+    const { surface, border, mutedText } = useAppTheme();
 
     return (
         <Pressable
@@ -137,13 +135,7 @@ export default function ProfileScreen() {
     const { tokenData, logout } = useToken();
     const { fetchProfile, updateProfile, deleteAccount } = useProfile();
 
-    const tint = useThemeColor({}, 'tint');
-    const tintText = useThemeColor({}, 'tintText');
-    const surface = useThemeColor({}, 'surface');
-    const border = useThemeColor({}, 'border');
-    const mutedText = useThemeColor({}, 'mutedText');
-    const text = useThemeColor({}, 'text');
-    const background = useThemeColor({}, 'background');
+    const { tint, tintText, surface, border, mutedText, text, background } = useAppTheme();
 
     const [user, setUser] = useState<UserProfile | null>(null);
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);

@@ -7,6 +7,27 @@ export const styles = StyleSheet.create({
         marginBottom: 16,
         overflow: 'hidden',
     },
+    createdCard: {
+        borderRadius: 16,
+        borderWidth: 1,
+        padding: 16,
+        marginBottom: 12,
+    },
+    createdCardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 12,
+        gap: 8,
+    },
+    createdTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        flex: 1,
+    },
+    createdMeta: {
+        gap: 6,
+    },
     planCardContent: {
         padding: 16,
         flexDirection: 'row',
