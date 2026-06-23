@@ -406,7 +406,7 @@ export function PlanForm({
                 </View>
                 <View style={styles.row}>
                     <View style={styles.halfInput}>
-                        <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Max participants</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Max members</ThemedText>
                         <TextInput
                             value={maxParticipants}
                             onChangeText={setMaxParticipants}

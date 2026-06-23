@@ -133,7 +133,7 @@ export async function getPendingSubscribers(planId: number, accessToken: string)
     return apiFetch<PendingSubscriber[]>(url, { headers: authHeaders(accessToken) });
 }
 
-// Get the accepted members (participants) of a plan
+// Get the accepted members of a plan
 export async function getPlanMembers(planId: number, accessToken: string): Promise<PlanMember[]> {
     const url = `${getBackendUrl()}/api/v1/plans/${planId}/members`;
     return apiFetch<PlanMember[]>(url, { headers: authHeaders(accessToken) });
@@ -223,7 +223,7 @@ export async function acceptSubscriber(planId: number, userId: number, accessTok
     if (!response.ok) {
         if (response.status === 403) throw new Error('You are not allowed to manage this request.');
         if (response.status === 404) throw new Error('This join request no longer exists.');
-        if (response.status === 409) throw new Error('This plan has already reached its participant limit.');
+        if (response.status === 409) throw new Error('This plan has already reached its member limit.');
         if (response.status === 410) {
             const errorText = await response.text();
             throw new Error(errorText || 'This plan has already ended.');
@@ -266,7 +266,7 @@ export async function joinPlan(planId: number, accessToken: string): Promise<voi
         const errorText = await response.text();
         if (response.status === 410) throw new Error(errorText || 'This plan has already ended.');
         if (response.status === 422) throw new Error(errorText || "You don't meet this plan's age requirements.");
-        if (response.status === 409) throw new Error(errorText || 'You have already joined this plan or it is full.');
+        if (response.status === 409) throw new Error(errorText || 'You are already a member of this plan, or it is full.');
         if (response.status === 404) throw new Error(errorText || 'Plan not found.');
         if (response.status === 403) throw new Error(errorText || 'You are not allowed to join this plan.');
         throw new Error(errorText || 'Could not process the join request. Please try again.');
@@ -284,7 +284,7 @@ export async function leavePlan(planId: number, accessToken: string): Promise<vo
     if (!response.ok) {
         const errorText = await response.text();
         if (response.status === 410) throw new Error(errorText || 'This plan has already ended.');
-        if (response.status === 409) throw new Error(errorText || 'You have not joined this plan.');
+        if (response.status === 409) throw new Error(errorText || 'You are not a member of this plan.');
         throw new Error(errorText || 'Could not leave the plan. Please try again.');
     }
 }

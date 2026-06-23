@@ -196,7 +196,7 @@ export function usePlanForm() {
         const trimmedMax = maxParticipants.trim();
         const parsedMax = Number.parseInt(trimmedMax, 10);
         if (!trimmedMax || Number.isNaN(parsedMax) || parsedMax <= 0 || parsedMax > 99_999) {
-            setError('Max participants must be between 1 and 99,999.');
+            setError('Max members must be between 1 and 99,999.');
             return false;
         }
         const trimmedBudget = budget.trim();

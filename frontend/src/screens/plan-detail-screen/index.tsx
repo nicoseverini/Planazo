@@ -27,6 +27,7 @@ import { formatAgeRestriction } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
 import { formatDateTimeInTimezone } from '@/utils/date';
 import { openInMaps } from '@/utils/navigation';
+import { orderPlanMembers } from '@/utils/plan-members';
 
 import { styles } from './styles';
 
@@ -196,7 +197,7 @@ export default function PlanDetailScreen() {
         if (!plan) return;
 
         if (plan.isFull && !isSubscribed) {
-            Alert.alert('Plan full', 'This plan has already reached its participant limit.');
+            Alert.alert('Plan full', 'This plan has already reached its member limit.');
             return;
         }
 
@@ -299,8 +300,8 @@ export default function PlanDetailScreen() {
     const isPublic = plan.visibility === 'PUBLIC';
     const isExpired = plan.endDateTime ? new Date(plan.endDateTime) <= new Date() : false;
     const participantsLabel = plan.maxSubscribers != null
-        ? `${plan.subscriberCount} / ${plan.maxSubscribers} participants`
-        : `${plan.subscriberCount} participants`;
+        ? `${plan.subscriberCount} / ${plan.maxSubscribers} members`
+        : `${plan.subscriberCount} members`;
     const budgetLabel = plan.budget > 0
         ? `$${plan.budget.toLocaleString()}`
         : 'Free';
@@ -619,7 +620,7 @@ export default function PlanDetailScreen() {
                             <ThemedText type="body" style={{ color: '#ef4444' }}>{membersError}</ThemedText>
                         ) : members.length > 0 ? (
                             <View style={styles.memberList}>
-                                {members.map((member) => (
+                                {orderPlanMembers(members, plan.creatorId).map((member) => (
                                     <MemberRow
                                         key={member.id}
                                         id={member.id}

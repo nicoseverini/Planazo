@@ -159,7 +159,7 @@ export default function EditPlanScreen() {
             screenTitle="Edit Plan"
             submitLabel="SAVE CHANGES"
             onSubmit={handleUpdate}
-            descriptionPlaceholder="Describe your plan, add details or special instructions for participants."
+            descriptionPlaceholder="Describe your plan, add details or special instructions for members."
         />
     );
 }

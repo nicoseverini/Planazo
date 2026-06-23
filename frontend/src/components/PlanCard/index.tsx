@@ -92,7 +92,7 @@ export function PlanCard({ plan, onPress, showStatus = false }: PlanCardProps) {
                 <View style={styles.metaRow}>
                     <Ionicons name="people-outline" size={14} color={mutedText} />
                     <ThemedText type="label" style={[styles.metaText, { color: mutedText }]}>
-                        {plan.subscriberCount}/{plan.maxSubscribers} participants
+                        {plan.subscriberCount}/{plan.maxSubscribers} members
                     </ThemedText>
                 </View>
             </View>
