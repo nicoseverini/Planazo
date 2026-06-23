@@ -9,6 +9,7 @@ import com.planazo.common.exception.PlanExpiredException;
 import com.planazo.plan.dto.PlanCreateDTO;
 import com.planazo.plan.dto.PlanDetailDTO;
 import com.planazo.plan.dto.PendingSubscriberDTO;
+import com.planazo.plan.dto.PlanSubscriberDTO;
 import com.planazo.plan.dto.PlanSummaryDTO;
 import com.planazo.plan.dto.PlanUpdateDTO;
 import com.planazo.user.User;
@@ -170,7 +171,24 @@ public class PlanService {
             .map(subscription -> new PendingSubscriberDTO(
                 subscription.getUser().getId(),
                 subscription.getUser().getName(),
-                subscription.getUser().getLastname()
+                subscription.getUser().getLastname(),
+                subscription.getUser().getPhoto()
+            ))
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PlanSubscriberDTO> getPlanMembers(Long planId) {
+        Plan plan = requireActivePlan(planId);
+
+        return plan.getSubscribers().stream()
+            .filter(PlanSubscriber::countsAsSubscriber)
+            .map(subscription -> new PlanSubscriberDTO(
+                subscription.getUser().getId(),
+                subscription.getUser().getName(),
+                subscription.getUser().getLastname(),
+                subscription.getUser().getPhoto(),
+                subscription.getAccepted()
             ))
             .toList();
     }

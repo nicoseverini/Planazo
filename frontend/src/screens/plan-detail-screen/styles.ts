@@ -141,6 +141,30 @@ export const styles = StyleSheet.create({
         borderWidth: 1,
         gap: 12,
     },
+    segmentContainer: {
+        flexDirection: 'row',
+        borderRadius: Layout.buttonRadius,
+        borderWidth: 1,
+        padding: 4,
+        gap: 4,
+    },
+    segment: {
+        flex: 1,
+        paddingVertical: 8,
+        borderRadius: Layout.buttonRadius - 4,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    memberList: {
+        gap: 10,
+    },
+    memberActionButton: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     pendingSection: {
         padding: 16,
         borderRadius: Layout.buttonRadius,

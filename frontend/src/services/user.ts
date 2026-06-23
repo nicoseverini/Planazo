@@ -57,6 +57,27 @@ export async function getMyProfile(accessToken: string): Promise<UserProfile> {
   return response.json();
 }
 
+export async function getProfileById(accessToken: string, id: string | number): Promise<UserProfile> {
+  const url = `${getBackendUrl()}/api/v1/users/profile/${id}`;
+  console.log('[UserService] Fetching profile by id:', url);
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) throw new Error('User not found.');
+    throw new Error('Unable to load this profile.');
+  }
+
+  return response.json();
+}
+
 export async function fetchMyPicture(accessToken: string): Promise<string | null> {
   const url = `${getBackendUrl()}/api/v1/users/profile/me/picture`;
   console.log('[UserService] Fetching picture:', url);
@@ -171,6 +192,12 @@ export function useProfile() {
     return getMyProfile(token);
   };
 
+  const fetchProfileById = async (id: string | number) => {
+    const token = getAccessToken();
+    if (!token) throw new Error('No access token');
+    return getProfileById(token, id);
+  };
+
   const fetchPicture = async () => {
     const token = getAccessToken();
     if (!token) throw new Error('No access token');
@@ -195,5 +222,5 @@ export function useProfile() {
     return deleteMyAccount(token);
   };
 
-  return { fetchProfile, fetchPicture, updateProfile, updatePicture, deleteAccount };
+  return { fetchProfile, fetchProfileById, fetchPicture, updateProfile, updatePicture, deleteAccount };
 }

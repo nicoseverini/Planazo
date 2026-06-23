@@ -18,10 +18,11 @@ import MapView, { Marker } from 'react-native-maps';
 
 import { decodeJwt, useToken } from '@/context/token-context';
 import { AppScreen } from '@/components/ui';
+import { MemberRow } from '@/components/MemberRow';
 import { ThemedText } from '@/components/ThemedText';
 import { StatusBadgeColors } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { PendingSubscriber, PlanDetail, usePlans } from '@/services/plan';
+import { PendingSubscriber, PlanDetail, PlanMember, usePlans } from '@/services/plan';
 import { formatAgeRestriction } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
 import { formatDateTimeInTimezone } from '@/utils/date';
@@ -46,7 +47,7 @@ const formatDateTime = (value: string, timezone: string | undefined | null) =>
 export default function PlanDetailScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
-    const { fetchPlanDetail, fetchMyJoinedPlans, fetchPendingSubscribers, join, leave, remove, accept, reject} = usePlans();
+    const { fetchPlanDetail, fetchMyJoinedPlans, fetchPendingSubscribers, fetchPlanMembers, join, leave, remove, accept, reject} = usePlans();
     const { getAccessToken } = useToken();
 
     const { tint, tintText, surface, border, mutedText, text } = useAppTheme();
@@ -61,6 +62,10 @@ export default function PlanDetailScreen() {
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [pendingSubscribers, setPendingSubscribers] = useState<PendingSubscriber[]>([]);
     const [pendingLoading, setPendingLoading] = useState(false);
+    const [members, setMembers] = useState<PlanMember[]>([]);
+    const [membersLoading, setMembersLoading] = useState(false);
+    const [membersError, setMembersError] = useState<string | null>(null);
+    const [membersSubTab, setMembersSubTab] = useState<'members' | 'requests'>('members');
     const [isImageModalVisible, setIsImageModalVisible] = useState(false);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
@@ -153,16 +158,39 @@ export default function PlanDetailScreen() {
         } finally {
             setPendingLoading(false);
         }
-    }, [fetchPendingSubscribers, isCreator, plan]);
+    }, [fetchPendingSubscribers, isCreator, isPrivatePlan, plan]);
+
+    const loadMembers = useCallback(async () => {
+        if (!plan) return;
+
+        try {
+            setMembersLoading(true);
+            setMembersError(null);
+            const data = await fetchPlanMembers(plan.id);
+            setMembers(data);
+        } catch (err) {
+            console.error('[PlanDetailScreen] Error loading members:', err);
+            setMembers([]);
+            setMembersError('Unable to load plan members.');
+        } finally {
+            setMembersLoading(false);
+        }
+    }, [fetchPlanMembers, plan]);
 
     useEffect(() => {
-        if (activeTab === 'members' && isCreator && plan && isPrivatePlan) {
-            loadPendingSubscribers();
+        if (activeTab !== 'members' || !plan) {
+            setPendingSubscribers([]);
             return;
         }
 
-        setPendingSubscribers([]);
-    }, [activeTab, isCreator, loadPendingSubscribers, plan]);
+        loadMembers();
+
+        if (isCreator && isPrivatePlan) {
+            loadPendingSubscribers();
+        } else {
+            setPendingSubscribers([]);
+        }
+    }, [activeTab, isCreator, isPrivatePlan, plan, loadMembers, loadPendingSubscribers]);
 
     const handleJoin = async () => {
         if (!plan) return;
@@ -202,13 +230,15 @@ export default function PlanDetailScreen() {
         setCurrentImageIndex(index);
     };
 
+    const openProfile = (userId: number) => router.push(`/user/${userId}`);
+
     const handleAcceptUser = async (id: number) => {
         const subscriber = pendingSubscribers.find((s) => s.id === id);
         const name = subscriber ? subscriber.name : 'the user';
         try {
             setPendingLoading(true);
             await accept(plan!.id, id);
-            await Promise.all([handleRefresh(), loadPendingSubscribers()]);
+            await Promise.all([handleRefresh(), loadPendingSubscribers(), loadMembers()]);
             Alert.alert('Request accepted', `You've just accepted ${name} into the plan.`);
         } catch (err) {
             console.error('[PlanDetailScreen] Error accepting subscriber:', err);
@@ -553,65 +583,99 @@ export default function PlanDetailScreen() {
 
             {activeTab === 'members' && (
                 <View style={styles.tabContent}>
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Membership</ThemedText>
-
                     {isCreator && isPrivatePlan ? (
-                        <ThemedText type="body" style={{ color: mutedText, marginBottom: 16 }}>
-                            Join requests waiting for your approval are listed below.
-                        </ThemedText>
+                        <View style={[styles.segmentContainer, { backgroundColor: surface, borderColor: border, marginBottom: 16 }]}>
+                            <Pressable
+                                onPress={() => setMembersSubTab('members')}
+                                style={[styles.segment, membersSubTab === 'members' && { backgroundColor: tint }]}
+                            >
+                                <ThemedText
+                                    type="label"
+                                    style={{ color: membersSubTab === 'members' ? tintText : mutedText, fontWeight: '600' }}
+                                >
+                                    {`Members${members.length ? ` (${members.length})` : ''}`}
+                                </ThemedText>
+                            </Pressable>
+                            <Pressable
+                                onPress={() => setMembersSubTab('requests')}
+                                style={[styles.segment, membersSubTab === 'requests' && { backgroundColor: tint }]}
+                            >
+                                <ThemedText
+                                    type="label"
+                                    style={{ color: membersSubTab === 'requests' ? tintText : mutedText, fontWeight: '600' }}
+                                >
+                                    {`Requests${pendingSubscribers.length ? ` (${pendingSubscribers.length})` : ''}`}
+                                </ThemedText>
+                            </Pressable>
+                        </View>
                     ) : (
-                        <ThemedText type="body" style={{ color: mutedText, marginBottom: 24 }}>
-                            {isSubscribed
-                                ? 'You have already joined this plan. You can leave at any time.'
-                                : 'Join this plan and connect with others who share your interests.'}
-                        </ThemedText>
+                        <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Members</ThemedText>
                     )}
 
-                    {isCreator && isPrivatePlan ? (
-                        <View style={[styles.pendingSection, { backgroundColor: surface, borderColor: border }]}>
-                            <ThemedText type="subtitle" style={{ marginBottom: 12 }}>
-                                Pending join requests
+                    {(!isCreator || !isPrivatePlan || membersSubTab === 'members') && (
+                        membersLoading ? (
+                            <ActivityIndicator size="small" color={tint} />
+                        ) : membersError ? (
+                            <ThemedText type="body" style={{ color: '#ef4444' }}>{membersError}</ThemedText>
+                        ) : members.length > 0 ? (
+                            <View style={styles.memberList}>
+                                {members.map((member) => (
+                                    <MemberRow
+                                        key={member.id}
+                                        id={member.id}
+                                        name={member.name}
+                                        lastname={member.lastname}
+                                        photo={member.photo}
+                                        subtitle={member.id === plan.creatorId ? 'Organizer' : undefined}
+                                        onPress={openProfile}
+                                    />
+                                ))}
+                            </View>
+                        ) : (
+                            <ThemedText type="body" style={{ color: mutedText }}>
+                                No members yet.
                             </ThemedText>
-                            {pendingLoading ? (
-                                <ActivityIndicator size="small" color={tint} />
-                            ) : pendingSubscribers.length > 0 ? (
-                                <View style={styles.pendingList}>
-                                    {pendingSubscribers.map((subscriber) => (
-                                        <View key={subscriber.id} style={[styles.pendingCard, { borderColor: border }]}>
-                                            <Ionicons name="person-outline" size={16} color={tint} />
-                                            <View style={styles.pendingTextBlock}>
-                                                <ThemedText type="body" style={{ fontWeight: '600' }}>
-                                                    {subscriber.name} {subscriber.lastname}
-                                                </ThemedText>
-                                                
-                                                <Pressable 
-                                                    onPress={() => handleAcceptUser(subscriber.id)}>
-                                                    <ThemedText
-                                                        type="body"
-                                                        style={{ color: tint, fontWeight: '600' }}>
-                                                        Accept
-                                                    </ThemedText>
-                                                </Pressable>
-                                                <Pressable 
-                                                    onPress={() => handleRejectUser(subscriber.id)}>
-                                                    <ThemedText
-                                                        type="body"
-                                                        style={{ color: '#ef4444', fontWeight: '600' }}>
-                                                        Reject
-                                                    </ThemedText>
-                                                </Pressable>
-                                            </View>
-                                        </View>
-                                    ))}
-                                </View>
-                            ) : (
-                                <ThemedText type="body" style={{ color: mutedText }}>
-                                    No pending join requests yet.
-                                </ThemedText>
-                            )}
-                        </View>
-                    ) : null}
+                        )
+                    )}
 
+                    {isCreator && isPrivatePlan && membersSubTab === 'requests' && (
+                        pendingLoading ? (
+                            <ActivityIndicator size="small" color={tint} />
+                        ) : pendingSubscribers.length > 0 ? (
+                            <View style={styles.memberList}>
+                                {pendingSubscribers.map((subscriber) => (
+                                    <MemberRow
+                                        key={subscriber.id}
+                                        id={subscriber.id}
+                                        name={subscriber.name}
+                                        lastname={subscriber.lastname}
+                                        photo={subscriber.photo}
+                                        onPress={openProfile}
+                                        rightSlot={
+                                            <>
+                                                <Pressable
+                                                    onPress={() => handleAcceptUser(subscriber.id)}
+                                                    style={[styles.memberActionButton, { backgroundColor: tint }]}
+                                                >
+                                                    <Ionicons name="checkmark" size={18} color={tintText} />
+                                                </Pressable>
+                                                <Pressable
+                                                    onPress={() => handleRejectUser(subscriber.id)}
+                                                    style={[styles.memberActionButton, { backgroundColor: '#ef4444' }]}
+                                                >
+                                                    <Ionicons name="close" size={18} color="#ffffff" />
+                                                </Pressable>
+                                            </>
+                                        }
+                                    />
+                                ))}
+                            </View>
+                        ) : (
+                            <ThemedText type="body" style={{ color: mutedText }}>
+                                No pending join requests yet.
+                            </ThemedText>
+                        )
+                    )}
                 </View>
             )}
 

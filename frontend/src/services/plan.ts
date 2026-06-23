@@ -59,6 +59,15 @@ export type PendingSubscriber = {
     id: number;
     name: string;
     lastname: string;
+    photo?: string | null;
+};
+
+export type PlanMember = {
+    id: number;
+    name: string;
+    lastname: string;
+    photo?: string | null;
+    accepted: boolean | null;
 };
 
 export type PlanCreateRequest = {
@@ -122,6 +131,12 @@ export async function getMyJoinedPlansButNotMine(accessToken: string): Promise<P
 export async function getPendingSubscribers(planId: number, accessToken: string): Promise<PendingSubscriber[]> {
     const url = `${getBackendUrl()}/api/v1/plans/${planId}/pending-subscribers`;
     return apiFetch<PendingSubscriber[]>(url, { headers: authHeaders(accessToken) });
+}
+
+// Get the accepted members (participants) of a plan
+export async function getPlanMembers(planId: number, accessToken: string): Promise<PlanMember[]> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/members`;
+    return apiFetch<PlanMember[]>(url, { headers: authHeaders(accessToken) });
 }
 
 // Create a new plan
@@ -406,6 +421,21 @@ export function usePlans() {
         }
     }, [getAccessToken]);
 
+    const fetchPlanMembers = useCallback(async (planId: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('No access token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            return await getPlanMembers(planId, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unknown error');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
     const fetchNearbyPlans = useCallback(async (lat: number, lng: number, radius?: number) => {
         const token = getAccessToken();
         if (!token) throw new Error('No access token');
@@ -547,6 +577,7 @@ export function usePlans() {
         fetchMyJoinedPlansButNotMine,
         fetchPlanDetail,
         fetchPendingSubscribers,
+        fetchPlanMembers,
         fetchNearbyPlans,
         fetchFilteredPlans,
         join,

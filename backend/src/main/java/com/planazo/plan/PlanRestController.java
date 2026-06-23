@@ -4,6 +4,7 @@ import com.planazo.common.constants.Interest;
 import com.planazo.plan.dto.PlanCreateDTO;
 import com.planazo.plan.dto.PlanDetailDTO;
 import com.planazo.plan.dto.PendingSubscriberDTO;
+import com.planazo.plan.dto.PlanSubscriberDTO;
 import com.planazo.plan.dto.PlanSummaryDTO;
 import com.planazo.plan.dto.PlanUpdateDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -134,6 +135,16 @@ class PlanRestController {
             @AuthenticationPrincipal(expression = "username") String email
     ) {
         return planService.getPendingSubscribers(id, email);
+    }
+
+    // ── Read: plan members ─────────────────────────────────────────────────
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(value = "/{id}/members", produces = "application/json")
+    @Operation(summary = "List the accepted members of a plan")
+    @ApiResponse(responseCode = "404", description = "Plan not found", content = @Content)
+    List<PlanSubscriberDTO> getPlanMembers(@PathVariable Long id) {
+        return planService.getPlanMembers(id);
     }
 
     // ── Update ───────────────────────────────────────────────────────────────
