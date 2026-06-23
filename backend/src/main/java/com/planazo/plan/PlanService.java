@@ -284,6 +284,35 @@ public class PlanService {
         emailService.sendRejectedFromPlanEmail(userEmail, plan.getTitle());
     }
 
+    // ── Remove member (organizer only) ─────────────────────────────────────
+
+    public void removeMember(Long planId, Long userId, String requesterEmail) {
+        Plan plan = requireActivePlan(planId);
+
+        if (!plan.getCreator().getUsername().equals(requesterEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the organizer can remove members.");
+        }
+
+        if (plan.getCreator().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "The organizer cannot be removed from the activity.");
+        }
+
+        PlanSubscriber subscription = plan.getSubscribers().stream()
+                .filter(s -> s.matchesUserId(userId))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This member is no longer part of the activity."));
+
+        boolean wasCounting = subscription.countsAsSubscriber();
+
+        plan.removeSubscriber(userId);
+        if (wasCounting) {
+            plan.decrementSubscriberCount();
+        }
+
+        planRepository.save(plan);
+        emailService.sendRemovedFromPlanEmail(subscription.getUser().getEmail(), plan.getTitle());
+    }
+
     // ── Delete (soft) ────────────────────────────────────────────────────────
 
     public Optional<Long> deletePlan(Long id, String requesterEmail) {

@@ -208,6 +208,21 @@ class PlanRestController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping(value = "/{id_plan}/members/{id_user}", produces = "application/json")
+    @Operation(summary = "Organizer removes a member from the plan")
+    @ApiResponse(responseCode = "403", description = "Not the organizer", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Plan or member not found", content = @Content)
+    @ApiResponse(responseCode = "409", description = "Organizer cannot be removed", content = @Content)
+    ResponseEntity<Void> removeMember(
+            @PathVariable Long id_plan,
+            @PathVariable Long id_user,
+            @AuthenticationPrincipal(expression = "username") String email
+    ) {
+        planService.removeMember(id_plan, id_user, email);
+        return ResponseEntity.ok().build();
+    }
+
     // ── Delete (soft) ────────────────────────────────────────────────────────
 
     @PreAuthorize("isAuthenticated()")

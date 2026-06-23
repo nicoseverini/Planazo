@@ -74,6 +74,12 @@ public class EmailService {
         
         send(to, "Your request to join the plan has been rejected.", html);
     }
+    public void sendRemovedFromPlanEmail(String to, String planTitle) {
+        String html = loadHtmlTemplate("classpath:templates/mail/removed_from_plan.html");
+        html = html.replace("${planTitle}", planTitle);
+
+        send(to, "You have been removed from a plan", html);
+    }
     public void sendRequestToPlanCreator(String to, String requesterName, String planTitle) {
         String html = loadHtmlTemplate("classpath:templates/mail/request_to_plan_creator.html");
         html = html.replace("${requesterName}", requesterName);

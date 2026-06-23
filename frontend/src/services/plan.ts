@@ -254,6 +254,26 @@ export async function rejectSubscriber(planId: number, userId: number, accessTok
         throw new Error('Something went wrong. Please try again.');
     }
 }
+// Organizer removes a member from a plan
+export async function removeMember(planId: number, userId: number, accessToken: string): Promise<void> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/members/${userId}`;
+    console.log('[PlanService] Removing member:', url);
+
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: { Accept: 'application/json', Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        if (response.status === 403) throw new Error(errorText || 'Only the organizer can remove members.');
+        if (response.status === 404) throw new Error(errorText || 'This member is no longer part of the activity.');
+        if (response.status === 409) throw new Error(errorText || 'The organizer cannot be removed from the activity.');
+        if (response.status === 410) throw new Error(errorText || 'This activity no longer exists.');
+        throw new Error(errorText || 'Unable to remove the member. Please try again.');
+    }
+}
+
 // Join a plan
 export async function joinPlan(planId: number, accessToken: string): Promise<void> {
     const url = `${getBackendUrl()}/api/v1/plans/${planId}/join`;
@@ -568,6 +588,21 @@ export function usePlans() {
         }
     }, [getAccessToken]);
 
+    const removeMemberFromPlan = useCallback(async (planId: number, userId: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('No access token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            await removeMember(planId, userId, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unknown error');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
     return {
         loading,
         error,
@@ -587,5 +622,6 @@ export function usePlans() {
         remove,
         accept,
         reject,
+        removeMember: removeMemberFromPlan,
     };
 }

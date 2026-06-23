@@ -48,7 +48,7 @@ const formatDateTime = (value: string, timezone: string | undefined | null) =>
 export default function PlanDetailScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
-    const { fetchPlanDetail, fetchMyJoinedPlans, fetchPendingSubscribers, fetchPlanMembers, join, leave, remove, accept, reject} = usePlans();
+    const { fetchPlanDetail, fetchMyJoinedPlans, fetchPendingSubscribers, fetchPlanMembers, join, leave, remove, accept, reject, removeMember} = usePlans();
     const { getAccessToken } = useToken();
 
     const { tint, tintText, surface, border, mutedText, text } = useAppTheme();
@@ -232,6 +232,32 @@ export default function PlanDetailScreen() {
     };
 
     const openProfile = (userId: number) => router.push(`/user/${userId}`);
+
+    const handleRemoveMember = (userId: number) => {
+        Alert.alert(
+            'Remove Member',
+            'Are you sure you want to remove this member from the activity?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Remove',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            setMembersLoading(true);
+                            await removeMember(plan!.id, userId);
+                            await Promise.all([handleRefresh(), loadMembers()]);
+                        } catch (err) {
+                            console.error('[PlanDetailScreen] Error removing member:', err);
+                            const message = err instanceof Error ? err.message : 'Unable to remove the member. Please try again.';
+                            Alert.alert('Error', message);
+                            setMembersLoading(false);
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
     const handleAcceptUser = async (id: number) => {
         const subscriber = pendingSubscribers.find((s) => s.id === id);
@@ -629,6 +655,17 @@ export default function PlanDetailScreen() {
                                         photo={member.photo}
                                         subtitle={member.id === plan.creatorId ? 'Organizer' : undefined}
                                         onPress={openProfile}
+                                        rightSlot={
+                                            isCreator && member.id !== plan.creatorId ? (
+                                                <Pressable
+                                                    onPress={() => handleRemoveMember(member.id)}
+                                                    hitSlop={8}
+                                                    style={({ pressed }) => [styles.memberActionButton, pressed && styles.pressed]}
+                                                >
+                                                    <Ionicons name="person-remove-outline" size={20} color="#ef4444" />
+                                                </Pressable>
+                                            ) : undefined
+                                        }
                                     />
                                 ))}
                             </View>
