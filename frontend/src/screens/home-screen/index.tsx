@@ -675,24 +675,32 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {/* Secondary list of plans (Airbnb Grid format) */}
+      {/* Secondary list of plans */}
       {secondaryPlans.length > 0 && (
-        <>
+        <View style={{ marginBottom: 24 }}>
           <View style={styles.sectionHeader}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>
               Discover more adventures
             </ThemedText>
           </View>
-          <View style={styles.plansGrid}>
-            {secondaryPlans.map((item) => (
-              <PlanCard
-                key={item.id}
-                plan={item}
-                onPress={(id) => router.push(`/plan/${id}` as any)}
-              />
-            ))}
-          </View>
-        </>
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={secondaryPlans}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.carouselContainer}
+            snapToInterval={CARD_WIDTH + 16}
+            decelerationRate="fast"
+            renderItem={({ item }) => (
+              <View style={{ width: CARD_WIDTH, marginRight: 16 }}>
+                <PlanCard
+                  plan={item}
+                  onPress={(id) => router.push(`/plan/${id}` as any)}
+                />
+              </View>
+            )}
+          />
+        </View>
       )}
 
     </AppScreen>
