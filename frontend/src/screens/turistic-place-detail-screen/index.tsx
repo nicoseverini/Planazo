@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -17,6 +17,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { StarRating } from '@/components/StarRating';
+import { ReviewSection } from '@/components/ReviewSection';
 import { useToken, decodeJwt } from '@/context/token-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { TuristicPlaceDetail, useTuristicPlaces } from '@/services/turistic-place';
@@ -51,6 +52,13 @@ export default function TuristicPlaceDetailScreen() {
     const refreshingRef = useRef(false);
     const [activeTab, setActiveTab] = useState<TabType>('description');
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [averageRating, setAverageRating] = useState(0);
+    const [reviewCount, setReviewCount] = useState(0);
+
+    const handleStatsUpdated = useCallback((avg: number, count: number) => {
+        setAverageRating(avg);
+        setReviewCount(count);
+    }, []);
 
     const loadPlace = useCallback(async () => {
         const placeId = parsePlaceId(id);
@@ -171,8 +179,7 @@ export default function TuristicPlaceDetailScreen() {
     const lng = place.longitude;
     const hasCoords = lat != null && lng != null;
 
-    const reviewCount = 0;
-    const averageRating = 0;
+    // Handled by state via ReviewSection
 
     return (
         <AppScreen
@@ -415,10 +422,11 @@ export default function TuristicPlaceDetailScreen() {
 
             {activeTab === 'reviews' && (
                 <View style={styles.tabContent}>
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Reviews</ThemedText>
-                    <ThemedText type="body" style={{ color: mutedText }}>
-                        No reviews yet. Be the first to leave one!
-                    </ThemedText>
+                    <ReviewSection
+                        targetType="VENUE"
+                        targetId={place.id}
+                        onStatsUpdated={handleStatsUpdated}
+                    />
                 </View>
             )}
 
