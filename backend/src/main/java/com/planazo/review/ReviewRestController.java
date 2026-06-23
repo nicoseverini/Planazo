@@ -61,4 +61,18 @@ public class ReviewRestController {
         ReviewResponseDto response = reviewService.createReview(requestDto, targetType, targetId, email);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping(value = "/{targetType}/{targetId}")
+    @Operation(summary = "Delete a review")
+    @ApiResponse(responseCode = "204", description = "Review deleted successfully")
+    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Review not found", content = @Content)
+    public ResponseEntity<Void> deleteReview(
+            @PathVariable ReviewTarget targetType,
+            @PathVariable Long targetId,
+            @AuthenticationPrincipal(expression = "username") String email) {
+        reviewService.deleteReview(targetType, targetId, email);
+        return ResponseEntity.noContent().build();
+    }
 }

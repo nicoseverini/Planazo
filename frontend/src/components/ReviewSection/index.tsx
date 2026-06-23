@@ -6,7 +6,7 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { ReviewResponse, ReviewTarget, useReviews } from '@/services/review';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 export interface ReviewSectionProps {
     targetType: ReviewTarget;
@@ -18,7 +18,7 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
     const router = useRouter();
     const { getAccessToken, tokenData } = useToken();
     const { tint, tintText, border, mutedText, surface, text } = useAppTheme();
-    const { fetchReviews, fetchStats, create, loading } = useReviews();
+    const { fetchReviews, fetchStats, create, remove, loading } = useReviews();
 
     const [reviews, setReviews] = useState<ReviewResponse[]>([]);
     const [selectedRatingFilter, setSelectedRatingFilter] = useState<number | null>(null);
@@ -71,6 +71,29 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
         }
     };
 
+    const handleDeleteReview = () => {
+        Alert.alert(
+            'Delete Review',
+            'Are you sure you want to delete your review? This action cannot be undone.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await remove(targetType, targetId);
+                            // Reload reviews and stats
+                            await loadData();
+                        } catch (err) {
+                            Alert.alert('Error', err instanceof Error ? err.message : 'Failed to delete review');
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
     if (initialLoading) {
         return (
             <View style={styles.loadingContainer}>
@@ -116,18 +139,32 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
                                 Your Review
                             </ThemedText>
                             <ReviewCard review={userReview} />
-                            <Pressable
-                                onPress={() => setIsEditing(true)}
-                                style={({ pressed }) => [
-                                    styles.editButton,
-                                    { borderColor: tint },
-                                    pressed && styles.disabled,
-                                ]}
-                            >
-                                <ThemedText type="body" style={[styles.editButtonText, { color: tint }]}>
-                                    Edit Your Review
-                                </ThemedText>
-                            </Pressable>
+                            <View style={styles.actionButtonRow}>
+                                <Pressable
+                                    onPress={() => setIsEditing(true)}
+                                    style={({ pressed }) => [
+                                        styles.actionButton,
+                                        { borderColor: tint, backgroundColor: surface, flex: 1 },
+                                        pressed && styles.disabled,
+                                    ]}
+                                >
+                                    <ThemedText type="body" style={[styles.actionButtonText, { color: tint }]}>
+                                        Edit Review
+                                    </ThemedText>
+                                </Pressable>
+                                <Pressable
+                                    onPress={handleDeleteReview}
+                                    style={({ pressed }) => [
+                                        styles.actionButton,
+                                        { borderColor: '#ef4444', backgroundColor: surface, flex: 1 },
+                                        pressed && styles.disabled,
+                                    ]}
+                                >
+                                    <ThemedText type="body" style={[styles.actionButtonText, { color: '#ef4444' }]}>
+                                        Delete Review
+                                    </ThemedText>
+                                </Pressable>
+                            </View>
                         </View>
                     )
                 ) : (
@@ -276,15 +313,19 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         marginBottom: 12,
     },
-    editButton: {
+    actionButtonRow: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 12,
+    },
+    actionButton: {
         height: 40,
         borderRadius: 8,
         borderWidth: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 4,
     },
-    editButtonText: {
+    actionButtonText: {
         fontWeight: '600',
         fontSize: 14,
     },

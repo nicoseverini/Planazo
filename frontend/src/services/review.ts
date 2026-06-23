@@ -81,6 +81,23 @@ export async function createReviewForTarget(
     return response.json();
 }
 
+export async function deleteReviewForTarget(
+    targetType: ReviewTarget,
+    targetId: number,
+    accessToken: string
+): Promise<void> {
+    const url = `${getBackendUrl()}/api/v1/reviews/${targetType}/${targetId}`;
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+    if (!response.ok) {
+        throw new Error((await response.text()) || 'Unable to delete review.');
+    }
+}
+
 // ============================================
 // Hook
 // ============================================
@@ -135,5 +152,23 @@ export function useReviews() {
         [getAccessToken]
     );
 
-    return { loading, error, fetchReviews, fetchStats, create };
+    const remove = useCallback(
+        async (targetType: ReviewTarget, targetId: number) => {
+            const token = getAccessToken();
+            if (!token) throw new Error('You must be logged in to delete a review.');
+            setLoadingCount((c) => c + 1);
+            setError(null);
+            try {
+                return await deleteReviewForTarget(targetType, targetId, token);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Unknown error');
+                throw err;
+            } finally {
+                setLoadingCount((c) => c - 1);
+            }
+        },
+        [getAccessToken]
+    );
+
+    return { loading, error, fetchReviews, fetchStats, create, remove };
 }
