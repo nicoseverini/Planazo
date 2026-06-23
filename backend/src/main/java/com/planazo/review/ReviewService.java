@@ -7,8 +7,10 @@ import com.planazo.review.dto.ReviewStatsDto;
 import com.planazo.user.User;
 import com.planazo.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,6 +59,14 @@ public class ReviewService {
         
         Review saved = reviewRepository.save(review);
         return mapToResponseDto(saved);
+    }
+
+    @Transactional
+    public void deleteReview(ReviewTarget targetType, Long targetId, String userEmail) {
+        User user = userService.getUserByEmail(userEmail);
+        Review review = reviewRepository.findByUserIdAndTargetTypeAndTargetId(user.getId(), targetType, targetId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Review not found"));
+        reviewRepository.delete(review);
     }
 
     private ReviewResponseDto mapToResponseDto(Review review) {
