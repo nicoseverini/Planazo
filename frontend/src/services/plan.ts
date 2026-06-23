@@ -282,12 +282,13 @@ export async function getNearbyPlans(lat: number, lng: number, radius: number = 
 
 export type PlanFilters = {
     interests?: string[];
-    dateFrom?: string;   // ISO string
+    dateFrom?: string;
     dateTo?: string;
     location?: string;
     lat?: number;
     lng?: number;
     radius?: number;
+    visibility?: PlanVisibility;
 };
 
 export async function getFilteredPlans(filters: PlanFilters): Promise<PlanSummary[]> {
@@ -301,6 +302,7 @@ export async function getFilteredPlans(filters: PlanFilters): Promise<PlanSummar
     if (filters.lat !== undefined) params.append('lat', filters.lat.toString());
     if (filters.lng !== undefined) params.append('lng', filters.lng.toString());
     if (filters.radius !== undefined) params.append('radius', filters.radius.toString());
+    if (filters.visibility) params.append('visibility', filters.visibility);
 
     const url = `${getBackendUrl()}/api/v1/plans/filter?${params.toString()}`;
     return apiFetch<PlanSummary[]>(url, { headers: { Accept: 'application/json' } });

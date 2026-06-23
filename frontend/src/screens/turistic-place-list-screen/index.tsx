@@ -1,47 +1,33 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator, Alert, FlatList, Modal, Pressable,
     RefreshControl, ScrollView, TextInput, View,
 } from 'react-native';
 
+import { CategoryFilterSelector } from '@/components/CategoryFilterSelector';
+import { DistanceSlider } from '@/components/DistanceSlider';
 import { ThemedText } from '@/components/ThemedText';
 import { TuristicPlaceCard } from '@/components/TuristicPlaceCard';
 import { AppScreen } from '@/components/ui';
 import { useToken } from '@/context/token-context';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { useProximityFilter } from '@/hooks/use-proximity-filter';
 import { INTEREST_OPTIONS, TuristicPlaceSummary, useTuristicPlaces } from '@/services/turistic-place';
+import { filterPlaces } from '@/utils/place-filters';
 import { normalizeSearch } from '@/utils/search';
 
 import { styles } from './styles';
 
 type Tab = 'all' | 'mine';
 
-function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos((lat1 * Math.PI) / 180) *
-            Math.cos((lat2 * Math.PI) / 180) *
-            Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
 export default function TuristicPlaceListScreen() {
     const router = useRouter();
     const { tokenData } = useToken();
     const { fetchAll, fetchMine } = useTuristicPlaces();
 
-    const tint = useThemeColor({}, 'tint');
-    const tintText = useThemeColor({}, 'tintText');
-    const surface = useThemeColor({}, 'surface');
-    const border = useThemeColor({}, 'border');
-    const mutedText = useThemeColor({}, 'mutedText');
-    const textColor = useThemeColor({}, 'text');
+    const { tint, tintText, surface, border, mutedText, text: textColor } = useAppTheme();
 
     const isLoggedIn = tokenData.state === 'LOGGED_IN';
 
@@ -55,12 +41,12 @@ export default function TuristicPlaceListScreen() {
 
     const [searchQuery, setSearchQuery] = useState('');
     const [showFilters, setShowFilters] = useState(false);
-    const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [locationFilter, setLocationFilter] = useState('');
-    const [radius, setRadius] = useState<number | null>(null);
-    const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
-    const hasActiveFilters = selectedInterests.length > 0 || !!locationFilter || !!radius;
+    const { radius, userLocation, handleRadiusChange, clearRadius } = useProximityFilter();
+
+    const hasActiveFilters = selectedCategories.length > 0 || !!locationFilter || !!radius;
 
     const loadPlaces = useCallback(async () => {
         try {
@@ -92,31 +78,14 @@ export default function TuristicPlaceListScreen() {
         refreshingRef.current = false;
     }, [loadPlaces]);
 
-    // Client-side filtering: categories + location + proximity + search query
+    // Client-side filtering: shared filter (categories AND + location + proximity) then name search.
     useEffect(() => {
         const base = tab === 'mine' ? myPlaces : allPlaces;
-        let result = base;
-
-        if (selectedInterests.length > 0) {
-            result = result.filter((p) =>
-                (p.interests ?? []).some((i) => selectedInterests.includes(i))
-            );
-        }
-
-        if (locationFilter.trim()) {
-            const q = normalizeSearch(locationFilter);
-            result = result.filter((p) => {
-                const loc = [p.address, p.city, p.country, p.location].filter(Boolean).join(' ');
-                return normalizeSearch(loc).includes(q);
-            });
-        }
-
-        if (radius && userLocation) {
-            result = result.filter((p) => {
-                if (!p.latitude || !p.longitude) return false;
-                return haversineKm(userLocation.lat, userLocation.lng, p.latitude, p.longitude) <= radius;
-            });
-        }
+        let result = filterPlaces(
+            base,
+            { categories: selectedCategories, location: locationFilter, radius },
+            userLocation,
+        );
 
         if (searchQuery.trim()) {
             const q = normalizeSearch(searchQuery);
@@ -124,28 +93,12 @@ export default function TuristicPlaceListScreen() {
         }
 
         setFilteredPlaces(result);
-    }, [tab, allPlaces, myPlaces, selectedInterests, locationFilter, radius, userLocation, searchQuery]);
+    }, [tab, allPlaces, myPlaces, selectedCategories, locationFilter, radius, userLocation, searchQuery]);
 
     const clearFilters = () => {
-        setSelectedInterests([]);
+        setSelectedCategories([]);
         setLocationFilter('');
-        setRadius(null);
-    };
-
-    const handleRadiusSelect = async (r: number | null) => {
-        if (r === null) { setRadius(null); return; }
-        try {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                Alert.alert('Permission denied', 'Location permission is required for proximity search.');
-                return;
-            }
-            const loc = await Location.getCurrentPositionAsync({});
-            setUserLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude });
-            setRadius(r);
-        } catch {
-            Alert.alert('Error', 'Could not get current location.');
-        }
+        clearRadius();
     };
 
     const activeChipStyle = {
@@ -176,7 +129,7 @@ export default function TuristicPlaceListScreen() {
             {/* Active filter chips */}
             {hasActiveFilters && (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginHorizontal: 20, marginBottom: 8 }}>
-                    {selectedInterests.map((value) => {
+                    {selectedCategories.map((value) => {
                         const label = INTEREST_OPTIONS.find((o) => o.value === value)?.label ?? value;
                         return (
                             <View key={value} style={activeChipStyle}>
@@ -304,31 +257,11 @@ export default function TuristicPlaceListScreen() {
 
                     {/* Category */}
                     <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Category</ThemedText>
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-                        {INTEREST_OPTIONS.map(({ value, label }) => {
-                            const active = selectedInterests.includes(value);
-                            return (
-                                <Pressable
-                                    key={value}
-                                    onPress={() =>
-                                        setSelectedInterests((prev) =>
-                                            prev.includes(value)
-                                                ? prev.filter((x) => x !== value)
-                                                : [...prev, value]
-                                        )
-                                    }
-                                    style={{
-                                        paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-                                        backgroundColor: active ? tint : 'transparent',
-                                        borderWidth: 1, borderColor: active ? tint : border,
-                                    }}
-                                >
-                                    <ThemedText type="label" style={{ color: active ? tintText : textColor }}>
-                                        {label}
-                                    </ThemedText>
-                                </Pressable>
-                            );
-                        })}
+                    <View style={{ marginBottom: 24 }}>
+                        <CategoryFilterSelector
+                            selected={selectedCategories}
+                            onChange={setSelectedCategories}
+                        />
                     </View>
 
                     {/* Location */}
@@ -351,25 +284,8 @@ export default function TuristicPlaceListScreen() {
 
                     {/* Proximity */}
                     <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Proximity (Distance)</ThemedText>
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-                        {[5, 10, 20, 50, 100].map((r) => {
-                            const active = radius === r;
-                            return (
-                                <Pressable
-                                    key={r}
-                                    onPress={() => handleRadiusSelect(active ? null : r)}
-                                    style={{
-                                        paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-                                        backgroundColor: active ? tint : 'transparent',
-                                        borderWidth: 1, borderColor: active ? tint : border,
-                                    }}
-                                >
-                                    <ThemedText type="label" style={{ color: active ? tintText : textColor }}>
-                                        {r} km
-                                    </ThemedText>
-                                </Pressable>
-                            );
-                        })}
+                    <View style={{ marginBottom: 24 }}>
+                        <DistanceSlider radius={radius} onChange={handleRadiusChange} />
                     </View>
 
                     {/* Buttons */}

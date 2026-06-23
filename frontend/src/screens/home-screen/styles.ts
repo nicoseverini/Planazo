@@ -126,11 +126,6 @@ export const styles = StyleSheet.create({
     paddingRight: Layout.pagePadding - 16,
     marginBottom: 24,
   },
-  plansGrid: {
-    paddingHorizontal: Layout.pagePadding,
-    gap: 16,
-    marginBottom: 24,
-  },
   emptyContainer: {
     marginHorizontal: Layout.pagePadding,
     borderRadius: Layout.cardRadius,

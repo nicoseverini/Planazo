@@ -18,12 +18,17 @@ public class PlanSpecification {
             Double maxPriceOrScore,
             Double userLat,
             Double userLng,
-            Double radiusKm
+            Double radiusKm,
+            PlanVisibility visibility
     ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             predicates.add(cb.isTrue(root.get("active")));
+
+            if (visibility != null) {
+                predicates.add(cb.equal(root.get("visibility"), visibility));
+            }
 
             if (interests != null && !interests.isEmpty()) {
                 for (Interest interest : interests) {

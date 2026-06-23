@@ -37,7 +37,7 @@ const NAV_ITEMS: NavItem[] = [
     {
         icon: 'bookmark-outline',
         iconFocused: 'bookmark',
-        label: 'My Plans',
+        label: 'My Activities',
         route: '/my-plans',
     },
     {

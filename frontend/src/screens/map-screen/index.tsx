@@ -1,6 +1,6 @@
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import { View, Pressable, ActivityIndicator, Platform } from 'react-native';
+import { Alert, View, Pressable, ActivityIndicator, Platform } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 
 import { Ionicons } from '@expo/vector-icons';
@@ -9,21 +9,11 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { usePlans, PlanSummary } from '@/services/plan';
 import { useTuristicPlaces, TuristicPlaceSummary } from '@/services/turistic-place';
 import * as Location from 'expo-location';
+import { matchesCategories } from '@/utils/category-filter';
+import { haversineKm } from '@/utils/distance';
 
 import { styles } from './styles';
 import { AppScreen } from '@/components/ui';
-
-function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
-    const R = 6371; // Radius of the earth in km
-    const dLat = (lat2 - lat1) * (Math.PI / 180);
-    const dLon = (lon2 - lon1) * (Math.PI / 180);
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Distance in km
-}
 import { MapFilterModal, MapFilters, DEFAULT_MAP_FILTERS } from './MapFilterModal';
 
 const MAP_INITIAL_REGION = {
@@ -65,25 +55,45 @@ export default function MapScreen() {
     const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
     const [selectedMapItem, setSelectedMapItem] = useState<SelectedMapItem | null>(null);
 
+    const acquireUserLocation = useCallback(async (): Promise<{ latitude: number; longitude: number } | null> => {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') return null;
+        const location = await Location.getCurrentPositionAsync({});
+        const coords = { latitude: location.coords.latitude, longitude: location.coords.longitude };
+        setUserLocation(coords);
+        return coords;
+    }, []);
+
     const centerOnUser = async () => {
         try {
-            const { status } = await Location.getForegroundPermissionsAsync();
-            if (status !== 'granted') return;
-            const location = await Location.getCurrentPositionAsync({});
-            setUserLocation({ latitude: location.coords.latitude, longitude: location.coords.longitude });
+            const coords = await acquireUserLocation();
+            if (!coords) return;
             mapRef.current?.animateToRegion(
-                {
-                    latitude: location.coords.latitude,
-                    longitude: location.coords.longitude,
-                    latitudeDelta: 0.05,
-                    longitudeDelta: 0.05,
-                },
+                { latitude: coords.latitude, longitude: coords.longitude, latitudeDelta: 0.05, longitudeDelta: 0.05 },
                 1000
             );
         } catch (error) {
             console.log('There is an error when trying to center on user location:', error);
         }
     };
+
+    const handleFiltersChange = useCallback(async (newFilters: MapFilters) => {
+        if (newFilters.radius !== null && userLocation === null) {
+            try {
+                const coords = await acquireUserLocation();
+                if (coords === null) {
+                    Alert.alert('Permission denied', 'Location permission is required for proximity search.');
+                    setFilters({ ...newFilters, radius: null });
+                    return;
+                }
+            } catch {
+                Alert.alert('Error', 'Could not get current location.');
+                setFilters({ ...newFilters, radius: null });
+                return;
+            }
+        }
+        setFilters(newFilters);
+    }, [userLocation, acquireUserLocation]);
 
     useEffect(() => {
         centerOnUser();
@@ -104,11 +114,10 @@ export default function MapScreen() {
         if (filters.activity === 'PLACES') return [];
         return plans.filter((plan) => {
             if (!plan.latitude || !plan.longitude) return false;
-            if (filters.category && !plan.interests?.includes(filters.category)) return false;
+            if (!matchesCategories(plan.interests ?? [], filters.categories)) return false;
             if (filters.visibility !== 'ANY' && plan.visibility !== filters.visibility) return false;
             if (filters.radius !== null && userLocation) {
-                const distance = getDistanceFromLatLonInKm(userLocation.latitude, userLocation.longitude, plan.latitude, plan.longitude);
-                if (distance > filters.radius) return false;
+                if (haversineKm(userLocation.latitude, userLocation.longitude, plan.latitude, plan.longitude) > filters.radius) return false;
             }
             return true;
         });
@@ -118,10 +127,9 @@ export default function MapScreen() {
         if (filters.activity === 'PLANS') return [];
         return places.filter((place) => {
             if (!place.latitude || !place.longitude) return false;
-            if (filters.category && !(place.interests ?? []).includes(filters.category)) return false;
+            if (!matchesCategories(place.interests ?? [], filters.categories)) return false;
             if (filters.radius !== null && userLocation) {
-                const distance = getDistanceFromLatLonInKm(userLocation.latitude, userLocation.longitude, place.latitude!, place.longitude!);
-                if (distance > filters.radius) return false;
+                if (haversineKm(userLocation.latitude, userLocation.longitude, place.latitude!, place.longitude!) > filters.radius) return false;
             }
             return true;
         });
@@ -130,7 +138,7 @@ export default function MapScreen() {
     const activeFilterCount = useMemo(() => {
         let count = 0;
         if (filters.activity !== 'ALL') count++;
-        if (filters.category !== null) count++;
+        if (filters.categories.length > 0) count++;
         if (filters.visibility !== 'ANY') count++;
         if (filters.radius !== null) count++;
         return count;
@@ -329,7 +337,7 @@ export default function MapScreen() {
             <MapFilterModal
                 visible={showFilters}
                 filters={filters}
-                onFiltersChange={setFilters}
+                onFiltersChange={handleFiltersChange}
                 onReset={() => setFilters(DEFAULT_MAP_FILTERS)}
                 onClose={() => setShowFilters(false)}
             />
