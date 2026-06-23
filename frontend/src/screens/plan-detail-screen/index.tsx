@@ -184,7 +184,7 @@ export default function PlanDetailScreen() {
                 if (isPrivatePlan) {
                     Alert.alert(
                         'Join request sent',
-                        'Your join request has been sent. You can check its status in "My Plans".'
+                        'Your join request has been sent. You can check its status in "My Activities".'
                     );
                 }
             }

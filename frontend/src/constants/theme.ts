@@ -44,6 +44,14 @@ export const StatusBadgeColors = {
   },
 };
 
+// Participation/join-request status. Rendered as an outlined badge (translucent
+// fill + colored border/text) so it stays visually distinct from the filled
+// visibility badge it sits next to.
+export const ParticipationBadgeColors = {
+  accepted: '#1E9E63',
+  pending: '#D9822B',
+};
+
 export const Layout = {
   pagePadding: 16,
   sectionGap: 16,

@@ -3,7 +3,7 @@ export type Interest =
     | 'NIGHTLIFE' | 'SPORTS' | 'SHOPPING' | 'HISTORY' | 'MOUNTAINS' | 'OTHER';
 
 export const INTEREST_OPTIONS: { label: string; value: Interest }[] = [
-    { label: 'Food 🍔',      value: 'FOOD' },
+    { label: 'Food',      value: 'FOOD' },
     { label: 'Culture',   value: 'CULTURE' },
     { label: 'Nature',    value: 'NATURE' },
     { label: 'Beach',     value: 'BEACH' },

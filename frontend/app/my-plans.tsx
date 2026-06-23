@@ -1,4 +1,4 @@
-import {MyPlansScreen} from "@/screens/my-plans-screen";
+import { MyActivitiesScreen } from '@/screens/my-plans-screen';
 
-export default MyPlansScreen;
+export default MyActivitiesScreen;
 

@@ -15,8 +15,7 @@ import { useToken } from '@/context/token-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useProximityFilter } from '@/hooks/use-proximity-filter';
 import { INTEREST_OPTIONS, TuristicPlaceSummary, useTuristicPlaces } from '@/services/turistic-place';
-import { matchesCategories } from '@/utils/category-filter';
-import { haversineKm } from '@/utils/distance';
+import { filterPlaces } from '@/utils/place-filters';
 import { normalizeSearch } from '@/utils/search';
 
 import { styles } from './styles';
@@ -79,29 +78,14 @@ export default function TuristicPlaceListScreen() {
         refreshingRef.current = false;
     }, [loadPlaces]);
 
-    // Client-side filtering: categories (AND) + location + proximity + search
+    // Client-side filtering: shared filter (categories AND + location + proximity) then name search.
     useEffect(() => {
         const base = tab === 'mine' ? myPlaces : allPlaces;
-        let result = base;
-
-        if (selectedCategories.length > 0) {
-            result = result.filter((p) => matchesCategories(p.interests ?? [], selectedCategories));
-        }
-
-        if (locationFilter.trim()) {
-            const q = normalizeSearch(locationFilter);
-            result = result.filter((p) => {
-                const loc = [p.address, p.city, p.country, p.location].filter(Boolean).join(' ');
-                return normalizeSearch(loc).includes(q);
-            });
-        }
-
-        if (radius && userLocation) {
-            result = result.filter((p) => {
-                if (!p.latitude || !p.longitude) return false;
-                return haversineKm(userLocation.lat, userLocation.lng, p.latitude, p.longitude) <= radius;
-            });
-        }
+        let result = filterPlaces(
+            base,
+            { categories: selectedCategories, location: locationFilter, radius },
+            userLocation,
+        );
 
         if (searchQuery.trim()) {
             const q = normalizeSearch(searchQuery);

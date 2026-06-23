@@ -18,12 +18,28 @@ export const styles = StyleSheet.create({
         fontWeight: '600',
         flexShrink: 1,
     },
+    badges: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
     visibilityBadge: {
         paddingHorizontal: 8,
         paddingVertical: 3,
         borderRadius: 6,
     },
     visibilityBadgeText: {
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 0.5,
+    },
+    statusBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 6,
+        borderWidth: 1,
+    },
+    statusBadgeText: {
         fontSize: 10,
         fontWeight: '700',
         letterSpacing: 0.5,

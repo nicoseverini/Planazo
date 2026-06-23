@@ -2,25 +2,54 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
-import { StatusBadgeColors } from '@/constants/theme';
+import { ParticipationBadgeColors, StatusBadgeColors } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { PlanSummary } from '@/services/plan';
 import { formatDateInTimezone, formatTimeInTimezone } from '@/utils/date';
 import { formatInterest } from '@/utils/interests';
+import { planParticipationStatus } from '@/utils/plan-filters';
 
 import { styles } from './styles';
 
 export type PlanCardProps = {
     plan: PlanSummary;
     onPress: (planId: number) => void;
+    /**
+     * When true, also shows the join-request status (Pending / Accepted) next to
+     * the visibility badge. Used in the Joined Plans tab. Visibility is always shown.
+     */
+    showStatus?: boolean;
 };
 
-export function PlanCard({ plan, onPress }: PlanCardProps) {
+function VisibilityBadge({ plan }: { plan: PlanSummary }) {
+    const isPublic = plan.visibility === 'PUBLIC';
+    const palette = isPublic ? StatusBadgeColors.public : StatusBadgeColors.private;
+    return (
+        <View style={[styles.visibilityBadge, { backgroundColor: palette.background }]}>
+            <ThemedText type="label" style={[styles.visibilityBadgeText, { color: palette.text }]}>
+                {isPublic ? 'Public' : 'Private'}
+            </ThemedText>
+        </View>
+    );
+}
+
+function StatusBadge({ plan }: { plan: PlanSummary }) {
+    const status = planParticipationStatus(plan);
+    if (status === null) return null;
+    const color = status === 'ACCEPTED' ? ParticipationBadgeColors.accepted : ParticipationBadgeColors.pending;
+    return (
+        <View style={[styles.statusBadge, { borderColor: color, backgroundColor: color + '1A' }]}>
+            <ThemedText type="label" style={[styles.statusBadgeText, { color }]}>
+                {status === 'ACCEPTED' ? 'Accepted' : 'Pending'}
+            </ThemedText>
+        </View>
+    );
+}
+
+export function PlanCard({ plan, onPress, showStatus = false }: PlanCardProps) {
     const { surface: cardBg, border, tint, mutedText } = useAppTheme();
 
     const interestLabel = (plan.interests ?? []).map(formatInterest).join(' · ');
-
-    const isPublic = plan.visibility === 'PUBLIC';
 
     return (
         <Pressable
@@ -35,18 +64,9 @@ export function PlanCard({ plan, onPress }: PlanCardProps) {
                 <ThemedText type="subtitle" style={styles.title} numberOfLines={1}>
                     {plan.title}
                 </ThemedText>
-                <View style={[styles.visibilityBadge, {
-                    backgroundColor: isPublic
-                        ? StatusBadgeColors.public.background
-                        : StatusBadgeColors.private.background,
-                }]}>
-                    <ThemedText type="label" style={[styles.visibilityBadgeText, {
-                        color: isPublic
-                            ? StatusBadgeColors.public.text
-                            : StatusBadgeColors.private.text,
-                    }]}>
-                        {isPublic ? 'Public' : 'Private'}
-                    </ThemedText>
+                <View style={styles.badges}>
+                    {showStatus && <StatusBadge plan={plan} />}
+                    <VisibilityBadge plan={plan} />
                 </View>
             </View>
 
