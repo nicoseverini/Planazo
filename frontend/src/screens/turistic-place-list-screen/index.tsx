@@ -20,20 +20,16 @@ import { normalizeSearch } from '@/utils/search';
 
 import { styles } from './styles';
 
-type Tab = 'all' | 'mine';
-
 export default function TuristicPlaceListScreen() {
     const router = useRouter();
     const { tokenData } = useToken();
-    const { fetchAll, fetchMine } = useTuristicPlaces();
+    const { fetchAll } = useTuristicPlaces();
 
     const { tint, tintText, surface, border, mutedText, text: textColor } = useAppTheme();
 
     const isLoggedIn = tokenData.state === 'LOGGED_IN';
 
-    const [tab, setTab] = useState<Tab>('all');
     const [allPlaces, setAllPlaces] = useState<TuristicPlaceSummary[]>([]);
-    const [myPlaces, setMyPlaces] = useState<TuristicPlaceSummary[]>([]);
     const [filteredPlaces, setFilteredPlaces] = useState<TuristicPlaceSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -50,18 +46,13 @@ export default function TuristicPlaceListScreen() {
 
     const loadPlaces = useCallback(async () => {
         try {
-            const [all, mine] = await Promise.all([
-                fetchAll(),
-                isLoggedIn ? fetchMine() : Promise.resolve([] as TuristicPlaceSummary[]),
-            ]);
-            setAllPlaces(all);
-            setMyPlaces(mine);
+            setAllPlaces(await fetchAll());
         } catch {
             Alert.alert('Error', 'Unable to load tourist places.');
         } finally {
             setLoading(false);
         }
-    }, [fetchAll, fetchMine, isLoggedIn]);
+    }, [fetchAll]);
 
     useFocusEffect(
         useCallback(() => {
@@ -80,9 +71,8 @@ export default function TuristicPlaceListScreen() {
 
     // Client-side filtering: shared filter (categories AND + location + proximity) then name search.
     useEffect(() => {
-        const base = tab === 'mine' ? myPlaces : allPlaces;
         let result = filterPlaces(
-            base,
+            allPlaces,
             { categories: selectedCategories, location: locationFilter, radius },
             userLocation,
         );
@@ -93,7 +83,7 @@ export default function TuristicPlaceListScreen() {
         }
 
         setFilteredPlaces(result);
-    }, [tab, allPlaces, myPlaces, selectedCategories, locationFilter, radius, userLocation, searchQuery]);
+    }, [allPlaces, selectedCategories, locationFilter, radius, userLocation, searchQuery]);
 
     const clearFilters = () => {
         setSelectedCategories([]);
@@ -108,15 +98,13 @@ export default function TuristicPlaceListScreen() {
     const emptyMessage =
         hasActiveFilters || searchQuery.trim()
             ? 'No tourist places match your search.'
-            : tab === 'mine'
-            ? 'You have no places yet.'
             : 'No tourist places found.';
 
     return (
         <AppScreen contentStyle={styles.appScreenContent}>
             {/* Header */}
             <View style={styles.header}>
-                <ThemedText type="title">Turistic Places</ThemedText>
+                <ThemedText type="title">Tourist Places</ThemedText>
                 <Pressable onPress={() => setShowFilters(true)} style={{ padding: 4 }}>
                     <Ionicons
                         name={hasActiveFilters ? 'filter' : 'filter-outline'}
@@ -169,27 +157,6 @@ export default function TuristicPlaceListScreen() {
                     </Pressable>
                 )}
             </View>
-
-            {/* All / Mine tabs */}
-            {isLoggedIn && (
-                <View style={styles.tabRow}>
-                    {(['all', 'mine'] as Tab[]).map((t) => (
-                        <Pressable
-                            key={t}
-                            onPress={() => setTab(t)}
-                            style={[
-                                styles.tabButton,
-                                { borderColor: border },
-                                tab === t && { backgroundColor: tint, borderColor: tint },
-                            ]}
-                        >
-                            <ThemedText type="label" style={{ color: tab === t ? tintText : mutedText }}>
-                                {t === 'all' ? 'All' : 'My Places'}
-                            </ThemedText>
-                        </Pressable>
-                    ))}
-                </View>
-            )}
 
             {/* List */}
             {loading && allPlaces.length === 0 ? (

@@ -16,7 +16,7 @@ export default function CreateTuristicPlaceScreen() {
             onBack={() => router.back()}
             onSubmit={async (data) => {
                 await create(data);
-                Alert.alert('Success', 'Turistic place created!', [
+                Alert.alert('Success', 'Tourist place created!', [
                     { text: 'OK', onPress: () => router.back() },
                 ]);
             }}

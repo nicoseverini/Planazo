@@ -34,19 +34,6 @@ export const styles = StyleSheet.create({
         fontSize: 16,
         padding: 0,
     },
-    tabRow: {
-        flexDirection: 'row',
-        marginHorizontal: 20,
-        marginBottom: 16,
-        gap: 8,
-    },
-    tabButton: {
-        flex: 1,
-        paddingVertical: 8,
-        borderRadius: 12,
-        borderWidth: 1,
-        alignItems: 'center',
-    },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
