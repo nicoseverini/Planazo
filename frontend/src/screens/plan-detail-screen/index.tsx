@@ -18,7 +18,6 @@ import MapView, { Marker } from 'react-native-maps';
 
 import { decodeJwt, useToken } from '@/context/token-context';
 import { AppScreen } from '@/components/ui';
-import { StarRating } from '@/components/StarRating';
 import { ThemedText } from '@/components/ThemedText';
 import { StatusBadgeColors } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-app-theme';
@@ -32,7 +31,7 @@ import { styles } from './styles';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-type TabType = 'description' | 'members' | 'reviews';
+type TabType = 'description' | 'members';
 
 const parsePlanId = (value?: string | string[]): number | null => {
     const raw = Array.isArray(value) ? value[0] : value;
@@ -265,8 +264,6 @@ export default function PlanDetailScreen() {
     }
 
     const images = plan.images || [];
-    const reviewCount = 0;
-    const averageRating = 0;
     const { dateLabel, timeLabel } = formatDateTime(plan.startDateTime, plan.timezone);
     const { dateLabel: endDateLabel, timeLabel: endTimeLabel } = formatDateTime(plan.endDateTime, plan.timezone);
     const isPublic = plan.visibility === 'PUBLIC';
@@ -348,19 +345,6 @@ export default function PlanDetailScreen() {
                         )}
                     </View>
                 </View>
-            </View>
-
-            <View style={styles.ratingRow}>
-                <ThemedText type="body" style={{ fontWeight: '600' }}>{averageRating.toFixed(1)}</ThemedText>
-                <StarRating rating={averageRating} />
-                <ThemedText type="body" style={{ color: mutedText }}>
-                    ({reviewCount} reviews)
-                </ThemedText>
-                <Pressable onPress={() => setActiveTab('reviews')}>
-                    <ThemedText type="body" style={{ color: tint, marginLeft: 8 }}>
-                        View reviews
-                    </ThemedText>
-                </Pressable>
             </View>
 
             <View style={styles.infoRow}>
@@ -555,20 +539,6 @@ export default function PlanDetailScreen() {
                         MEMBERS
                     </ThemedText>
                 </Pressable>
-                <Pressable
-                    onPress={() => setActiveTab('reviews')}
-                    style={[
-                        styles.tab,
-                        activeTab === 'reviews' && { borderBottomColor: tint, borderBottomWidth: 2 },
-                    ]}
-                >
-                    <ThemedText
-                        type="body"
-                        style={[styles.tabText, { color: activeTab === 'reviews' ? tint : mutedText }]}
-                    >
-                        REVIEWS
-                    </ThemedText>
-                </Pressable>
             </View>
 
             {activeTab === 'description' && (
@@ -642,15 +612,6 @@ export default function PlanDetailScreen() {
                         </View>
                     ) : null}
 
-                </View>
-            )}
-
-            {activeTab === 'reviews' && (
-                <View style={styles.tabContent}>
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Reviews</ThemedText>
-                    <ThemedText type="body" style={{ color: mutedText }}>
-                        No reviews yet. Be the first to leave one!
-                    </ThemedText>
                 </View>
             )}
 

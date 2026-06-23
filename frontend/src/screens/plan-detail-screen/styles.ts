@@ -37,16 +37,6 @@ export const styles = StyleSheet.create({
         paddingVertical: 4,
         borderRadius: 4,
     },
-    ratingRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 12,
-    },
-    starContainer: {
-        flexDirection: 'row',
-        gap: 2,
-    },
     infoRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -176,21 +166,6 @@ export const styles = StyleSheet.create({
     subscribeInfoRow: {
         flexDirection: 'row',
         alignItems: 'center',
-    },
-    reviewCard: {
-        padding: 16,
-        borderRadius: Layout.buttonRadius,
-        borderWidth: 1,
-        marginBottom: 12,
-    },
-    reviewHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    reviewInfo: {
-        flex: 1,
-        gap: 4,
     },
     subscribeButtonContainer: {
         marginTop: 8,

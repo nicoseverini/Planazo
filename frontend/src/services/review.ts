@@ -2,7 +2,7 @@ import { getBackendUrl } from './auth';
 import { useToken } from '@/context/token-context';
 import { useCallback, useState } from 'react';
 
-export type ReviewTarget = 'VENUE' | 'PLAN' | 'USER';
+export type ReviewTarget = 'VENUE' | 'USER';
 
 export type ReviewAuthor = {
     id: number;
