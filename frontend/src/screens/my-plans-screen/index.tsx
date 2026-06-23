@@ -43,8 +43,11 @@ export function MyActivitiesScreen() {
                         empty={{
                             icon: 'create-outline',
                             message: "You haven't created any plans yet.",
-                            ctaLabel: 'Create a plan',
-                            onCta: () => router.push('/create-plan' as any),
+                        }}
+                        action={{
+                            icon: 'add',
+                            label: 'Create a plan',
+                            onPress: () => router.push('/create-plan' as any),
                         }}
                         onPressPlan={goToPlan}
                     />
@@ -59,8 +62,11 @@ export function MyActivitiesScreen() {
                         empty={{
                             icon: 'people-outline',
                             message: "You're not participating in any plans yet.",
-                            ctaLabel: 'Search plans',
-                            onCta: () => router.push('/search-plans' as any),
+                        }}
+                        action={{
+                            icon: 'search',
+                            label: 'Search plans',
+                            onPress: () => router.push('/search-plans' as any),
                         }}
                         onPressPlan={goToPlan}
                     />
@@ -73,8 +79,11 @@ export function MyActivitiesScreen() {
                         empty={{
                             icon: 'location-outline',
                             message: "You haven't created any places yet.",
-                            ctaLabel: 'Create a tourist place',
-                            onCta: () => router.push('/turistic-place/create' as any),
+                        }}
+                        action={{
+                            icon: 'add',
+                            label: 'Create a tourist place',
+                            onPress: () => router.push('/turistic-place/create' as any),
                         }}
                         onPressPlace={goToPlace}
                     />

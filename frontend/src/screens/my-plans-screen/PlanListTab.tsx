@@ -25,8 +25,13 @@ import { styles } from './styles';
 type EmptyState = {
     icon: keyof typeof Ionicons.glyphMap;
     message: string;
-    ctaLabel: string;
-    onCta: () => void;
+};
+
+/** Primary action for this tab, shared by the empty-state CTA and the floating button. */
+type TabAction = {
+    icon: keyof typeof Ionicons.glyphMap;
+    label: string;
+    onPress: () => void;
 };
 
 type Props = {
@@ -36,6 +41,7 @@ type Props = {
     showStatusFilter?: boolean;
     errorMessage: string;
     empty: EmptyState;
+    action: TabAction;
     onPressPlan: (id: number) => void;
 };
 
@@ -55,7 +61,7 @@ const fmt = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export function PlanListTab({
-    load, showStatusBadge, showVisibilityFilter, showStatusFilter, errorMessage, empty, onPressPlan,
+    load, showStatusBadge, showVisibilityFilter, showStatusFilter, errorMessage, empty, action, onPressPlan,
 }: Props) {
     const { surface, border, tint, tintText, mutedText, text: textColor } = useAppTheme();
 
@@ -189,9 +195,9 @@ export function PlanListTab({
                                 {hasFilters ? 'No plans match your filters.' : empty.message}
                             </ThemedText>
                             {!hasFilters && (
-                                <Pressable onPress={empty.onCta} style={[styles.emptyCta, { borderColor: tint }]}>
+                                <Pressable onPress={action.onPress} style={[styles.emptyCta, { borderColor: tint }]}>
                                     <ThemedText type="label" style={{ color: tint, fontWeight: '600' }}>
-                                        {empty.ctaLabel}
+                                        {action.label}
                                     </ThemedText>
                                 </Pressable>
                             )}
@@ -199,6 +205,16 @@ export function PlanListTab({
                     }
                     showsVerticalScrollIndicator={false}
                 />
+            )}
+
+            {/* Persistent action button — visible without scrolling whenever the list isn't pristine-empty */}
+            {(visiblePlans.length > 0 || hasFilters) && (
+                <Pressable
+                    onPress={action.onPress}
+                    style={({ pressed }) => [styles.fab, { backgroundColor: tint }, pressed && styles.fabPressed]}
+                >
+                    <Ionicons name={action.icon} size={28} color={tintText} />
+                </Pressable>
             )}
 
             {/* Filter modal */}
