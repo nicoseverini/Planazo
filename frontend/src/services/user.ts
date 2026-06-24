@@ -13,7 +13,6 @@ export type UserProfile = {
   age?: string;
   gender?: string;
   zone?: string;
-  role?: string;
   photo?: string;
   travelType?: string;
   languages?: string[];

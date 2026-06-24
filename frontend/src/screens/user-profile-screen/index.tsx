@@ -1,213 +1,468 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    Image,
+    Modal,
+    Platform,
+    Pressable,
+    View,
+} from 'react-native';
 
-import { Avatar } from '@/components/Avatar';
 import { ReviewSection } from '@/components/ReviewSection';
 import { StarRating } from '@/components/StarRating';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
-import {
-    GENDER_LABELS,
-    INTEREST_LABELS,
-    TRAVEL_TYPE_LABELS,
-} from '@/constants/profile-options';
+import { decodeJwt, useToken } from '@/context/token-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { UserProfile, useProfile } from '@/services/user';
+import { UpdateProfileRequest, UserProfile, useProfile } from '@/services/user';
+
+import { AccountActions } from '@/components/AccountActions';
+import { ProfileEditForm } from '@/components/ProfileEditForm';
+import { ProfileInfoCards } from '@/components/ProfileInfoCards';
+import { normalizePhotoValue, normalizeProfile, resolveInitial } from '@/utils/profile';
 
 import { styles } from './styles';
 
-function formatList(values: string[] | undefined, labelMap?: Record<string, string>) {
-    if (!values || values.length === 0) return 'Not set';
-    return values.map((value) => labelMap?.[value] ?? value).join(', ');
-}
-
-function formatValue(value?: string, labelMap?: Record<string, string>) {
-    if (!value) return 'Not set';
-    return labelMap?.[value] ?? value;
-}
-
 export default function UserProfileScreen() {
     const router = useRouter();
-    const { id } = useLocalSearchParams<{ id: string }>();
-    const { fetchProfileById } = useProfile();
+    const { id } = useLocalSearchParams<{ id?: string }>();
+    const { tokenData, logout } = useToken();
+    const { fetchProfile, fetchProfileById, updateProfile, deleteAccount } = useProfile();
     const { tint, tintText, surface, border, mutedText } = useAppTheme();
 
     const [user, setUser] = useState<UserProfile | null>(null);
+    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [editing, setEditing] = useState(false);
+    const [formData, setFormData] = useState<UserProfile | null>(null);
+    const [saving, setSaving] = useState(false);
+    const [loggingOut, setLoggingOut] = useState(false);
+    const [deletingAccount, setDeletingAccount] = useState(false);
+    const [isViewerOpen, setIsViewerOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'profile' | 'reviews'>('profile');
     const [averageRating, setAverageRating] = useState(0);
     const [reviewCount, setReviewCount] = useState(0);
+
+    // Ownership detection: compare the viewed profile id with the authenticated user id.
+    const currentUserId =
+        tokenData.state === 'LOGGED_IN' ? decodeJwt(tokenData.accessToken).id : undefined;
+    const routeId = id ? Number(id) : undefined;
+    const targetId = routeId ?? currentUserId;
+    const isOwnProfile = currentUserId != null && targetId === currentUserId;
+
+    const displayUser = useMemo(() => normalizeProfile(user), [user]);
 
     const handleStatsUpdated = useCallback((average: number, count: number) => {
         setAverageRating(average);
         setReviewCount(count);
     }, []);
 
-    const loadProfile = useCallback(async () => {
-        if (!id) {
-            setError('User not found.');
-            setLoading(false);
+    useEffect(() => {
+        let cancelled = false;
+        async function load() {
+            if (tokenData.state === 'LOADING') return;
+            if (tokenData.state === 'LOGGED_OUT') {
+                setLoading(false);
+                return;
+            }
+            if (targetId == null) {
+                setError('User not found.');
+                setLoading(false);
+                return;
+            }
+            try {
+                setLoading(true);
+                setError(null);
+                const data = isOwnProfile ? await fetchProfile() : await fetchProfileById(targetId);
+                if (cancelled) return;
+                const normalized = normalizeProfile(data);
+                setUser(normalized);
+                setFormData(normalized);
+                setPhotoUrl(normalizePhotoValue(normalized.photo));
+            } catch (err) {
+                if (cancelled) return;
+                setError(
+                    isOwnProfile
+                        ? 'Unable to load profile information.'
+                        : err instanceof Error
+                            ? err.message
+                            : 'Unable to load this profile.'
+                );
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        }
+        load();
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tokenData.state, isOwnProfile, targetId]);
+
+    const onChange = (field: keyof UserProfile, value: string | string[] | number | undefined) => {
+        if (!formData) return;
+        setFormData({ ...formData, [field]: value });
+    };
+
+    const toggleArrayValue = (field: 'interests' | 'languages', value: string) => {
+        if (!formData) return;
+        const current = formData[field] ?? [];
+        const next = current.includes(value)
+            ? current.filter((item) => item !== value)
+            : [...current, value];
+        setFormData({ ...formData, [field]: next });
+    };
+
+    const handleSave = async () => {
+        if (!formData) return;
+        setSaving(true);
+        setError(null);
+        try {
+            const payload: UpdateProfileRequest = {
+                name: formData.name,
+                lastname: formData.lastname,
+                gender: formData.gender,
+                birthDate: formData.birthDate,
+                photo: formData.photo,
+                travelType: formData.travelType || undefined,
+                languages: formData.languages ?? [],
+                interests: formData.interests ?? [],
+            };
+            const updatedProfile = await updateProfile(payload);
+            const merged = normalizeProfile({ ...displayUser, ...formData, ...updatedProfile });
+            setUser(merged);
+            setFormData(merged);
+            setPhotoUrl(normalizePhotoValue(merged.photo));
+            setEditing(false);
+        } catch (err) {
+            console.error('[UserProfileScreen] Error saving profile:', err);
+            setError('Unable to update your profile. Please try again.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleCancel = () => {
+        setFormData(displayUser);
+        setPhotoUrl(normalizePhotoValue(displayUser.photo));
+        setEditing(false);
+        setError(null);
+    };
+
+    async function handleChangePhoto() {
+        if (Platform.OS !== 'ios') {
+            const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (permission.status !== 'granted') {
+                Alert.alert('Permission required', 'We need access to your gallery to choose a photo.');
+                return;
+            }
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            quality: 0.8,
+            base64: true,
+        });
+        if (result.canceled || !result.assets?.length) return;
+        const asset = result.assets[0];
+        if (!asset.base64) {
+            setError('Could not read selected image.');
             return;
         }
-        try {
-            setLoading(true);
-            setError(null);
-            const data = await fetchProfileById(id);
-            setUser(data);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unable to load this profile.');
-        } finally {
-            setLoading(false);
-        }
-    }, [id, fetchProfileById]);
+        const mimeType = asset.mimeType ?? 'image/jpeg';
+        const dataUrl = `data:${mimeType};base64,${asset.base64}`;
+        setPhotoUrl(dataUrl);
+        if (formData) setFormData({ ...formData, photo: dataUrl });
+        setEditing(true);
+    }
 
-    useEffect(() => {
-        loadProfile();
-    }, [loadProfile]);
+    function handleClearPhoto() {
+        setPhotoUrl(null);
+        if (formData) setFormData({ ...formData, photo: '' });
+    }
 
-    if (loading) {
+    function handleLogout() {
+        Alert.alert('Log out', 'Are you sure you want to log out?', [
+            { text: 'Cancel', style: 'cancel' },
+            {
+                text: 'Log out',
+                style: 'destructive',
+                onPress: async () => {
+                    setLoggingOut(true);
+                    try {
+                        await logout();
+                        // Clear the stack so the iOS back gesture cannot reach authenticated screens.
+                        if (router.canGoBack()) router.dismissAll();
+                        router.replace('/');
+                    } catch (err) {
+                        console.error('[UserProfileScreen] Error logging out:', err);
+                        setLoggingOut(false);
+                        Alert.alert('Error', 'Unable to log out. Please try again.');
+                    }
+                },
+            },
+        ]);
+    }
+
+    function handleDeleteAccount() {
+        Alert.alert(
+            'Delete account',
+            'Are you sure? This action is irreversible and will delete all your data.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        setError(null);
+                        setDeletingAccount(true);
+                        try {
+                            await deleteAccount();
+                            await logout();
+                            if (router.canGoBack()) router.dismissAll();
+                            router.replace('/');
+                        } catch (err) {
+                            console.error('[UserProfileScreen] Error deleting account:', err);
+                            setError('Unable to delete your account. Please try again.');
+                            setDeletingAccount(false);
+                        }
+                    },
+                },
+            ]
+        );
+    }
+
+    // Loading / transitional states
+    if (loggingOut || deletingAccount || loading || tokenData.state === 'LOADING') {
+        const loadingText = deletingAccount
+            ? 'Deleting account...'
+            : loggingOut
+                ? 'Logging out...'
+                : 'Loading...';
         return (
             <AppScreen>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={tint} />
+                    <ThemedText type="body" style={{ color: mutedText }}>
+                        {loadingText}
+                    </ThemedText>
                 </View>
             </AppScreen>
         );
     }
 
-    if (error || !user) {
+    // Not authenticated (a token is required to view any profile)
+    if (tokenData.state === 'LOGGED_OUT') {
         return (
             <AppScreen>
                 <View style={styles.loadingContainer}>
-                    <Ionicons name="person-circle-outline" size={48} color={mutedText} />
+                    <Ionicons name="person-outline" size={48} color={mutedText} />
                     <ThemedText type="body" style={{ color: mutedText }}>
-                        {error ?? 'User not found.'}
+                        Sign in to view your profile
                     </ThemedText>
                     <Pressable
-                        onPress={() => router.back()}
-                        style={[styles.backButton, { backgroundColor: tint }]}
+                        onPress={() => router.replace('/')}
+                        style={[styles.primaryButton, { backgroundColor: tint, marginTop: 12 }]}
                     >
-                        <ThemedText type="body" style={{ color: tintText }}>Back</ThemedText>
+                        <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
+                            Sign in
+                        </ThemedText>
                     </Pressable>
                 </View>
             </AppScreen>
         );
     }
 
-    const fullName = `${user.name || 'User'} ${user.lastname || ''}`.trim();
+    if (error && !user) {
+        return (
+            <AppScreen>
+                <View style={styles.loadingContainer}>
+                    <Ionicons name="person-circle-outline" size={48} color={mutedText} />
+                    <ThemedText type="body" style={{ color: mutedText }}>
+                        {error}
+                    </ThemedText>
+                    {router.canGoBack() && (
+                        <Pressable onPress={() => router.back()} style={[styles.backButton, { backgroundColor: tint }]}>
+                            <ThemedText type="body" style={{ color: tintText }}>Back</ThemedText>
+                        </Pressable>
+                    )}
+                </View>
+            </AppScreen>
+        );
+    }
+
+    const fullName = `${displayUser.name || 'User'} ${displayUser.lastname || ''}`.trim();
+    const avatarInitial = resolveInitial(displayUser.name, displayUser.photo);
 
     return (
         <AppScreen scrollable>
-            <View style={styles.headerBar}>
+            <Modal
+                visible={isViewerOpen}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setIsViewerOpen(false)}
+            >
+                <Pressable style={styles.modalOverlay} onPress={() => setIsViewerOpen(false)}>
+                    <Pressable style={styles.modalCloseButton} onPress={() => setIsViewerOpen(false)}>
+                        <Ionicons name="close" size={32} color="#fff" />
+                    </Pressable>
+                    {photoUrl ? (
+                        <Image source={{ uri: photoUrl }} style={styles.fullImage} resizeMode="contain" />
+                    ) : null}
+                </Pressable>
+            </Modal>
+
+            {router.canGoBack() && (
+                <View style={styles.headerBar}>
+                    <Pressable
+                        onPress={() => router.back()}
+                        style={({ pressed }) => [
+                            styles.headerButton,
+                            { backgroundColor: surface, borderColor: border },
+                            pressed && styles.pressed,
+                        ]}
+                    >
+                        <Ionicons name="arrow-back" size={24} color={mutedText} />
+                    </Pressable>
+                    <ThemedText type="subtitle">Profile</ThemedText>
+                </View>
+            )}
+
+            {/* Header: avatar + name (+ email for the authenticated user) */}
+            <View style={styles.header}>
                 <Pressable
-                    onPress={() => router.back()}
+                    onPress={() => {
+                        if (photoUrl) setIsViewerOpen(true);
+                        else if (editing) handleChangePhoto();
+                    }}
                     style={({ pressed }) => [
-                        styles.headerButton,
+                        styles.avatarContainer,
                         { backgroundColor: surface, borderColor: border },
                         pressed && styles.pressed,
                     ]}
                 >
-                    <Ionicons name="arrow-back" size={24} color={mutedText} />
+                    {photoUrl ? (
+                        <Image source={{ uri: photoUrl }} style={styles.avatar} />
+                    ) : (
+                        <View style={[styles.avatarPlaceholder, { backgroundColor: tint }]}>
+                            <ThemedText
+                                type="heading"
+                                lightColor={tintText}
+                                darkColor={tintText}
+                                style={styles.avatarInitial}
+                            >
+                                {avatarInitial}
+                            </ThemedText>
+                        </View>
+                    )}
+                    {editing && (
+                        <View style={[styles.cameraIcon, { backgroundColor: tint }]}>
+                            <Ionicons name="camera" size={14} color={tintText} />
+                        </View>
+                    )}
                 </Pressable>
-                <ThemedText type="subtitle">Profile</ThemedText>
-            </View>
 
-            <View style={styles.profileHeader}>
-                <Avatar name={user.name} photo={user.photo} size={100} />
-                <ThemedText type="title" style={{ marginTop: 8 }}>{fullName}</ThemedText>
-            </View>
-
-            <View style={[styles.tabContainer, { borderColor: border }]}>
-                <Pressable
-                    onPress={() => setActiveTab('profile')}
-                    style={[
-                        styles.tab,
-                        activeTab === 'profile' && { borderBottomColor: tint, borderBottomWidth: 2 },
-                    ]}
-                >
-                    <ThemedText
-                        type="body"
-                        style={[styles.tabText, { color: activeTab === 'profile' ? tint : mutedText }]}
-                    >
-                        PROFILE
+                <ThemedText type="title" style={styles.userName}>
+                    {fullName}
+                </ThemedText>
+                {isOwnProfile && displayUser.email ? (
+                    <ThemedText type="body" style={{ color: mutedText }}>
+                        {displayUser.email}
                     </ThemedText>
-                </Pressable>
-                <Pressable
-                    onPress={() => setActiveTab('reviews')}
-                    style={[
-                        styles.tab,
-                        activeTab === 'reviews' && { borderBottomColor: tint, borderBottomWidth: 2 },
-                    ]}
-                >
-                    <ThemedText
-                        type="body"
-                        style={[styles.tabText, { color: activeTab === 'reviews' ? tint : mutedText }]}
-                    >
-                        REVIEWS
-                    </ThemedText>
-                </Pressable>
+                ) : null}
             </View>
 
-            {activeTab === 'reviews' ? (
-                <View>
-                    <View style={styles.ratingRow}>
-                        <ThemedText type="body" style={{ fontWeight: '600' }}>{averageRating.toFixed(1)}</ThemedText>
-                        <StarRating rating={averageRating} />
-                        <ThemedText type="body" style={{ color: mutedText }}>
-                            ({reviewCount} reviews)
-                        </ThemedText>
-                    </View>
-                    <ReviewSection
-                        targetType="USER"
-                        targetId={Number(id)}
-                        onStatsUpdated={handleStatsUpdated}
-                    />
-                </View>
+            {editing ? (
+                <ProfileEditForm
+                    formData={formData}
+                    onChange={onChange}
+                    onToggleArrayValue={toggleArrayValue}
+                    onChangePhoto={handleChangePhoto}
+                    onClearPhoto={handleClearPhoto}
+                    onSave={handleSave}
+                    onCancel={handleCancel}
+                    saving={saving}
+                    error={error}
+                />
             ) : (
-            <View style={styles.infoGrid}>
-                {user.gender ? (
-                    <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
-                        <Ionicons name="person-outline" size={20} color={mutedText} />
-                        <View style={styles.infoContent}>
-                            <ThemedText type="label" style={{ color: mutedText }}>Gender</ThemedText>
-                            <ThemedText type="body">{formatValue(user.gender, GENDER_LABELS)}</ThemedText>
+                <>
+                    <View style={[styles.tabContainer, { borderColor: border }]}>
+                        <Pressable
+                            onPress={() => setActiveTab('profile')}
+                            style={[
+                                styles.tab,
+                                activeTab === 'profile' && { borderBottomColor: tint, borderBottomWidth: 2 },
+                            ]}
+                        >
+                            <ThemedText
+                                type="body"
+                                style={[styles.tabText, { color: activeTab === 'profile' ? tint : mutedText }]}
+                            >
+                                PROFILE
+                            </ThemedText>
+                        </Pressable>
+                        <Pressable
+                            onPress={() => setActiveTab('reviews')}
+                            style={[
+                                styles.tab,
+                                activeTab === 'reviews' && { borderBottomColor: tint, borderBottomWidth: 2 },
+                            ]}
+                        >
+                            <ThemedText
+                                type="body"
+                                style={[styles.tabText, { color: activeTab === 'reviews' ? tint : mutedText }]}
+                            >
+                                REVIEWS
+                            </ThemedText>
+                        </Pressable>
+                    </View>
+
+                    {activeTab === 'reviews' ? (
+                        <View>
+                            <View style={styles.ratingRow}>
+                                <ThemedText type="body" style={{ fontWeight: '600' }}>
+                                    {averageRating.toFixed(1)}
+                                </ThemedText>
+                                <StarRating rating={averageRating} />
+                                <ThemedText type="body" style={{ color: mutedText }}>
+                                    ({reviewCount} reviews)
+                                </ThemedText>
+                            </View>
+                            {targetId != null && (
+                                <ReviewSection
+                                    targetType="USER"
+                                    targetId={targetId}
+                                    onStatsUpdated={handleStatsUpdated}
+                                />
+                            )}
                         </View>
-                    </View>
-                ) : null}
-                {user.birthDate ? (
-                    <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
-                        <Ionicons name="calendar-outline" size={20} color={mutedText} />
-                        <View style={styles.infoContent}>
-                            <ThemedText type="label" style={{ color: mutedText }}>Birth date</ThemedText>
-                            <ThemedText type="body">{user.birthDate}</ThemedText>
-                        </View>
-                    </View>
-                ) : null}
-                <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
-                    <Ionicons name="heart-outline" size={20} color={mutedText} />
-                    <View style={styles.infoContent}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Interests</ThemedText>
-                        <ThemedText type="body">{formatList(user.interests, INTEREST_LABELS)}</ThemedText>
-                    </View>
-                </View>
-                <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
-                    <Ionicons name="language-outline" size={20} color={mutedText} />
-                    <View style={styles.infoContent}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Languages</ThemedText>
-                        <ThemedText type="body">{formatList(user.languages)}</ThemedText>
-                    </View>
-                </View>
-                <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
-                    <Ionicons name="airplane-outline" size={20} color={mutedText} />
-                    <View style={styles.infoContent}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Travel type</ThemedText>
-                        <ThemedText type="body">{formatValue(user.travelType, TRAVEL_TYPE_LABELS)}</ThemedText>
-                    </View>
-                </View>
-            </View>
+                    ) : (
+                        <>
+                            <ProfileInfoCards user={displayUser} />
+
+                            {error && (
+                                <View style={[styles.errorContainer, { marginTop: 16 }]}>
+                                    <ThemedText type="body" style={{ color: '#ef4444' }}>
+                                        {error}
+                                    </ThemedText>
+                                </View>
+                            )}
+
+                            {isOwnProfile && (
+                                <AccountActions
+                                    onEditProfile={() => setEditing(true)}
+                                    onLogout={handleLogout}
+                                    onDeleteAccount={handleDeleteAccount}
+                                />
+                            )}
+                        </>
+                    )}
+                </>
             )}
         </AppScreen>
     );

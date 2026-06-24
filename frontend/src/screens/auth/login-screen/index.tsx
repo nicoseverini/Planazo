@@ -6,7 +6,7 @@ import { Alert, Pressable, View } from 'react-native';
 import { AuthButton, AuthCard, AuthInput } from '@/components/auth';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
-import { useToken, decodeJwt } from '@/context/token-context';
+import { useToken } from '@/context/token-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { validateLoginForm } from '@/models/auth';
 import { loginUser } from '@/services/auth';
@@ -40,12 +40,10 @@ export default function LoginScreen() {
 
     try {
           const response = await loginUser({ email: email.trim(), password });
-          const { role } = decodeJwt(response.accessToken);
           setTokenData({
             state: 'LOGGED_IN',
             accessToken: response.accessToken,
             refreshToken: response.refreshToken,
-            role,
           });
           Alert.alert('¡Welcome!', 'Session started successfully.');
           router.replace('/home');

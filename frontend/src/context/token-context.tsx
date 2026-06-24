@@ -8,7 +8,6 @@ type TokenContextData =
     state: 'LOGGED_IN';
     accessToken: string;
     refreshToken: string | null;
-    role: string;
 };
 
 type TokenContextValue = {
@@ -77,7 +76,6 @@ export function TokenProvider({ children }: React.PropsWithChildren) {
                     state: 'LOGGED_IN',
                     accessToken: parsed.accessToken,
                     refreshToken: parsed.refreshToken,
-                    role: parsed.role ?? 'USER',
                 });
             } else {
                 setTokenData({ state: 'LOGGED_OUT' });
@@ -93,7 +91,6 @@ export function TokenProvider({ children }: React.PropsWithChildren) {
             void setItemSafe(TOKEN_STORAGE_KEY, JSON.stringify({
                 accessToken: tokenData.accessToken,
                 refreshToken: tokenData.refreshToken,
-                role: tokenData.role,
             }));
         }
     }, [tokenData]);
