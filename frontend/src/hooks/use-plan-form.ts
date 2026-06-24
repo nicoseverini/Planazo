@@ -1,12 +1,13 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useRef, useState } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
 import type { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import type MapView from 'react-native-maps';
 
 import { validateAgeFields } from '@/utils/age-restriction';
 import { addOneHour, buildDateTimeWithTimezone, getDeviceTimezone } from '@/utils/date';
+import { ensureMediaLibraryPermission } from '@/utils/media-permissions';
 
 export function usePlanForm() {
     const [saving, setSaving] = useState(false);
@@ -43,12 +44,13 @@ export function usePlanForm() {
     const [images, setImages] = useState<string[]>([]);
 
     const handleAddImage = async () => {
-        if (Platform.OS !== 'ios') {
-            const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-            if (permission.status !== 'granted') {
-                Alert.alert('Permission required', 'We need access to your gallery to choose images.');
-                return;
-            }
+        const granted = await ensureMediaLibraryPermission();
+        if (!granted) {
+            Alert.alert(
+                'Photo access needed',
+                'To add images, allow photo access for this app in your device settings.'
+            );
+            return;
         }
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],

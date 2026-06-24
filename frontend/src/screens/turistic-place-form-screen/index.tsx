@@ -8,7 +8,6 @@ import {
     Image,
     Pressable,
     ScrollView,
-    Platform,
     TextInput,
     View,
 } from 'react-native';
@@ -23,6 +22,7 @@ import {
     TuristicPlaceCreateRequest,
 } from '@/services/turistic-place';
 import { validateAgeFields, parseAge } from '@/utils/age-restriction';
+import { ensureMediaLibraryPermission } from '@/utils/media-permissions';
 
 import { styles } from './styles';
 
@@ -109,12 +109,13 @@ export default function TuristicPlaceFormScreen({
     };
 
     const handleAddImage = async () => {
-        if (Platform.OS !== 'ios') {
-            const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-            if (permission.status !== 'granted') {
-                Alert.alert('Permission required', 'We need access to your gallery to choose images.');
-                return;
-            }
+        const granted = await ensureMediaLibraryPermission();
+        if (!granted) {
+            Alert.alert(
+                'Photo access needed',
+                'To add images, allow photo access for this app in your device settings.'
+            );
+            return;
         }
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],

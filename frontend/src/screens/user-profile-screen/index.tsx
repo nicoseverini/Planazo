@@ -7,7 +7,6 @@ import {
     Alert,
     Image,
     Modal,
-    Platform,
     Pressable,
     View,
 } from 'react-native';
@@ -23,6 +22,7 @@ import { UpdateProfileRequest, UserProfile, useProfile } from '@/services/user';
 import { AccountActions } from '@/components/AccountActions';
 import { ProfileEditForm } from '@/components/ProfileEditForm';
 import { ProfileInfoCards } from '@/components/ProfileInfoCards';
+import { ensureMediaLibraryPermission } from '@/utils/media-permissions';
 import { normalizePhotoValue, normalizeProfile, resolveInitial } from '@/utils/profile';
 
 import { styles } from './styles';
@@ -41,6 +41,7 @@ export default function UserProfileScreen() {
     const [editing, setEditing] = useState(false);
     const [formData, setFormData] = useState<UserProfile | null>(null);
     const [saving, setSaving] = useState(false);
+    const [updatingPhoto, setUpdatingPhoto] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
     const [deletingAccount, setDeletingAccount] = useState(false);
     const [isViewerOpen, setIsViewerOpen] = useState(false);
@@ -154,14 +155,20 @@ export default function UserProfileScreen() {
         setError(null);
     };
 
+    // The profile picture is changed only by tapping the avatar: check gallery
+    // permission, pick an image, and persist it through the existing update flow.
     async function handleChangePhoto() {
-        if (Platform.OS !== 'ios') {
-            const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-            if (permission.status !== 'granted') {
-                Alert.alert('Permission required', 'We need access to your gallery to choose a photo.');
-                return;
-            }
+        if (updatingPhoto) return;
+
+        const granted = await ensureMediaLibraryPermission();
+        if (!granted) {
+            Alert.alert(
+                'Photo access needed',
+                'To change your picture, allow photo access for this app in your device settings.'
+            );
+            return;
         }
+
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
             allowsEditing: true,
@@ -169,21 +176,26 @@ export default function UserProfileScreen() {
             base64: true,
         });
         if (result.canceled || !result.assets?.length) return;
+
         const asset = result.assets[0];
         if (!asset.base64) {
-            setError('Could not read selected image.');
+            Alert.alert('Error', 'Could not load the selected image. Please try another one.');
             return;
         }
-        const mimeType = asset.mimeType ?? 'image/jpeg';
-        const dataUrl = `data:${mimeType};base64,${asset.base64}`;
-        setPhotoUrl(dataUrl);
-        if (formData) setFormData({ ...formData, photo: dataUrl });
-        setEditing(true);
-    }
 
-    function handleClearPhoto() {
-        setPhotoUrl(null);
-        if (formData) setFormData({ ...formData, photo: '' });
+        const dataUrl = `data:${asset.mimeType ?? 'image/jpeg'};base64,${asset.base64}`;
+        setUpdatingPhoto(true);
+        try {
+            await updateProfile({ photo: dataUrl });
+            setPhotoUrl(dataUrl);
+            setUser((prev) => (prev ? { ...prev, photo: dataUrl } : prev));
+            setFormData((prev) => (prev ? { ...prev, photo: dataUrl } : prev));
+        } catch (err) {
+            console.error('[UserProfileScreen] Error updating profile picture:', err);
+            Alert.alert('Error', 'Unable to update your profile picture. Please try again.');
+        } finally {
+            setUpdatingPhoto(false);
+        }
     }
 
     function handleLogout() {
@@ -337,9 +349,10 @@ export default function UserProfileScreen() {
             <View style={styles.header}>
                 <Pressable
                     onPress={() => {
-                        if (photoUrl) setIsViewerOpen(true);
-                        else if (editing) handleChangePhoto();
+                        if (isOwnProfile) handleChangePhoto();
+                        else if (photoUrl) setIsViewerOpen(true);
                     }}
+                    disabled={updatingPhoto}
                     style={({ pressed }) => [
                         styles.avatarContainer,
                         { backgroundColor: surface, borderColor: border },
@@ -360,9 +373,14 @@ export default function UserProfileScreen() {
                             </ThemedText>
                         </View>
                     )}
-                    {editing && (
+                    {isOwnProfile && !updatingPhoto && (
                         <View style={[styles.cameraIcon, { backgroundColor: tint }]}>
                             <Ionicons name="camera" size={14} color={tintText} />
+                        </View>
+                    )}
+                    {updatingPhoto && (
+                        <View style={[styles.avatarPlaceholder, styles.avatarLoadingOverlay]}>
+                            <ActivityIndicator size="small" color={tintText} />
                         </View>
                     )}
                 </Pressable>
@@ -382,8 +400,6 @@ export default function UserProfileScreen() {
                     formData={formData}
                     onChange={onChange}
                     onToggleArrayValue={toggleArrayValue}
-                    onChangePhoto={handleChangePhoto}
-                    onClearPhoto={handleClearPhoto}
                     onSave={handleSave}
                     onCancel={handleCancel}
                     saving={saving}

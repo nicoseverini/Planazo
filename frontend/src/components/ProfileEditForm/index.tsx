@@ -18,8 +18,6 @@ type ProfileEditFormProps = {
     formData: UserProfile | null;
     onChange: (field: keyof UserProfile, value: string | string[] | number | undefined) => void;
     onToggleArrayValue: (field: 'interests' | 'languages', value: string) => void;
-    onChangePhoto: () => void;
-    onClearPhoto: () => void;
     onSave: () => void;
     onCancel: () => void;
     saving: boolean;
@@ -30,8 +28,6 @@ export function ProfileEditForm({
     formData,
     onChange,
     onToggleArrayValue,
-    onChangePhoto,
-    onClearPhoto,
     onSave,
     onCancel,
     saving,
@@ -77,26 +73,6 @@ export function ProfileEditForm({
                 <ThemedText type="label" style={{ color: mutedText, fontSize: 11, marginTop: 4 }}>
                     Email cannot be changed
                 </ThemedText>
-            </View>
-
-            <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText }}>Photo</ThemedText>
-                <View style={styles.photoRow}>
-                    <TextInput
-                        style={[styles.input, styles.photoInput, { backgroundColor: surface, borderColor: border, color: text }]}
-                        value={formData?.photo || ''}
-                        onChangeText={(value) => onChange('photo', value)}
-                        placeholder="https://..."
-                        placeholderTextColor={mutedText}
-                        autoCapitalize="none"
-                    />
-                    <Pressable onPress={onChangePhoto} style={[styles.photoButton, { borderColor: border }]}>
-                        <ThemedText type="label" style={{ color: text }}>Select</ThemedText>
-                    </Pressable>
-                    <Pressable onPress={onClearPhoto} style={[styles.photoButton, { borderColor: border }]}>
-                        <ThemedText type="label" style={{ color: text }}>Clear</ThemedText>
-                    </Pressable>
-                </View>
             </View>
 
             <View style={styles.inputGroup}>
