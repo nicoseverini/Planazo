@@ -20,6 +20,7 @@ import { StarRating } from '@/components/StarRating';
 import { ReviewSection } from '@/components/ReviewSection';
 import { useToken, decodeJwt } from '@/context/token-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useReviews } from '@/services/review';
 import { TuristicPlaceDetail, useTuristicPlaces } from '@/services/turistic-place';
 import { formatAgeRestriction } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
@@ -43,6 +44,7 @@ export default function TuristicPlaceDetailScreen() {
     const router = useRouter();
     const { getAccessToken } = useToken();
     const { fetchById, remove } = useTuristicPlaces();
+    const { fetchStats } = useReviews();
 
     const { tint, tintText, surface, border, mutedText, text } = useAppTheme();
 
@@ -67,19 +69,35 @@ export default function TuristicPlaceDetailScreen() {
             setLoading(false);
             return;
         }
-        try {
-            const data = await fetchById(placeId);
-            setPlace(data);
-        } catch (err) {
+        // Load the place and its review summary in parallel so the rating and review
+        // count at the top of the screen are correct immediately, without needing to
+        // open the Reviews tab. Stats are independent: a stats failure must not block
+        // the place from rendering.
+        const [placeResult, statsResult] = await Promise.allSettled([
+            fetchById(placeId),
+            fetchStats('VENUE', placeId),
+        ]);
+
+        if (placeResult.status === 'fulfilled') {
+            setPlace(placeResult.value);
+        } else {
             // 404 → place stays null → empty state renders "not found", no redundant Alert needed
+            const err = placeResult.reason;
             const isNotFound = (err as any)?.status === 404;
             if (!isNotFound) {
                 Alert.alert('Error', err instanceof Error ? err.message : 'Unable to load tourist place information.');
             }
-        } finally {
-            setLoading(false);
         }
-    }, [id, fetchById]);
+
+        if (statsResult.status === 'fulfilled') {
+            handleStatsUpdated(statsResult.value.averageRating, statsResult.value.reviewCount);
+        } else {
+            // Non-blocking: keep the place visible and the last known summary.
+            console.warn('[TuristicPlaceDetail] Unable to load rating information:', statsResult.reason);
+        }
+
+        setLoading(false);
+    }, [id, fetchById, fetchStats, handleStatsUpdated]);
 
     const handleRefresh = useCallback(async () => {
         if (refreshingRef.current) return;
@@ -92,15 +110,23 @@ export default function TuristicPlaceDetailScreen() {
             return;
         }
         try {
-            const data = await fetchById(placeId);
-            setPlace(data);
-        } catch (err) {
-            Alert.alert('Error', 'Unable to refresh. Please try again.');
+            const [placeResult, statsResult] = await Promise.allSettled([
+                fetchById(placeId),
+                fetchStats('VENUE', placeId),
+            ]);
+            if (placeResult.status === 'fulfilled') {
+                setPlace(placeResult.value);
+            } else {
+                Alert.alert('Error', 'Unable to refresh. Please try again.');
+            }
+            if (statsResult.status === 'fulfilled') {
+                handleStatsUpdated(statsResult.value.averageRating, statsResult.value.reviewCount);
+            }
         } finally {
             setRefreshing(false);
             refreshingRef.current = false;
         }
-    }, [id, fetchById]);
+    }, [id, fetchById, fetchStats, handleStatsUpdated]);
 
     useFocusEffect(
         useCallback(() => {

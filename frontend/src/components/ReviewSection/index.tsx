@@ -18,7 +18,7 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
     const router = useRouter();
     const { getAccessToken, tokenData } = useToken();
     const { tint, tintText, border, mutedText, surface, text } = useAppTheme();
-    const { fetchReviews, fetchStats, create, remove, loading } = useReviews();
+    const { fetchReviews, create, remove } = useReviews();
 
     const [reviews, setReviews] = useState<ReviewResponse[]>([]);
     const [selectedRatingFilter, setSelectedRatingFilter] = useState<number | null>(null);
@@ -43,20 +43,25 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
 
     const loadData = useCallback(async () => {
         try {
-            const [reviewsData, statsData] = await Promise.all([
-                fetchReviews(targetType, targetId),
-                fetchStats(targetType, targetId),
-            ]);
+            const reviewsData = await fetchReviews(targetType, targetId);
             setReviews(reviewsData);
             if (onStatsUpdated) {
-                onStatsUpdated(statsData.averageRating, statsData.reviewCount);
+                // Stats are derived from the full review list (the backend returns every
+                // review, unpaginated), so they match the backend's AVG/COUNT exactly.
+                // This avoids a redundant /stats request and keeps the summary in sync
+                // after creating, editing or deleting a review.
+                const reviewCount = reviewsData.length;
+                const averageRating = reviewCount
+                    ? reviewsData.reduce((sum, r) => sum + r.rating, 0) / reviewCount
+                    : 0;
+                onStatsUpdated(averageRating, reviewCount);
             }
         } catch (err) {
             console.error('Failed to load reviews data:', err);
         } finally {
             setInitialLoading(false);
         }
-    }, [targetType, targetId, fetchReviews, fetchStats, onStatsUpdated]);
+    }, [targetType, targetId, fetchReviews, onStatsUpdated]);
 
     useEffect(() => {
         loadData();
