@@ -29,9 +29,29 @@ export const styles = StyleSheet.create({
         paddingVertical: 16,
         gap: 6,
     },
+    tabContainer: {
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        marginTop: Layout.sectionGap,
+        marginBottom: 16,
+    },
+    tab: {
+        flex: 1,
+        paddingVertical: 12,
+        alignItems: 'center',
+    },
+    tabText: {
+        fontWeight: '600',
+        fontSize: 12,
+    },
+    ratingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 12,
+    },
     infoGrid: {
         gap: 12,
-        marginTop: Layout.sectionGap,
     },
     infoCard: {
         flexDirection: 'row',

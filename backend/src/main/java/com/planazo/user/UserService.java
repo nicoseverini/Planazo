@@ -218,6 +218,10 @@ public class UserService implements UserDetailsService {
         return userRepository.findByEmail(email).orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
+    public boolean existsById(Long id) {
+        return userRepository.existsById(id);
+    }
+
     public Optional<ResponseEntity<StatusResponseDTO>> updateAdmin(Long id, UserUpdateDTO userDTO) {
         return userRepository.findById(id)
                 .map(findedUser -> {

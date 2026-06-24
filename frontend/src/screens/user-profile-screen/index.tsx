@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
+import { ReviewSection } from '@/components/ReviewSection';
+import { StarRating } from '@/components/StarRating';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import {
@@ -35,6 +37,14 @@ export default function UserProfileScreen() {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'profile' | 'reviews'>('profile');
+    const [averageRating, setAverageRating] = useState(0);
+    const [reviewCount, setReviewCount] = useState(0);
+
+    const handleStatsUpdated = useCallback((average: number, count: number) => {
+        setAverageRating(average);
+        setReviewCount(count);
+    }, []);
 
     const loadProfile = useCallback(async () => {
         if (!id) {
@@ -110,6 +120,53 @@ export default function UserProfileScreen() {
                 <ThemedText type="title" style={{ marginTop: 8 }}>{fullName}</ThemedText>
             </View>
 
+            <View style={[styles.tabContainer, { borderColor: border }]}>
+                <Pressable
+                    onPress={() => setActiveTab('profile')}
+                    style={[
+                        styles.tab,
+                        activeTab === 'profile' && { borderBottomColor: tint, borderBottomWidth: 2 },
+                    ]}
+                >
+                    <ThemedText
+                        type="body"
+                        style={[styles.tabText, { color: activeTab === 'profile' ? tint : mutedText }]}
+                    >
+                        PROFILE
+                    </ThemedText>
+                </Pressable>
+                <Pressable
+                    onPress={() => setActiveTab('reviews')}
+                    style={[
+                        styles.tab,
+                        activeTab === 'reviews' && { borderBottomColor: tint, borderBottomWidth: 2 },
+                    ]}
+                >
+                    <ThemedText
+                        type="body"
+                        style={[styles.tabText, { color: activeTab === 'reviews' ? tint : mutedText }]}
+                    >
+                        REVIEWS
+                    </ThemedText>
+                </Pressable>
+            </View>
+
+            {activeTab === 'reviews' ? (
+                <View>
+                    <View style={styles.ratingRow}>
+                        <ThemedText type="body" style={{ fontWeight: '600' }}>{averageRating.toFixed(1)}</ThemedText>
+                        <StarRating rating={averageRating} />
+                        <ThemedText type="body" style={{ color: mutedText }}>
+                            ({reviewCount} reviews)
+                        </ThemedText>
+                    </View>
+                    <ReviewSection
+                        targetType="USER"
+                        targetId={Number(id)}
+                        onStatsUpdated={handleStatsUpdated}
+                    />
+                </View>
+            ) : (
             <View style={styles.infoGrid}>
                 {user.gender ? (
                     <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
@@ -151,6 +208,7 @@ export default function UserProfileScreen() {
                     </View>
                 </View>
             </View>
+            )}
         </AppScreen>
     );
 }

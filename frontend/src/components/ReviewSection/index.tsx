@@ -38,6 +38,9 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
         ? reviews.find((r) => r.author.id === currentUserId)
         : undefined;
 
+    // You cannot review yourself, so don't offer the form on your own profile.
+    const isSelfTarget = targetType === 'USER' && currentUserId === targetId;
+
     const loadData = useCallback(async () => {
         try {
             const [reviewsData, statsData] = await Promise.all([
@@ -122,7 +125,7 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
 
     return (
         <View style={styles.container}>
-            {isAuthenticated ? (
+            {isSelfTarget ? null : isAuthenticated ? (
                 userReview ? (
                     isEditing ? (
                         <ReviewForm
