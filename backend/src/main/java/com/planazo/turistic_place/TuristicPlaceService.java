@@ -8,6 +8,7 @@ import com.planazo.turistic_place.dto.TuristicPlaceSummaryDTO;
 import com.planazo.turistic_place.dto.TuristicPlaceUpdateDTO;
 import com.planazo.user.User;
 import com.planazo.user.UserRepository;
+import com.planazo.user.email_service.EmailService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,10 +25,14 @@ public class TuristicPlaceService {
 
     private final TuristicPlaceRepository turisticPlaceRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
+    private final com.planazo.report.ReportRepository reportRepository;
 
-    public TuristicPlaceService(TuristicPlaceRepository turisticPlaceRepository, UserRepository userRepository) {
+    public TuristicPlaceService(TuristicPlaceRepository turisticPlaceRepository, UserRepository userRepository, EmailService emailService, com.planazo.report.ReportRepository reportRepository) {
         this.turisticPlaceRepository = turisticPlaceRepository;
         this.userRepository = userRepository;
+        this.emailService = emailService;
+        this.reportRepository = reportRepository;
     }
 
     public TuristicPlaceDetailDTO createTuristicPlace(TuristicPlaceCreateDTO data, String creatorEmail) {
@@ -99,6 +104,19 @@ public class TuristicPlaceService {
                     turisticPlaceRepository.delete(place);
                     return Boolean.TRUE;
                 });
+    }
+
+    public boolean adminDeleteTuristicPlace(Long id, String reason) {
+        return turisticPlaceRepository.findById(id).map(place -> {
+            String creatorEmail = place.getCreator() != null ? place.getCreator().getEmail() : null;
+            String placeName = place.getName();
+            reportRepository.deleteByTuristicPlaceId(id);
+            turisticPlaceRepository.delete(place);
+            if (creatorEmail != null && reason != null && !reason.isEmpty()) {
+                emailService.sendTuristicPlaceDeletedEmail(creatorEmail, placeName, reason);
+            }
+            return true;
+        }).orElse(false);
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -189,7 +207,8 @@ public class TuristicPlaceService {
                 place.getMinAge(),
                 place.getMaxAge(),
                 List.copyOf(place.getImages()),
-                place.getCreator() != null ? place.getCreator().getId() : null
+                place.getCreator() != null ? place.getCreator().getId() : null,
+                place.getCreatorName()
         );
     }
 

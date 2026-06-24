@@ -1,4 +1,6 @@
 import { getTodayInputValue, interestOptions, type PlanFormState } from '../plan-shared'
+import { Autocomplete } from './Autocomplete'
+import { countries, citiesByCountry } from '../location-data'
 
 type PlanFormFieldsProps = {
 	form: PlanFormState
@@ -115,12 +117,24 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 
 			<label className="field">
 				Country
-				<input value={form.country} onChange={(event) => onChange('country', event.target.value)} required placeholder="e.g. Argentina" />
+				<Autocomplete
+					value={form.country}
+					onChange={(value) => onChange('country', value)}
+					placeholder="e.g. Argentina"
+					suggestions={countries}
+					required
+				/>
 			</label>
 
 			<label className="field">
 				City
-				<input value={form.city} onChange={(event) => onChange('city', event.target.value)} required placeholder="e.g. Buenos Aires" />
+				<Autocomplete
+					value={form.city}
+					onChange={(value) => onChange('city', value)}
+					placeholder="e.g. Buenos Aires"
+					suggestions={citiesByCountry[form.country] || []}
+					required
+				/>
 			</label>
 
 			<label className="field field--wide">

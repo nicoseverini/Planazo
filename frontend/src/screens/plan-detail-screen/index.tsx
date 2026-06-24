@@ -26,6 +26,7 @@ import { formatAgeRestriction } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
 import { formatDateTimeInTimezone } from '@/utils/date';
 import { openInMaps } from '@/utils/navigation';
+import { ReportModal } from '@/components/ReportModal';
 
 import { styles } from './styles';
 
@@ -63,6 +64,8 @@ export default function PlanDetailScreen() {
     const [pendingLoading, setPendingLoading] = useState(false);
     const [isImageModalVisible, setIsImageModalVisible] = useState(false);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [isReportModalVisible, setIsReportModalVisible] = useState(false);
+    const [isMenuVisible, setIsMenuVisible] = useState(false);
 
     const interestLabel = (plan?.interests ?? [])
         .map(formatInterest)
@@ -345,6 +348,34 @@ export default function PlanDetailScreen() {
                         )}
                     </View>
                 </View>
+                {!isCreator && (
+                    <View style={{ position: 'relative' }}>
+                        <Pressable
+                            onPress={() => setIsMenuVisible(!isMenuVisible)}
+                            style={({ pressed }) => [
+                                styles.headerButton,
+                                { backgroundColor: surface, borderColor: border },
+                                pressed && styles.pressed,
+                            ]}
+                        >
+                            <Ionicons name="ellipsis-vertical" size={24} color={text} />
+                        </Pressable>
+                        {isMenuVisible && (
+                            <View style={[styles.dropdownMenu, { backgroundColor: surface, borderColor: border }]}>
+                                <Pressable
+                                    style={styles.dropdownItem}
+                                    onPress={() => {
+                                        setIsMenuVisible(false);
+                                        setIsReportModalVisible(true);
+                                    }}
+                                >
+                                    <Ionicons name="flag-outline" size={18} color={text} />
+                                    <ThemedText type="body" style={{ color: text, marginLeft: 8 }}>Report</ThemedText>
+                                </Pressable>
+                            </View>
+                        )}
+                    </View>
+                )}
             </View>
 
             <View style={styles.infoRow}>
@@ -716,6 +747,13 @@ export default function PlanDetailScreen() {
                     )}
                 </View>
             </Modal>
+
+            <ReportModal
+                visible={isReportModalVisible}
+                onClose={() => setIsReportModalVisible(false)}
+                planId={plan.id}
+                reportedUserId={plan.creatorId}
+            />
         </AppScreen>
     );
 }

@@ -24,6 +24,7 @@ import { TuristicPlaceDetail, useTuristicPlaces } from '@/services/turistic-plac
 import { formatAgeRestriction } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
 import { openInMaps } from '@/utils/navigation';
+import { ReportModal } from '@/components/ReportModal';
 
 import { styles } from './styles';
 
@@ -54,6 +55,8 @@ export default function TuristicPlaceDetailScreen() {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [averageRating, setAverageRating] = useState(0);
     const [reviewCount, setReviewCount] = useState(0);
+    const [isReportModalVisible, setIsReportModalVisible] = useState(false);
+    const [isMenuVisible, setIsMenuVisible] = useState(false);
 
     const handleStatsUpdated = useCallback((avg: number, count: number) => {
         setAverageRating(avg);
@@ -208,6 +211,34 @@ export default function TuristicPlaceDetailScreen() {
                 <ThemedText type="title" style={{ flex: 1 }}>
                     {place.name}
                 </ThemedText>
+                {!isCreator && (
+                    <View style={{ position: 'relative' }}>
+                        <Pressable
+                            onPress={() => setIsMenuVisible(!isMenuVisible)}
+                            style={({ pressed }) => [
+                                styles.headerButton,
+                                { backgroundColor: surface, borderColor: border },
+                                pressed && styles.pressed,
+                            ]}
+                        >
+                            <Ionicons name="ellipsis-vertical" size={24} color={text} />
+                        </Pressable>
+                        {isMenuVisible && (
+                            <View style={[styles.dropdownMenu, { backgroundColor: surface, borderColor: border }]}>
+                                <Pressable
+                                    style={styles.dropdownItem}
+                                    onPress={() => {
+                                        setIsMenuVisible(false);
+                                        setIsReportModalVisible(true);
+                                    }}
+                                >
+                                    <Ionicons name="flag-outline" size={18} color={text} />
+                                    <ThemedText type="body" style={{ color: text, marginLeft: 8 }}>Report</ThemedText>
+                                </Pressable>
+                            </View>
+                        )}
+                    </View>
+                )}
             </View>
 
             {/* Rating row (static — ready for real reviews integration) */}
@@ -455,6 +486,13 @@ export default function TuristicPlaceDetailScreen() {
                     </Pressable>
                 </View>
             )}
+
+            <ReportModal
+                visible={isReportModalVisible}
+                onClose={() => setIsReportModalVisible(false)}
+                turisticPlaceId={place.id}
+                reportedUserId={place.creatorId ?? undefined}
+            />
         </AppScreen>
     );
 }

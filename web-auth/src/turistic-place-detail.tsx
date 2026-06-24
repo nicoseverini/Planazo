@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { getBackendUrl } from './config'
 import { toTitleCase } from './plan-utils'
 import type { TuristicPlaceDetailResponse } from './turistic-place-shared'
+import { Navbar } from './components/Navbar'
+import { DeleteConfirmationModal } from './components/DeleteConfirmationModal'
 
 function formatAgeRestriction(minAge: number | null, maxAge: number | null): string {
 	const hasMin = minAge != null
@@ -27,6 +29,7 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 	const [loading, setLoading] = useState(true)
 	const [deleting, setDeleting] = useState(false)
 	const [error, setError] = useState('')
+	const [showDeleteModal, setShowDeleteModal] = useState(false)
 
 	useEffect(() => {
 		let isMounted = true
@@ -79,24 +82,23 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 		return count === 1 ? '1 image' : `${count} images`
 	}, [place?.images.length])
 
-	async function handleDeletePlace() {
-		const confirmed = window.confirm('Are you sure you want to delete this turistic place? This action cannot be undone.')
-		if (!confirmed) {
-			return
-		}
-
+	async function handleDeletePlace(reason?: string) {
 		try {
 			setDeleting(true)
 			setError('')
+			setShowDeleteModal(false)
 
 			const backendUrl = getBackendUrl()
-			const response = await fetch(`${backendUrl}/api/v1/turistic-places/${placeId}`, {
+			const body = reason ? JSON.stringify({ reason }) : undefined
+			const response = await fetch(`${backendUrl}/api/v1/turistic-places/admin/${placeId}`, {
 				method: 'DELETE',
 				headers: {
 					Accept: 'application/json',
 					Authorization: `Bearer ${sessionStorage.getItem('accessToken') || ''}`,
 					'ngrok-skip-browser-warning': 'true',
+					...(body && { 'Content-Type': 'application/json' }),
 				},
+				body,
 			})
 
 			if (!response.ok) {
@@ -115,22 +117,21 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 	const hasAdminAccess = !!sessionStorage.getItem('accessToken')
 
 	return (
-		<main className="auth-card auth-card--xwide plan-detail-page">
-			<div className="page-header">
+		<>
+			<Navbar />
+			<main className="auth-card auth-card--xwide plan-detail-page">
+				<div className="page-header">
 				<div>
 					<h1>Detail of Turistic Place</h1>
 					<p className="subtitle">Review all the loaded data for this turistic place.</p>
 				</div>
 				<div className="plan-detail-actions">
-					<a className="button button--secondary" href="/turistic-places">
-						Back to Turistic Places
-					</a>
 					{hasAdminAccess && (
 						<>
 							<a className="button" href={`/turistic-places/${placeId}/edit`}>
 								Edit Place
 							</a>
-							<button className="button button--danger" type="button" onClick={handleDeletePlace} disabled={deleting}>
+							<button className="button button--danger" type="button" onClick={() => setShowDeleteModal(true)} disabled={deleting}>
 								{deleting ? 'Deleting...' : 'Delete Place'}
 							</button>
 						</>
@@ -217,6 +218,16 @@ export function TuristicPlaceDetailPage({ placeId }: TuristicPlaceDetailPageProp
 					</section>
 				</div>
 			)}
-		</main>
+
+			<DeleteConfirmationModal
+				isOpen={showDeleteModal}
+				onClose={() => setShowDeleteModal(false)}
+				onConfirm={handleDeletePlace}
+				title="Delete Turistic Place"
+				message="Are you sure you want to delete this turistic place? This action cannot be undone."
+				isLoading={deleting}
+			/>
+			</main>
+		</>
 	)
 }

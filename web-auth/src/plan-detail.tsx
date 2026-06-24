@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { getBackendUrl } from './config'
 import { formatDateTime, getVisibilityLabel, toTitleCase } from './plan-utils'
+import { Navbar } from './components/Navbar'
+import { DeleteConfirmationModal } from './components/DeleteConfirmationModal'
 
 type PlanDetailResponse = {
 	id: number
@@ -36,6 +38,7 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 	const [loading, setLoading] = useState(true)
 	const [deleting, setDeleting] = useState(false)
 	const [error, setError] = useState('')
+	const [showDeleteModal, setShowDeleteModal] = useState(false)
 
 	useEffect(() => {
 		let isMounted = true
@@ -88,24 +91,23 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 		return count === 1 ? '1 image' : `${count} images`
 	}, [plan?.images.length])
 
-	async function handleDeletePlan() {
-		const confirmed = window.confirm('Are you sure you want to delete this plan? This action cannot be undone.')
-		if (!confirmed) {
-			return
-		}
-
+	async function handleDeletePlan(reason?: string) {
 		try {
 			setDeleting(true)
 			setError('')
+			setShowDeleteModal(false)
 
 			const backendUrl = getBackendUrl()
+			const body = reason ? JSON.stringify({ reason }) : undefined
 			const response = await fetch(`${backendUrl}/api/v1/plans/admin/${planId}`, {
 				method: 'DELETE',
 				headers: {
 					Accept: 'application/json',
 					Authorization: `Bearer ${sessionStorage.getItem('accessToken') || ''}`,
 					'ngrok-skip-browser-warning': 'true',
+					...(body && { 'Content-Type': 'application/json' }),
 				},
+				body,
 			})
 
 			if (!response.ok) {
@@ -122,20 +124,19 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 	}
 
 	return (
-		<main className="auth-card auth-card--xwide plan-detail-page">
-			<div className="page-header">
+		<>
+			<Navbar />
+			<main className="auth-card auth-card--xwide plan-detail-page">
+				<div className="page-header">
 				<div>
 					<h1>Plan Detail</h1>
 					<p className="subtitle">Review all the details loaded for this plan.</p>
 				</div>
 				<div className="plan-detail-actions">
-					<a className="button button--secondary" href="/plans">
-						Back to Plans
-					</a>
 					<a className="button" href={`/plans/${planId}/edit`}>
 						Edit Plan
 					</a>
-					<button className="button button--danger" type="button" onClick={handleDeletePlan} disabled={deleting}>
+					<button className="button button--danger" type="button" onClick={() => setShowDeleteModal(true)} disabled={deleting}>
 						{deleting ? 'Deleting...' : 'Delete Plan'}
 					</button>
 				</div>
@@ -252,6 +253,16 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 					</section>
 				</div>
 			)}
-		</main>
+
+			<DeleteConfirmationModal
+				isOpen={showDeleteModal}
+				onClose={() => setShowDeleteModal(false)}
+				onConfirm={handleDeletePlan}
+				title="Delete Plan"
+				message="Are you sure you want to delete this plan? This action cannot be undone."
+				isLoading={deleting}
+			/>
+			</main>
+		</>
 	)
 }

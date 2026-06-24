@@ -37,12 +37,14 @@ public class PlanService {
     private final PlanRepository planRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final com.planazo.report.ReportRepository reportRepository;
 
     @Autowired
-    PlanService(PlanRepository planRepository, UserRepository userRepository, EmailService emailService) {
+    PlanService(PlanRepository planRepository, UserRepository userRepository, EmailService emailService, com.planazo.report.ReportRepository reportRepository) {
         this.planRepository = planRepository;
         this.userRepository = userRepository;
         this.emailService = emailService;
+        this.reportRepository = reportRepository;
     }
 
     // ── Create ───────────────────────────────────────────────────────────────
@@ -281,10 +283,17 @@ public class PlanService {
 
     // ── Admin hard delete ────────────────────────────────────────────────────
 
-    public boolean adminDeletePlan(Long id) {
-        if (!planRepository.existsById(id)) return false;
-        planRepository.deleteById(id);
-        return true;
+    public boolean adminDeletePlan(Long id, String reason) {
+        return planRepository.findById(id).map(plan -> {
+            String creatorEmail = plan.getCreator().getEmail();
+            String planTitle = plan.getTitle();
+            reportRepository.deleteByPlanId(id);
+            planRepository.deleteById(id);
+            if (reason != null && !reason.isEmpty()) {
+                emailService.sendPlanDeletedEmail(creatorEmail, planTitle, reason);
+            }
+            return true;
+        }).orElse(false);
     }
 
     private Plan saveUpdatedPlan(Plan plan, PlanUpdateDTO data) {

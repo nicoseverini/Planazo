@@ -18,5 +18,6 @@ public record TuristicPlaceSummaryDTO(
         Integer minAge,
         Integer maxAge,
         List<String> images,
-        Long creatorId
+        Long creatorId,
+        String creatorName
 ) {}

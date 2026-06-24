@@ -1,5 +1,6 @@
 package com.planazo.turistic_place;
 
+import com.planazo.turistic_place.dto.TuristicPlaceAdminDeleteDTO;
 import com.planazo.turistic_place.dto.TuristicPlaceCreateDTO;
 import com.planazo.turistic_place.dto.TuristicPlaceDetailDTO;
 import com.planazo.turistic_place.dto.TuristicPlaceSummaryDTO;
@@ -99,5 +100,18 @@ class TuristicPlaceRestController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping(value = "/admin/{id}", produces = "application/json")
+    @Operation(summary = "Hard delete a turistic place (admin only)")
+    ResponseEntity<Void> adminDeleteTuristicPlace(
+            @PathVariable Long id,
+            @RequestBody(required = false) TuristicPlaceAdminDeleteDTO data
+    ) {
+        if (turisticPlaceService.adminDeleteTuristicPlace(id, data != null ? data.reason() : null)) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 }

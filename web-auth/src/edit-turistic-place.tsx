@@ -4,6 +4,7 @@ import type { FormEvent } from 'react'
 import { PlanImagePicker } from './components/PlanImagePicker'
 import { getBackendUrl } from './config'
 import { TuristicPlaceFormFields } from './components/TuristicPlaceFormFields'
+import { Navbar } from './components/Navbar'
 import {
 	defaultTuristicPlaceFormState,
 	parseTuristicPlaceOptionalNumber,
@@ -179,15 +180,20 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 
 	if (loadingPlace) {
 		return (
-			<main className="auth-card auth-card--xwide">
-				<div className="message">Loading turistic place...</div>
-			</main>
+			<>
+				<Navbar />
+				<main className="auth-card auth-card--xwide">
+					<div className="message">Loading turistic place...</div>
+				</main>
+			</>
 		)
 	}
 
 	return (
-		<main className="auth-card auth-card--xwide">
-			<div className="page-header">
+		<>
+			<Navbar />
+			<main className="auth-card auth-card--xwide">
+				<div className="page-header">
 				<div>
 					<h1>Edit Turistic Place</h1>
 					<p className="subtitle">Edit the turistic place details and manage its images.</p>
@@ -208,6 +214,7 @@ export function EditTuristicPlacePage({ placeId }: { placeId: number }) {
 					{status === 'saving' ? 'Saving...' : 'Save Changes'}
 				</button>
 			</form>
-		</main>
+			</main>
+		</>
 	)
 }
