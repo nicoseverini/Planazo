@@ -30,51 +30,6 @@ export const styles = StyleSheet.create({
         paddingVertical: 16,
         gap: 6,
     },
-    avatarContainer: {
-        position: 'relative',
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        borderWidth: 3,
-        overflow: 'visible',
-        marginBottom: 8,
-    },
-    avatar: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 50,
-    },
-    avatarPlaceholder: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 50,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    avatarInitial: {
-        fontSize: 36,
-        // lineHeight must match fontSize so the glyph's line box is tall enough;
-        // the ThemedText `type` lineHeight (28) was clipping the initial.
-        lineHeight: 36,
-        fontWeight: '600',
-        textAlign: 'center',
-    },
-    avatarLoadingOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.35)',
-    },
-    cameraIcon: {
-        position: 'absolute',
-        bottom: 0,
-        right: 0,
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
     userName: {
         marginTop: 4,
     },

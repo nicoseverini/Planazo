@@ -11,6 +11,7 @@ import {
     View,
 } from 'react-native';
 
+import { Avatar } from '@/components/Avatar';
 import { ReviewSection } from '@/components/ReviewSection';
 import { StarRating } from '@/components/StarRating';
 import { ThemedText } from '@/components/ThemedText';
@@ -23,7 +24,7 @@ import { AccountActions } from '@/components/AccountActions';
 import { ProfileEditForm } from '@/components/ProfileEditForm';
 import { ProfileInfoCards } from '@/components/ProfileInfoCards';
 import { ensureMediaLibraryPermission } from '@/utils/media-permissions';
-import { normalizePhotoValue, normalizeProfile, resolveInitial } from '@/utils/profile';
+import { normalizePhotoValue, normalizeProfile } from '@/utils/profile';
 
 import { styles } from './styles';
 
@@ -309,7 +310,6 @@ export default function UserProfileScreen() {
     }
 
     const fullName = `${displayUser.name || 'User'} ${displayUser.lastname || ''}`.trim();
-    const avatarInitial = resolveInitial(displayUser.name, displayUser.photo);
 
     return (
         <AppScreen scrollable>
@@ -347,45 +347,20 @@ export default function UserProfileScreen() {
 
             {/* Header: avatar + name (+ email for the authenticated user) */}
             <View style={styles.header}>
-                <Pressable
+                <Avatar
+                    name={displayUser.name}
+                    photo={photoUrl}
+                    size={100}
+                    ring
+                    editable={editing}
+                    loading={updatingPhoto}
                     onPress={() => {
                         // Photo editing is only available on the Edit Profile screen (editing
                         // mode); otherwise tapping the avatar just opens the full-screen viewer.
                         if (editing) handleChangePhoto();
                         else if (photoUrl) setIsViewerOpen(true);
                     }}
-                    disabled={updatingPhoto}
-                    style={({ pressed }) => [
-                        styles.avatarContainer,
-                        { backgroundColor: surface, borderColor: border },
-                        pressed && styles.pressed,
-                    ]}
-                >
-                    {photoUrl ? (
-                        <Image source={{ uri: photoUrl }} style={styles.avatar} />
-                    ) : (
-                        <View style={[styles.avatarPlaceholder, { backgroundColor: tint }]}>
-                            <ThemedText
-                                type="heading"
-                                lightColor={tintText}
-                                darkColor={tintText}
-                                style={styles.avatarInitial}
-                            >
-                                {avatarInitial}
-                            </ThemedText>
-                        </View>
-                    )}
-                    {editing && !updatingPhoto && (
-                        <View style={[styles.cameraIcon, { backgroundColor: tint }]}>
-                            <Ionicons name="camera" size={14} color={tintText} />
-                        </View>
-                    )}
-                    {updatingPhoto && (
-                        <View style={[styles.avatarPlaceholder, styles.avatarLoadingOverlay]}>
-                            <ActivityIndicator size="small" color={tintText} />
-                        </View>
-                    )}
-                </Pressable>
+                />
 
                 <ThemedText type="title" style={styles.userName}>
                     {fullName}
