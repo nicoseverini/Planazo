@@ -49,10 +49,17 @@ export function Avatar({ name, photo, size = 44 }: AvatarProps) {
             ]}
         >
             <ThemedText
-                type="defaultSemiBold"
                 lightColor={tintText}
                 darkColor={tintText}
-                style={{ fontSize: size * 0.4 }}
+                style={{
+                    fontSize: size * 0.4,
+                    // lineHeight must match fontSize: ThemedText `type` styles bake a
+                    // fixed lineHeight that would be shorter than the scaled glyph and
+                    // clip the initial vertically.
+                    lineHeight: size * 0.4,
+                    fontWeight: '600',
+                    textAlign: 'center',
+                }}
             >
                 {resolveInitial(name)}
             </ThemedText>

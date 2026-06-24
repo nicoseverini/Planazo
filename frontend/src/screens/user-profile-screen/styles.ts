@@ -53,7 +53,11 @@ export const styles = StyleSheet.create({
     },
     avatarInitial: {
         fontSize: 36,
+        // lineHeight must match fontSize so the glyph's line box is tall enough;
+        // the ThemedText `type` lineHeight (28) was clipping the initial.
+        lineHeight: 36,
         fontWeight: '600',
+        textAlign: 'center',
     },
     avatarLoadingOverlay: {
         position: 'absolute',

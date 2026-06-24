@@ -349,7 +349,9 @@ export default function UserProfileScreen() {
             <View style={styles.header}>
                 <Pressable
                     onPress={() => {
-                        if (isOwnProfile) handleChangePhoto();
+                        // Photo editing is only available on the Edit Profile screen (editing
+                        // mode); otherwise tapping the avatar just opens the full-screen viewer.
+                        if (editing) handleChangePhoto();
                         else if (photoUrl) setIsViewerOpen(true);
                     }}
                     disabled={updatingPhoto}
@@ -373,7 +375,7 @@ export default function UserProfileScreen() {
                             </ThemedText>
                         </View>
                     )}
-                    {isOwnProfile && !updatingPhoto && (
+                    {editing && !updatingPhoto && (
                         <View style={[styles.cameraIcon, { backgroundColor: tint }]}>
                             <Ionicons name="camera" size={14} color={tintText} />
                         </View>

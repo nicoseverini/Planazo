@@ -10,6 +10,7 @@ import {
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { UserProfile } from '@/services/user';
 import { styles } from '@/screens/user-profile-screen/styles';
+import { formatBirthDate } from '@/utils/date';
 import { formatList, formatValue } from '@/utils/profile';
 
 type InfoCardProps = {
@@ -39,7 +40,7 @@ export function ProfileInfoCards({ user }: { user: UserProfile }) {
                 <InfoCard icon="person-outline" label="Gender" value={formatValue(user.gender, GENDER_LABELS)} />
             ) : null}
             {user.birthDate ? (
-                <InfoCard icon="calendar-outline" label="Birth date" value={user.birthDate} />
+                <InfoCard icon="calendar-outline" label="Birth date" value={formatBirthDate(user.birthDate)} />
             ) : null}
             {user.zone ? (
                 <InfoCard icon="location-outline" label="Location" value={user.zone} />
