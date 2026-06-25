@@ -14,8 +14,8 @@ public record ReportResponse(
     String reportedUserName,
     Long planId,
     String planTitle,
-    Long turisticPlaceId,
-    String turisticPlaceName,
+    Long touristPlaceId,
+    String touristPlaceName,
     LocalDateTime createdAt,
     Boolean resolved
 ) {}

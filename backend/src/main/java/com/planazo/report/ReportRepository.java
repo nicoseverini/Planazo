@@ -9,8 +9,8 @@ import java.util.List;
 public interface ReportRepository extends JpaRepository<Report, Long> {
     List<Report> findByResolvedFalse();
     List<Report> findByPlanId(Long planId);
-    List<Report> findByTuristicPlaceId(Long turisticPlaceId);
+    List<Report> findByTouristPlaceId(Long touristPlaceId);
     List<Report> findByReportedUserId(Long reportedUserId);
     void deleteByPlanId(Long planId);
-    void deleteByTuristicPlaceId(Long turisticPlaceId);
+    void deleteByTouristPlaceId(Long touristPlaceId);
 }

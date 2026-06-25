@@ -24,7 +24,7 @@ export const ACTIVITY_TYPES: ActivityTypeConfig[] = [
     title: 'tourist_places',
     description: 'tourist_places_generic_description',
     icon: 'location',
-    route: '/turistic-places',
-    childRoutes: ['/turistic-places', '/turistic-place'],
+    route: '/tourist-places',
+    childRoutes: ['/tourist-places', '/tourist-place'],
   },
 ];

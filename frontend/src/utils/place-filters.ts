@@ -1,4 +1,4 @@
-import { TuristicPlaceSummary } from '@/services/turistic-place';
+import { TouristPlaceSummary } from '@/services/tourist-place';
 import { matchesCategories } from './category-filter';
 import { haversineKm } from './distance';
 import { normalizeSearch } from './search';
@@ -23,10 +23,10 @@ export function hasActivePlaceFilters(f: PlaceClientFilters): boolean {
 
 /** Shared client-side tourist-place filtering. Single source of truth for the feed and the My Places tab. */
 export function filterPlaces(
-    places: TuristicPlaceSummary[],
+    places: TouristPlaceSummary[],
     f: PlaceClientFilters,
     userLocation: LatLng | null,
-): TuristicPlaceSummary[] {
+): TouristPlaceSummary[] {
     return places.filter((place) => {
         if (!matchesCategories(place.interests ?? [], f.categories)) return false;
 

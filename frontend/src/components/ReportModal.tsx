@@ -20,7 +20,7 @@ type ReportModalProps = {
   visible: boolean;
   onClose: () => void;
   planId?: number;
-  turisticPlaceId?: number;
+  touristPlaceId?: number;
   reportedUserId?: number;
 };
 
@@ -37,7 +37,7 @@ export function ReportModal({
   visible,
   onClose,
   planId,
-  turisticPlaceId,
+  touristPlaceId,
   reportedUserId,
 }: ReportModalProps) {
   const { tint, tintText, surface, border, text } = useAppTheme();
@@ -60,7 +60,7 @@ export function ReportModal({
         reason: selectedReason,
         description: description || undefined,
         planId,
-        turisticPlaceId,
+        touristPlaceId,
         reportedUserId,
       }, token);
       onClose();

@@ -4,8 +4,8 @@ import com.planazo.plan.Plan;
 import com.planazo.plan.PlanRepository;
 import com.planazo.report.dto.CreateReportRequest;
 import com.planazo.report.dto.ReportResponse;
-import com.planazo.turistic_place.TuristicPlace;
-import com.planazo.turistic_place.TuristicPlaceRepository;
+import com.planazo.tourist_place.TouristPlace;
+import com.planazo.tourist_place.TouristPlaceRepository;
 import com.planazo.user.User;
 import com.planazo.user.UserRepository;
 import org.springframework.stereotype.Service;
@@ -20,14 +20,14 @@ public class ReportService {
     private final ReportRepository reportRepository;
     private final UserRepository userRepository;
     private final PlanRepository planRepository;
-    private final TuristicPlaceRepository turisticPlaceRepository;
+    private final TouristPlaceRepository touristPlaceRepository;
 
     public ReportService(ReportRepository reportRepository, UserRepository userRepository,
-                         PlanRepository planRepository, TuristicPlaceRepository turisticPlaceRepository) {
+                         PlanRepository planRepository, TouristPlaceRepository touristPlaceRepository) {
         this.reportRepository = reportRepository;
         this.userRepository = userRepository;
         this.planRepository = planRepository;
-        this.turisticPlaceRepository = turisticPlaceRepository;
+        this.touristPlaceRepository = touristPlaceRepository;
     }
 
     @Transactional
@@ -41,10 +41,10 @@ public class ReportService {
                 .orElseThrow(() -> new RuntimeException("Plan not found"));
         }
 
-        TuristicPlace turisticPlace = null;
-        if (request.turisticPlaceId() != null) {
-            turisticPlace = turisticPlaceRepository.findById(request.turisticPlaceId())
-                .orElseThrow(() -> new RuntimeException("Turistic place not found"));
+        TouristPlace touristPlace = null;
+        if (request.touristPlaceId() != null) {
+            touristPlace = touristPlaceRepository.findById(request.touristPlaceId())
+                .orElseThrow(() -> new RuntimeException("Tourist place not found"));
         }
 
         User reportedUser = null;
@@ -59,7 +59,7 @@ public class ReportService {
             reporter,
             reportedUser,
             plan,
-            turisticPlace
+            touristPlace
         );
 
         Report savedReport = reportRepository.save(report);
@@ -99,8 +99,8 @@ public class ReportService {
             report.getReportedUser() != null ? report.getReportedUser().getName() : null,
             report.getPlan() != null ? report.getPlan().getId() : null,
             report.getPlan() != null ? report.getPlan().getTitle() : null,
-            report.getTuristicPlace() != null ? report.getTuristicPlace().getId() : null,
-            report.getTuristicPlace() != null ? report.getTuristicPlace().getName() : null,
+            report.getTouristPlace() != null ? report.getTouristPlace().getId() : null,
+            report.getTouristPlace() != null ? report.getTouristPlace().getName() : null,
             report.getCreatedAt(),
             report.getResolved()
         );

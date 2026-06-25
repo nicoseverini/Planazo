@@ -10,10 +10,10 @@ import { useTranslation } from 'react-i18next';
 import { CategoryFilterSelector } from '@/components/CategoryFilterSelector';
 import { DistanceSlider } from '@/components/DistanceSlider';
 import { ThemedText } from '@/components/ThemedText';
-import { TuristicPlaceCard } from '@/components/TuristicPlaceCard';
+import { TouristPlaceCard } from '@/components/TouristPlaceCard';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useProximityFilter } from '@/hooks/use-proximity-filter';
-import { TuristicPlaceSummary } from '@/services/turistic-place';
+import { TouristPlaceSummary } from '@/services/tourist-place';
 import { formatInterest } from '@/utils/interests';
 import {
     EMPTY_PLACE_FILTERS, PlaceClientFilters,
@@ -35,7 +35,7 @@ type TabAction = {
 };
 
 type Props = {
-    load: () => Promise<TuristicPlaceSummary[]>;
+    load: () => Promise<TouristPlaceSummary[]>;
     errorMessage: string;
     empty: EmptyState;
     action: TabAction;
@@ -46,7 +46,7 @@ export function PlaceListTab({ load, errorMessage, empty, action, onPressPlace }
     const { t } = useTranslation();
     const { surface, border, tint, tintText, mutedText, text: textColor } = useAppTheme();
 
-    const [places, setPlaces] = useState<TuristicPlaceSummary[]>([]);
+    const [places, setPlaces] = useState<TouristPlaceSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
@@ -138,7 +138,7 @@ export function PlaceListTab({ load, errorMessage, empty, action, onPressPlace }
                 <FlatList
                     data={visiblePlaces}
                     keyExtractor={(item) => item.id.toString()}
-                    renderItem={({ item }) => <TuristicPlaceCard place={item} onPress={onPressPlace} />}
+                    renderItem={({ item }) => <TouristPlaceCard place={item} onPress={onPressPlace} />}
                     contentContainerStyle={styles.listContent}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={tint} />}
                     ListEmptyComponent={

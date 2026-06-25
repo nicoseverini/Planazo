@@ -6,7 +6,7 @@ import com.planazo.plan.Plan;
 import com.planazo.plan.PlanRepository;
 import com.planazo.plan.PlanSubscriber;
 import com.planazo.plan.PlanSubscriberRepository;
-import com.planazo.turistic_place.TuristicPlaceRepository;
+import com.planazo.tourist_place.TouristPlaceRepository;
 import com.planazo.user.dto.*;
 import com.planazo.user.refresh_token.RefreshToken;
 import com.planazo.user.refresh_token.RefreshTokenService;
@@ -47,7 +47,7 @@ public class UserService implements UserDetailsService {
     private final EmailService emailService;
     private final PlanSubscriberRepository planSubscriberRepository;
     private final PlanRepository planRepository;
-    private final TuristicPlaceRepository turisticPlaceRepository;
+    private final TouristPlaceRepository touristPlaceRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final ChangePasswordTokenRepository changePasswordTokenRepository;
 
@@ -62,7 +62,7 @@ public class UserService implements UserDetailsService {
             EmailService emailService,
             PlanSubscriberRepository planSubscriberRepository,
             PlanRepository planRepository,
-            TuristicPlaceRepository turisticPlaceRepository,
+            TouristPlaceRepository touristPlaceRepository,
             VerificationTokenRepository verificationTokenRepository,
             ChangePasswordTokenRepository changePasswordTokenRepository) {
         this.jwtService = jwtService;
@@ -74,7 +74,7 @@ public class UserService implements UserDetailsService {
         this.emailService = emailService;
         this.planSubscriberRepository = planSubscriberRepository;
         this.planRepository = planRepository;
-        this.turisticPlaceRepository = turisticPlaceRepository;
+        this.touristPlaceRepository = touristPlaceRepository;
         this.verificationTokenRepository = verificationTokenRepository;
         this.changePasswordTokenRepository = changePasswordTokenRepository;
     }
@@ -174,8 +174,8 @@ public class UserService implements UserDetailsService {
         if (user.isPresent()) {
             User managedUser = user.get();
 
-            // 1. Hard-delete all turistic places created by this user (cascades to images)
-            turisticPlaceRepository.deleteByCreatorId(id);
+            // 1. Hard-delete all tourist places created by this user (cascades to images)
+            touristPlaceRepository.deleteByCreatorId(id);
 
             // 2. Decrement subscriberCount on plans where the user was a counted subscriber
             // (but not the creator — creator's plans are deleted entirely in the next step)

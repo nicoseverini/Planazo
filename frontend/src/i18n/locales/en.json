@@ -315,5 +315,6 @@
   "submit_review": "Submit Review",
   "translate_review": "Translate",
   "plan_full_message": "This plan has already reached its participant limit.",
-  "request_sent": "Join request sent"
+  "request_sent": "Join request sent",
+  "request_sent_message": "Your request to join has been sent. You can check its status in \"My Activities\"."
 }
