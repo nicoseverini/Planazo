@@ -162,52 +162,62 @@ public class DemoDataInitializer {
         TouristPlace obelisco = place(seba, "Obelisco de Buenos Aires", 0.0, null, null,
                 List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "Buenos Aires", "Av. 9 de Julio s/n",
                 -34.6037, -58.3816,
-                "The 67-metre obelisk on Avenida 9 de Julio is the city's most recognisable landmark. The plaza around it fills up after every big football win — go early if you want a clean photo.");
+                "The 67-metre obelisk on Avenida 9 de Julio is the city's most recognisable landmark. The plaza around it fills up after every big football win — go early if you want a clean photo.",
+                List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782396911/Buenos_Aires__20234294752_etpxl1.jpg")  );
 
         TouristPlace iguazu = place(marcos, "Cataratas del Iguazú", 35.0, 6, null,
                 List.of(Interest.NATURE, Interest.ADVENTURE), "Argentina", "Puerto Iguazú", "Parque Nacional Iguazú",
                 -25.6953, -54.4367,
-                "A system of 275 waterfalls on the border with Brazil. The Garganta del Diablo walkway puts you right at the edge of the roar — bring a poncho, you will get soaked.");
+                "A system of 275 waterfalls on the border with Brazil. The Garganta del Diablo walkway puts you right at the edge of the roar — bring a poncho, you will get soaked.",
+                List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782399643/images_pgv3sy.jpg"));
 
         TouristPlace peritoMoreno = place(marcos, "Glaciar Perito Moreno", 45.0, null, null,
                 List.of(Interest.NATURE, Interest.MOUNTAINS), "Argentina", "El Calafate", "Parque Nacional Los Glaciares",
                 -50.4967, -73.1377,
-                "One of the few advancing glaciers in the world. From the balconies you can hear blocks of ice crack and collapse into the lake. Dress for wind even in summer.");
+                "One of the few advancing glaciers in the world. From the balconies you can hear blocks of ice crack and collapse into the lake. Dress for wind even in summer.",
+                List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782399743/minitrekking-glaciar-el-calafate-1_zm9e11.jpg"));
 
         TouristPlace caminito = place(rocio, "Caminito, La Boca", 0.0, null, null,
                 List.of(Interest.CULTURE, Interest.HISTORY, Interest.SHOPPING), "Argentina", "Buenos Aires", "Caminito, La Boca",
                 -34.6395, -58.3625,
-                "A short, colourful street museum in La Boca with tango dancers and corrugated-metal houses painted every colour imaginable. Touristy but genuinely fun in the afternoon.");
+                "A short, colourful street museum in La Boca with tango dancers and corrugated-metal houses painted every colour imaginable. Touristy but genuinely fun in the afternoon.",
+                List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782399798/caminito_q1vb1i.jpg"));
 
         TouristPlace aconcagua = place(bryan, "Cerro Aconcagua", 50.0, 16, null,
                 List.of(Interest.MOUNTAINS, Interest.ADVENTURE, Interest.SPORTS), "Argentina", "Mendoza", "Parque Provincial Aconcagua",
                 -32.6533, -70.0109,
-                "The highest peak in the Americas at 6,961 m. You don't need to summit — the entrance trails to Laguna de Horcones give you the views without the altitude permit.");
+                "The highest peak in the Americas at 6,961 m. You don't need to summit — the entrance trails to Laguna de Horcones give you the views without the altitude permit.",
+                List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782399840/cerro_imad6o.jpg"));
 
         TouristPlace bodega = place(rocio, "Bodega en Luján de Cuyo", 28.0, 18, null,
                 List.of(Interest.FOOD, Interest.CULTURE), "Argentina", "Mendoza", "Luján de Cuyo",
                 -33.0386, -68.8794,
-                "Classic Malbec country at the foot of the Andes. Most wineries offer a guided tour plus a three-glass tasting; book the lunch pairing if you can, it is worth the extra.");
+                "Classic Malbec country at the foot of the Andes. Most wineries offer a guided tour plus a three-glass tasting; book the lunch pairing if you can, it is worth the extra.",
+                List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782409099/bodega_l_xv2plk.jpg"));
 
         TouristPlace catedral = place(bryan, "Cerro Catedral, Bariloche", 60.0, null, null,
                 List.of(Interest.MOUNTAINS, Interest.SPORTS, Interest.NATURE), "Argentina", "San Carlos de Bariloche", "Cerro Catedral",
                 -41.1667, -71.4333,
-                "The largest ski resort in South America in winter, and a great hiking and chairlift spot the rest of the year. The view over Lago Gutiérrez from the top is the postcard everyone takes.");
+                "The largest ski resort in South America in winter, and a great hiking and chairlift spot the rest of the year. The view over Lago Gutiérrez from the top is the postcard everyone takes.",
+                List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782399889/bodegalujan_rlyejf.jpg"));
 
         TouristPlace humahuaca = place(emanuel, "Quebrada de Humahuaca", 10.0, null, null,
                 List.of(Interest.NATURE, Interest.HISTORY, Interest.CULTURE), "Argentina", "Jujuy", "Purmamarca",
                 -23.7450, -65.5000,
-                "A UNESCO valley of layered, multicoloured rock. The Cerro de los Siete Colores above Purmamarca glows best in the early morning light, before the tour buses arrive.");
+                "A UNESCO valley of layered, multicoloured rock. The Cerro de los Siete Colores above Purmamarca glows best in the early morning light, before the tour buses arrive.",
+                List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782399933/cerrocatedra_jyugze.jpg"));
 
         TouristPlace colon = place(rocio, "Teatro Colón", 22.0, null, null,
                 List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "Buenos Aires", "Cerrito 628",
                 -34.6010, -58.3835,
-                "One of the world's great opera houses, with acoustics musicians rave about. The guided backstage tour is excellent even if you don't catch a performance.");
+                "One of the world's great opera houses, with acoustics musicians rave about. The guided backstage tour is excellent even if you don't catch a performance.",
+                List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782399973/6f_otbjj9.jpg"));
 
         TouristPlace ischigualasto = place(emanuel, "Valle de la Luna (Ischigualasto)", 30.0, null, null,
                 List.of(Interest.NATURE, Interest.ADVENTURE), "Argentina", "San Juan", "Parque Provincial Ischigualasto",
                 -29.9000, -67.8333,
-                "A desert moonscape of wind-carved rock and one of the richest dinosaur fossil sites on Earth. Go for the full-moon night tour if the dates line up — it is unforgettable.");
+                "A desert moonscape of wind-carved rock and one of the richest dinosaur fossil sites on Earth. Go for the full-moon night tour if the dates line up — it is unforgettable.",
+                List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782400016/valledelaluna_c0wygm.jpg"));
 
         return List.of(obelisco, iguazu, peritoMoreno, caminito, aconcagua,
                 bodega, catedral, humahuaca, colon, ischigualasto);
@@ -215,9 +225,9 @@ public class DemoDataInitializer {
 
     private TouristPlace place(User creator, String name, Double cost, Integer minAge, Integer maxAge,
                                 List<Interest> interests, String country, String city, String address,
-                                double lat, double lng, String description) {
+                                double lat, double lng, String description, List<String> images) {
         TouristPlace place = new TouristPlace(name, cost, minAge, maxAge, interests,
-                country, city, address, lat, lng, List.of());
+                country, city, address, lat, lng, images);
         place.setDescription(description);
         place.setCreator(creator);
         return touristPlaceRepository.save(place);
@@ -431,7 +441,7 @@ public class DemoDataInitializer {
 
     private TouristPlace createPlace(SeedData.PlaceSpec s, User creator) {
         TouristPlace place = new TouristPlace(s.name(), s.cost(), null, null, s.interests(),
-                s.country(), s.city(), s.address(), s.lat(), s.lng(), List.of());
+                s.country(), s.city(), s.address(), s.lat(), s.lng(), s.images());
         place.setDescription(s.description());
         place.setCreator(creator);
         return touristPlaceRepository.save(place);
