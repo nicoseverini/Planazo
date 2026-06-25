@@ -8,6 +8,7 @@ import {
     Image,
     Modal,
     Pressable,
+    RefreshControl,
     View,
 } from 'react-native';
 
@@ -38,6 +39,7 @@ export default function UserProfileScreen() {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [editing, setEditing] = useState(false);
     const [formData, setFormData] = useState<UserProfile | null>(null);
@@ -64,47 +66,50 @@ export default function UserProfileScreen() {
         setReviewCount(count);
     }, []);
 
-    useEffect(() => {
-        let cancelled = false;
-        async function load() {
-            if (tokenData.state === 'LOADING') return;
-            if (tokenData.state === 'LOGGED_OUT') {
-                setLoading(false);
-                return;
-            }
-            if (targetId == null) {
-                setError('User not found.');
-                setLoading(false);
-                return;
-            }
-            try {
-                setLoading(true);
-                setError(null);
-                const data = isOwnProfile ? await fetchProfile() : await fetchProfileById(targetId);
-                if (cancelled) return;
-                const normalized = normalizeProfile(data);
-                setUser(normalized);
-                setFormData(normalized);
-                setPhotoUrl(normalizePhotoValue(normalized.photo));
-            } catch (err) {
-                if (cancelled) return;
-                setError(
-                    isOwnProfile
-                        ? 'Unable to load profile information.'
-                        : err instanceof Error
-                            ? err.message
-                            : 'Unable to load this profile.'
-                );
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
+    const loadProfile = useCallback(async () => {
+        if (tokenData.state === 'LOADING') return;
+        if (tokenData.state === 'LOGGED_OUT') {
+            setLoading(false);
+            return;
         }
-        load();
-        return () => {
-            cancelled = true;
-        };
+        if (targetId == null) {
+            setError('User not found.');
+            setLoading(false);
+            return;
+        }
+        try {
+            setError(null);
+            const data = isOwnProfile ? await fetchProfile() : await fetchProfileById(targetId);
+            const normalized = normalizeProfile(data);
+            setUser(normalized);
+            setFormData(normalized);
+            setPhotoUrl(normalizePhotoValue(normalized.photo));
+        } catch (err) {
+            setError(
+                isOwnProfile
+                    ? 'Unable to load profile information.'
+                    : err instanceof Error
+                        ? err.message
+                        : 'Unable to load this profile.'
+            );
+        } finally {
+            setLoading(false);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tokenData.state, isOwnProfile, targetId]);
+
+    useEffect(() => {
+        loadProfile();
+    }, [loadProfile]);
+
+    const handleRefresh = useCallback(async () => {
+        setRefreshing(true);
+        try {
+            await loadProfile();
+        } finally {
+            setRefreshing(false);
+        }
+    }, [loadProfile]);
 
     const onChange = (field: keyof UserProfile, value: string | string[] | number | undefined) => {
         if (!formData) return;
@@ -312,7 +317,12 @@ export default function UserProfileScreen() {
     const fullName = `${displayUser.name || 'User'} ${displayUser.lastname || ''}`.trim();
 
     return (
-        <AppScreen scrollable>
+        <AppScreen
+            scrollable
+            refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={tint} />
+            }
+        >
             <Modal
                 visible={isViewerOpen}
                 transparent
