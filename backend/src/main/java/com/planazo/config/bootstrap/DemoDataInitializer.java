@@ -8,8 +8,8 @@ import com.planazo.plan.PlanVisibility;
 import com.planazo.review.Review;
 import com.planazo.review.ReviewRepository;
 import com.planazo.review.ReviewTarget;
-import com.planazo.turistic_place.TuristicPlace;
-import com.planazo.turistic_place.TuristicPlaceRepository;
+import com.planazo.tourist_place.TouristPlace;
+import com.planazo.tourist_place.TouristPlaceRepository;
 import com.planazo.user.User;
 import com.planazo.user.UserRepository;
 import org.slf4j.Logger;
@@ -54,7 +54,7 @@ public class DemoDataInitializer {
     private static final String AR_TZ = "America/Argentina/Buenos_Aires";
 
     private final UserRepository userRepository;
-    private final TuristicPlaceRepository turisticPlaceRepository;
+    private final TouristPlaceRepository touristPlaceRepository;
     private final PlanRepository planRepository;
     private final ReviewRepository reviewRepository;
     private final PasswordEncoder passwordEncoder;
@@ -64,7 +64,7 @@ public class DemoDataInitializer {
 
     public DemoDataInitializer(
             UserRepository userRepository,
-            TuristicPlaceRepository turisticPlaceRepository,
+            TouristPlaceRepository touristPlaceRepository,
             PlanRepository planRepository,
             ReviewRepository reviewRepository,
             PasswordEncoder passwordEncoder,
@@ -72,7 +72,7 @@ public class DemoDataInitializer {
             PlatformTransactionManager transactionManager,
             @Value("${app.seed.demo-data.enabled:true}") boolean enabled) {
         this.userRepository = userRepository;
-        this.turisticPlaceRepository = turisticPlaceRepository;
+        this.touristPlaceRepository = touristPlaceRepository;
         this.planRepository = planRepository;
         this.reviewRepository = reviewRepository;
         this.passwordEncoder = passwordEncoder;
@@ -110,7 +110,7 @@ public class DemoDataInitializer {
 
     private void seedCore() {
         List<User> team = ensureTeam();
-        List<TuristicPlace> places = seedTuristicPlaces(team);
+        List<TouristPlace> places = seedTouristPlaces(team);
         seedPlans(team);
         seedVenueReviews(team, places);
         seedUserReviews(team);
@@ -156,55 +156,55 @@ public class DemoDataInitializer {
     // Tourist places
     // ---------------------------------------------------------------------
 
-    private List<TuristicPlace> seedTuristicPlaces(List<User> team) {
+    private List<TouristPlace> seedTouristPlaces(List<User> team) {
         User seba = team.get(0), marcos = team.get(1), rocio = team.get(2), bryan = team.get(3), emanuel = team.get(4);
 
-        TuristicPlace obelisco = place(seba, "Obelisco de Buenos Aires", 0.0, null, null,
+        TouristPlace obelisco = place(seba, "Obelisco de Buenos Aires", 0.0, null, null,
                 List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "Buenos Aires", "Av. 9 de Julio s/n",
                 -34.6037, -58.3816,
                 "The 67-metre obelisk on Avenida 9 de Julio is the city's most recognisable landmark. The plaza around it fills up after every big football win — go early if you want a clean photo.");
 
-        TuristicPlace iguazu = place(marcos, "Cataratas del Iguazú", 35.0, 6, null,
+        TouristPlace iguazu = place(marcos, "Cataratas del Iguazú", 35.0, 6, null,
                 List.of(Interest.NATURE, Interest.ADVENTURE), "Argentina", "Puerto Iguazú", "Parque Nacional Iguazú",
                 -25.6953, -54.4367,
                 "A system of 275 waterfalls on the border with Brazil. The Garganta del Diablo walkway puts you right at the edge of the roar — bring a poncho, you will get soaked.");
 
-        TuristicPlace peritoMoreno = place(marcos, "Glaciar Perito Moreno", 45.0, null, null,
+        TouristPlace peritoMoreno = place(marcos, "Glaciar Perito Moreno", 45.0, null, null,
                 List.of(Interest.NATURE, Interest.MOUNTAINS), "Argentina", "El Calafate", "Parque Nacional Los Glaciares",
                 -50.4967, -73.1377,
                 "One of the few advancing glaciers in the world. From the balconies you can hear blocks of ice crack and collapse into the lake. Dress for wind even in summer.");
 
-        TuristicPlace caminito = place(rocio, "Caminito, La Boca", 0.0, null, null,
+        TouristPlace caminito = place(rocio, "Caminito, La Boca", 0.0, null, null,
                 List.of(Interest.CULTURE, Interest.HISTORY, Interest.SHOPPING), "Argentina", "Buenos Aires", "Caminito, La Boca",
                 -34.6395, -58.3625,
                 "A short, colourful street museum in La Boca with tango dancers and corrugated-metal houses painted every colour imaginable. Touristy but genuinely fun in the afternoon.");
 
-        TuristicPlace aconcagua = place(bryan, "Cerro Aconcagua", 50.0, 16, null,
+        TouristPlace aconcagua = place(bryan, "Cerro Aconcagua", 50.0, 16, null,
                 List.of(Interest.MOUNTAINS, Interest.ADVENTURE, Interest.SPORTS), "Argentina", "Mendoza", "Parque Provincial Aconcagua",
                 -32.6533, -70.0109,
                 "The highest peak in the Americas at 6,961 m. You don't need to summit — the entrance trails to Laguna de Horcones give you the views without the altitude permit.");
 
-        TuristicPlace bodega = place(rocio, "Bodega en Luján de Cuyo", 28.0, 18, null,
+        TouristPlace bodega = place(rocio, "Bodega en Luján de Cuyo", 28.0, 18, null,
                 List.of(Interest.FOOD, Interest.CULTURE), "Argentina", "Mendoza", "Luján de Cuyo",
                 -33.0386, -68.8794,
                 "Classic Malbec country at the foot of the Andes. Most wineries offer a guided tour plus a three-glass tasting; book the lunch pairing if you can, it is worth the extra.");
 
-        TuristicPlace catedral = place(bryan, "Cerro Catedral, Bariloche", 60.0, null, null,
+        TouristPlace catedral = place(bryan, "Cerro Catedral, Bariloche", 60.0, null, null,
                 List.of(Interest.MOUNTAINS, Interest.SPORTS, Interest.NATURE), "Argentina", "San Carlos de Bariloche", "Cerro Catedral",
                 -41.1667, -71.4333,
                 "The largest ski resort in South America in winter, and a great hiking and chairlift spot the rest of the year. The view over Lago Gutiérrez from the top is the postcard everyone takes.");
 
-        TuristicPlace humahuaca = place(emanuel, "Quebrada de Humahuaca", 10.0, null, null,
+        TouristPlace humahuaca = place(emanuel, "Quebrada de Humahuaca", 10.0, null, null,
                 List.of(Interest.NATURE, Interest.HISTORY, Interest.CULTURE), "Argentina", "Jujuy", "Purmamarca",
                 -23.7450, -65.5000,
                 "A UNESCO valley of layered, multicoloured rock. The Cerro de los Siete Colores above Purmamarca glows best in the early morning light, before the tour buses arrive.");
 
-        TuristicPlace colon = place(rocio, "Teatro Colón", 22.0, null, null,
+        TouristPlace colon = place(rocio, "Teatro Colón", 22.0, null, null,
                 List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "Buenos Aires", "Cerrito 628",
                 -34.6010, -58.3835,
                 "One of the world's great opera houses, with acoustics musicians rave about. The guided backstage tour is excellent even if you don't catch a performance.");
 
-        TuristicPlace ischigualasto = place(emanuel, "Valle de la Luna (Ischigualasto)", 30.0, null, null,
+        TouristPlace ischigualasto = place(emanuel, "Valle de la Luna (Ischigualasto)", 30.0, null, null,
                 List.of(Interest.NATURE, Interest.ADVENTURE), "Argentina", "San Juan", "Parque Provincial Ischigualasto",
                 -29.9000, -67.8333,
                 "A desert moonscape of wind-carved rock and one of the richest dinosaur fossil sites on Earth. Go for the full-moon night tour if the dates line up — it is unforgettable.");
@@ -213,14 +213,14 @@ public class DemoDataInitializer {
                 bodega, catedral, humahuaca, colon, ischigualasto);
     }
 
-    private TuristicPlace place(User creator, String name, Double cost, Integer minAge, Integer maxAge,
+    private TouristPlace place(User creator, String name, Double cost, Integer minAge, Integer maxAge,
                                 List<Interest> interests, String country, String city, String address,
                                 double lat, double lng, String description) {
-        TuristicPlace place = new TuristicPlace(name, cost, minAge, maxAge, interests,
+        TouristPlace place = new TouristPlace(name, cost, minAge, maxAge, interests,
                 country, city, address, lat, lng, List.of());
         place.setDescription(description);
         place.setCreator(creator);
-        return turisticPlaceRepository.save(place);
+        return touristPlaceRepository.save(place);
     }
 
     // ---------------------------------------------------------------------
@@ -315,9 +315,9 @@ public class DemoDataInitializer {
     // Reviews
     // ---------------------------------------------------------------------
 
-    private void seedVenueReviews(List<User> team, List<TuristicPlace> places) {
+    private void seedVenueReviews(List<User> team, List<TouristPlace> places) {
         User seba = team.get(0), marcos = team.get(1), rocio = team.get(2), bryan = team.get(3), emanuel = team.get(4);
-        TuristicPlace obelisco = places.get(0), iguazu = places.get(1), peritoMoreno = places.get(2),
+        TouristPlace obelisco = places.get(0), iguazu = places.get(1), peritoMoreno = places.get(2),
                 caminito = places.get(3), aconcagua = places.get(4), bodega = places.get(5),
                 catedral = places.get(6), humahuaca = places.get(7), colon = places.get(8), ischigualasto = places.get(9);
 
@@ -365,7 +365,7 @@ public class DemoDataInitializer {
         userReview(bryan, emanuel, 4, "Easy to get along with and punctual. The breakfast spot she chose was a gem.");
     }
 
-    private void venueReview(User author, TuristicPlace place, int rating, String comment) {
+    private void venueReview(User author, TouristPlace place, int rating, String comment) {
         if (reviewRepository.findByUserIdAndTargetTypeAndTargetId(author.getId(), ReviewTarget.VENUE, place.getId()).isPresent()) {
             return;
         }
@@ -400,7 +400,7 @@ public class DemoDataInitializer {
         }
 
         // 90 new places from the catalog, attributed to the new users.
-        List<TuristicPlace> newPlaces = new ArrayList<>();
+        List<TouristPlace> newPlaces = new ArrayList<>();
         int idx = 0;
         for (SeedData.PlaceSpec spec : SeedData.PLACES) {
             User creator = newUsers.get(idx % newUsers.size());
@@ -413,7 +413,7 @@ public class DemoDataInitializer {
 
         // Top reviews up to 400 venue + 400 user, authored by the new users.
         List<User> allUsers = userRepository.findAll();
-        List<TuristicPlace> allPlaces = turisticPlaceRepository.findAll();
+        List<TouristPlace> allPlaces = touristPlaceRepository.findAll();
         seedExpansionReviews(newUsers, allUsers, allPlaces, personalityByUserId, rng);
 
         log.info("Expansion batch: added {} users and {} tourist places.", newUsers.size(), newPlaces.size());
@@ -429,15 +429,15 @@ public class DemoDataInitializer {
         });
     }
 
-    private TuristicPlace createPlace(SeedData.PlaceSpec s, User creator) {
-        TuristicPlace place = new TuristicPlace(s.name(), s.cost(), null, null, s.interests(),
+    private TouristPlace createPlace(SeedData.PlaceSpec s, User creator) {
+        TouristPlace place = new TouristPlace(s.name(), s.cost(), null, null, s.interests(),
                 s.country(), s.city(), s.address(), s.lat(), s.lng(), List.of());
         place.setDescription(s.description());
         place.setCreator(creator);
-        return turisticPlaceRepository.save(place);
+        return touristPlaceRepository.save(place);
     }
 
-    private void seedExpansionPlans(List<User> users, List<TuristicPlace> places, Random rng) {
+    private void seedExpansionPlans(List<User> users, List<TouristPlace> places, Random rng) {
         LocalDateTime base = LocalDateTime.of(2026, 7, 1, 0, 0);
 
         // Pick exactly 90 plan host places so that, combined with the base plans
@@ -446,15 +446,15 @@ public class DemoDataInitializer {
         // places are 33 CABA + 17 provinces + 40 world; new plans must therefore be
         // 32 CABA + 18 provinces + 40 world (one province place hosts two plans, one
         // CABA place hosts none).
-        List<TuristicPlace> caba = new ArrayList<>();
-        List<TuristicPlace> prov = new ArrayList<>();
-        List<TuristicPlace> world = new ArrayList<>();
-        for (TuristicPlace pl : places) {
+        List<TouristPlace> caba = new ArrayList<>();
+        List<TouristPlace> prov = new ArrayList<>();
+        List<TouristPlace> world = new ArrayList<>();
+        for (TouristPlace pl : places) {
             if (!"Argentina".equals(pl.getCountry())) world.add(pl);
             else if ("Buenos Aires".equals(pl.getCity())) caba.add(pl);
             else prov.add(pl);
         }
-        List<TuristicPlace> hosts = new ArrayList<>();
+        List<TouristPlace> hosts = new ArrayList<>();
         if (caba.size() >= 32 && !prov.isEmpty()) {
             hosts.addAll(caba.subList(0, 32));
             hosts.addAll(prov);
@@ -465,7 +465,7 @@ public class DemoDataInitializer {
         }
 
         int i = 0;
-        for (TuristicPlace place : hosts) {
+        for (TouristPlace place : hosts) {
             User creator = users.get(i % users.size());
             List<User> members = new ArrayList<>();
             for (int k = 1; k <= 3; k++) {
@@ -497,7 +497,7 @@ public class DemoDataInitializer {
         }
     }
 
-    private void seedExpansionReviews(List<User> authors, List<User> allUsers, List<TuristicPlace> places,
+    private void seedExpansionReviews(List<User> authors, List<User> allUsers, List<TouristPlace> places,
                                       Map<Long, String> personalityByUserId, Random rng) {
         int venueNeeded = (int) Math.max(0L, 400 - reviewRepository.countByTargetType(ReviewTarget.VENUE));
         int userNeeded = (int) Math.max(0L, 400 - reviewRepository.countByTargetType(ReviewTarget.USER));
@@ -510,7 +510,7 @@ public class DemoDataInitializer {
         for (int round = 0; round < places.size() && created < venueNeeded; round++) {
             for (int a = 0; a < authors.size() && created < venueNeeded; a++) {
                 User author = authors.get(a);
-                TuristicPlace place = places.get((a + round) % places.size());
+                TouristPlace place = places.get((a + round) % places.size());
                 if (!used.add(author.getId() + ":" + place.getId())) continue;
                 if (reviewRepository.findByUserIdAndTargetTypeAndTargetId(author.getId(), ReviewTarget.VENUE, place.getId()).isPresent()) {
                     continue;
