@@ -21,4 +21,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Long getReviewCountByTarget(@Param("type") ReviewTarget targetType, @Param("id") Long targetId);
 
     List<Review> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+    void deleteByUserId(Long userId);
 }

@@ -18,6 +18,7 @@ import com.planazo.user.change_password.ChangePasswordTokenRepository;
 import com.planazo.user.change_password.ChangePasswordToken;
 import com.planazo.user.email_service.EmailService;
 import com.planazo.report.ReportRepository;
+import com.planazo.review.ReviewRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,7 @@ public class UserService implements UserDetailsService {
     private final VerificationTokenRepository verificationTokenRepository;
     private final ChangePasswordTokenRepository changePasswordTokenRepository;
     private final ReportRepository reportRepository;
+    private final ReviewRepository reviewRepository;
 
     @Autowired
     UserService(
@@ -67,7 +69,8 @@ public class UserService implements UserDetailsService {
             TuristicPlaceRepository turisticPlaceRepository,
             VerificationTokenRepository verificationTokenRepository,
             ChangePasswordTokenRepository changePasswordTokenRepository,
-            ReportRepository reportRepository) {
+            ReportRepository reportRepository,
+            ReviewRepository reviewRepository) {
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
@@ -81,6 +84,7 @@ public class UserService implements UserDetailsService {
         this.verificationTokenRepository = verificationTokenRepository;
         this.changePasswordTokenRepository = changePasswordTokenRepository;
         this.reportRepository = reportRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     @Override
@@ -182,6 +186,8 @@ public class UserService implements UserDetailsService {
 
             reportRepository.deleteByReporterId(id);
             reportRepository.deleteByReportedUserId(id);
+
+            reviewRepository.deleteByUserId(id);
 
             List<Plan> createdPlans = planRepository.findByCreatorId(id);
             for (Plan plan : createdPlans) {
