@@ -4,6 +4,7 @@ import type { FormEvent } from 'react'
 import { PlanImagePicker } from './components/PlanImagePicker'
 import { getBackendUrl } from './config'
 import { TuristicPlaceFormFields } from './components/TuristicPlaceFormFields'
+import { Navbar } from './components/Navbar'
 import {
 	defaultTuristicPlaceFormState,
 	parseTuristicPlaceOptionalNumber,
@@ -133,15 +134,14 @@ export function CreateTuristicPlacePage() {
 	}
 
 	return (
-		<main className="auth-card auth-card--xwide">
-			<div className="page-header">
+		<>
+			<Navbar />
+			<main className="auth-card auth-card--xwide">
+				<div className="page-header">
 				<div>
 					<h1>Create Turistic Place</h1>
 					<p className="subtitle">Form for admins to create a new turistic place.</p>
 				</div>
-				<a className="button button--secondary" href="/turistic-places">
-					Back to Turistic Places
-				</a>
 			</div>
 
 			<form className="form-stack create-plan-form" onSubmit={handleSubmit}>
@@ -156,6 +156,7 @@ export function CreateTuristicPlacePage() {
 					{status === 'loading' ? 'Creating...' : 'Create Turistic Place'}
 				</button>
 			</form>
-		</main>
+			</main>
+		</>
 	)
 }

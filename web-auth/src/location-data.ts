@@ -1,0 +1,287 @@
+export const countries = [
+  "Afghanistan",
+  "Albania",
+  "Algeria",
+  "Andorra",
+  "Angola",
+  "Argentina",
+  "Armenia",
+  "Australia",
+  "Austria",
+  "Azerbaijan",
+  "Bahamas",
+  "Bahrain",
+  "Bangladesh",
+  "Barbados",
+  "Belarus",
+  "Belgium",
+  "Belize",
+  "Benin",
+  "Bhutan",
+  "Bolivia",
+  "Bosnia and Herzegovina",
+  "Botswana",
+  "Brazil",
+  "Bulgaria",
+  "Burkina Faso",
+  "Burundi",
+  "Cambodia",
+  "Cameroon",
+  "Canada",
+  "Cape Verde",
+  "Central African Republic",
+  "Chad",
+  "Chile",
+  "China",
+  "Colombia",
+  "Comoros",
+  "Congo",
+  "Costa Rica",
+  "Croatia",
+  "Cuba",
+  "Cyprus",
+  "Czechia",
+  "Denmark",
+  "Djibouti",
+  "Dominican Republic",
+  "Ecuador",
+  "Egypt",
+  "El Salvador",
+  "Eritrea",
+  "Estonia",
+  "Ethiopia",
+  "Fiji",
+  "Finland",
+  "France",
+  "Gabon",
+  "Gambia",
+  "Georgia",
+  "Germany",
+  "Ghana",
+  "Greece",
+  "Guatemala",
+  "Guinea",
+  "Haiti",
+  "Honduras",
+  "Hungary",
+  "Iceland",
+  "India",
+  "Indonesia",
+  "Iran",
+  "Iraq",
+  "Ireland",
+  "Israel",
+  "Italy",
+  "Ivory Coast",
+  "Jamaica",
+  "Japan",
+  "Jordan",
+  "Kazakhstan",
+  "Kenya",
+  "Kuwait",
+  "Kyrgyzstan",
+  "Laos",
+  "Latvia",
+  "Lebanon",
+  "Lesotho",
+  "Liberia",
+  "Libya",
+  "Lithuania",
+  "Luxembourg",
+  "Madagascar",
+  "Malawi",
+  "Malaysia",
+  "Maldives",
+  "Mali",
+  "Malta",
+  "Mauritania",
+  "Mauritius",
+  "Mexico",
+  "Moldova",
+  "Monaco",
+  "Mongolia",
+  "Montenegro",
+  "Morocco",
+  "Mozambique",
+  "Myanmar",
+  "Namibia",
+  "Nepal",
+  "Netherlands",
+  "New Zealand",
+  "Nicaragua",
+  "Niger",
+  "Nigeria",
+  "North Korea",
+  "North Macedonia",
+  "Norway",
+  "Oman",
+  "Pakistan",
+  "Panama",
+  "Paraguay",
+  "Peru",
+  "Philippines",
+  "Poland",
+  "Portugal",
+  "Qatar",
+  "Romania",
+  "Russia",
+  "Rwanda",
+  "Saudi Arabia",
+  "Senegal",
+  "Serbia",
+  "Sierra Leone",
+  "Singapore",
+  "Slovakia",
+  "Slovenia",
+  "Somalia",
+  "South Africa",
+  "South Korea",
+  "South Sudan",
+  "Spain",
+  "Sri Lanka",
+  "Sudan",
+  "Suriname",
+  "Sweden",
+  "Switzerland",
+  "Syria",
+  "Tajikistan",
+  "Tanzania",
+  "Thailand",
+  "Togo",
+  "Trinidad and Tobago",
+  "Tunisia",
+  "Turkey",
+  "Turkmenistan",
+  "Uganda",
+  "Ukraine",
+  "United Arab Emirates",
+  "United Kingdom",
+  "United States",
+  "Uruguay",
+  "Uzbekistan",
+  "Venezuela",
+  "Vietnam",
+  "Yemen",
+  "Zambia",
+  "Zimbabwe"
+];
+export const citiesByCountry: Record<string, string[]> = {
+  "United States": [
+    "New York", "Los Angeles", "Chicago", "Houston", "Phoenix",
+    "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose",
+    "Austin", "Jacksonville", "San Francisco", "Seattle", "Denver",
+    "Boston", "Washington DC", "Las Vegas", "Miami", "Atlanta"
+  ],
+
+  Argentina: [
+    "Buenos Aires", "Córdoba", "Rosario", "Mendoza", "La Plata",
+    "Mar del Plata", "Salta", "Santa Fe", "San Juan", "Neuquén",
+    "Tucumán", "Bahía Blanca", "Corrientes", "Posadas", "Paraná",
+    "Resistencia", "Jujuy", "Río Cuarto", "San Luis", "Comodoro Rivadavia"
+  ],
+
+  Brazil: [
+    "São Paulo", "Rio de Janeiro", "Brasília", "Salvador", "Fortaleza",
+    "Belo Horizonte", "Manaus", "Curitiba", "Recife", "Porto Alegre",
+    "Belém", "Goiânia", "Campinas", "São Luís", "Natal",
+    "Florianópolis", "João Pessoa", "Maceió", "Vitória", "Cuiabá"
+  ],
+
+  Spain: [
+    "Madrid", "Barcelona", "Valencia", "Seville", "Zaragoza",
+    "Málaga", "Murcia", "Palma", "Las Palmas", "Bilbao",
+    "Alicante", "Córdoba", "Valladolid", "Vigo", "Gijón",
+    "Granada", "A Coruña", "Oviedo", "Pamplona", "Santander"
+  ],
+
+  France: [
+    "Paris", "Marseille", "Lyon", "Toulouse", "Nice",
+    "Nantes", "Strasbourg", "Montpellier", "Bordeaux", "Lille",
+    "Rennes", "Reims", "Le Havre", "Saint-Étienne", "Toulon",
+    "Grenoble", "Dijon", "Angers", "Nîmes", "Clermont-Ferrand"
+  ],
+
+  Germany: [
+    "Berlin", "Hamburg", "Munich", "Cologne", "Frankfurt",
+    "Stuttgart", "Düsseldorf", "Dortmund", "Essen", "Leipzig",
+    "Bremen", "Dresden", "Hanover", "Nuremberg", "Duisburg",
+    "Bochum", "Wuppertal", "Bonn", "Mannheim", "Karlsruhe"
+  ],
+
+  Italy: [
+    "Rome", "Milan", "Naples", "Turin", "Palermo",
+    "Genoa", "Bologna", "Florence", "Bari", "Catania",
+    "Venice", "Verona", "Messina", "Padua", "Trieste",
+    "Brescia", "Parma", "Modena", "Prato", "Reggio Calabria"
+  ],
+
+  "United Kingdom": [
+    "London", "Birmingham", "Manchester", "Glasgow", "Liverpool",
+    "Leeds", "Sheffield", "Edinburgh", "Bristol", "Cardiff",
+    "Leicester", "Coventry", "Nottingham", "Newcastle", "Belfast",
+    "Brighton", "Southampton", "Oxford", "Cambridge", "Reading"
+  ],
+
+  Canada: [
+    "Toronto", "Montreal", "Vancouver", "Calgary", "Edmonton",
+    "Ottawa", "Winnipeg", "Quebec City", "Hamilton", "Kitchener",
+    "London", "Victoria", "Halifax", "Saskatoon", "Regina",
+    "St. John's", "Kelowna", "Barrie", "Sherbrooke", "Guelph"
+  ],
+
+  Mexico: [
+    "Mexico City", "Guadalajara", "Monterrey", "Puebla", "Tijuana",
+    "León", "Juárez", "Zapopan", "Mérida", "San Luis Potosí",
+    "Querétaro", "Aguascalientes", "Cancún", "Chihuahua", "Toluca",
+    "Morelia", "Saltillo", "Hermosillo", "Culiacán", "Veracruz"
+  ],
+
+  Chile: [
+    "Santiago", "Valparaíso", "Concepción", "La Serena", "Antofagasta",
+    "Temuco", "Rancagua", "Talca", "Arica", "Chillán",
+    "Iquique", "Puerto Montt", "Valdivia", "Osorno", "Calama",
+    "Copiapó", "Quilpué", "Viña del Mar", "Los Ángeles", "Punta Arenas"
+  ],
+
+  Colombia: [
+    "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena",
+    "Cúcuta", "Bucaramanga", "Pereira", "Santa Marta", "Ibagué",
+    "Pasto", "Manizales", "Neiva", "Villavicencio", "Armenia",
+    "Montería", "Sincelejo", "Popayán", "Valledupar", "Tunja"
+  ],
+
+  Peru: [
+    "Lima", "Arequipa", "Trujillo", "Chiclayo", "Piura",
+    "Iquitos", "Cusco", "Huancayo", "Chimbote", "Pucallpa",
+    "Tacna", "Ica", "Juliaca", "Sullana", "Ayacucho",
+    "Cajamarca", "Huánuco", "Tarapoto", "Puno", "Tumbes"
+  ],
+
+  Australia: [
+    "Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide",
+    "Gold Coast", "Canberra", "Newcastle", "Wollongong", "Geelong",
+    "Hobart", "Townsville", "Cairns", "Darwin", "Toowoomba",
+    "Ballarat", "Bendigo", "Albury", "Launceston", "Mackay"
+  ],
+
+  Japan: [
+    "Tokyo", "Yokohama", "Osaka", "Nagoya", "Sapporo",
+    "Fukuoka", "Kobe", "Kyoto", "Kawasaki", "Saitama",
+    "Hiroshima", "Sendai", "Kitakyushu", "Chiba", "Sakai",
+    "Niigata", "Hamamatsu", "Okayama", "Kumamoto", "Shizuoka"
+  ],
+
+  China: [
+    "Shanghai", "Beijing", "Guangzhou", "Shenzhen", "Chongqing",
+    "Tianjin", "Wuhan", "Dongguan", "Nanjing", "Hangzhou",
+    "Chengdu", "Shenyang", "Xi'an", "Zhengzhou", "Suzhou",
+    "Qingdao", "Changsha", "Harbin", "Foshan", "Jinan"
+  ],
+
+  India: [
+    "Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Chennai",
+    "Kolkata", "Ahmedabad", "Pune", "Jaipur", "Surat",
+    "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane",
+    "Bhopal", "Patna", "Ludhiana", "Agra", "Nashik"
+  ]
+};

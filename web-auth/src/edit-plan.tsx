@@ -4,6 +4,7 @@ import type { FormEvent } from 'react'
 import { getBackendUrl } from './config'
 import { PlanImagePicker } from './components/PlanImagePicker'
 import { PlanFormFields } from './components/PlanFormFields'
+import { Navbar } from './components/Navbar'
 import {
 	type Interest,
 	type PlanFormState,
@@ -281,15 +282,20 @@ export function EditPlanPage({ planId }: { planId: number }) {
 
 	if (loadingPlan) {
 		return (
-			<main className="auth-card auth-card--xwide">
-				<div className="message">Loading plan...</div>
-			</main>
+			<>
+				<Navbar />
+				<main className="auth-card auth-card--xwide">
+					<div className="message">Loading plan...</div>
+				</main>
+			</>
 		)
 	}
 
 	return (
-		<main className="auth-card auth-card--xwide">
-			<div className="page-header">
+		<>
+			<Navbar />
+			<main className="auth-card auth-card--xwide">
+				<div className="page-header">
 				<div>
 					<h1>Edit Plan</h1>
 					<p className="subtitle">Edit the plan details and manage its images.</p>
@@ -310,6 +316,7 @@ export function EditPlanPage({ planId }: { planId: number }) {
 					{status === 'saving' ? 'Saving...' : 'Save Changes'}
 				</button>
 			</form>
-		</main>
+			</main>
+		</>
 	)
 }

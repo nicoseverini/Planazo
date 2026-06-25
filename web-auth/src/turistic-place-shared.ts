@@ -29,6 +29,7 @@ export type TuristicPlaceSummaryResponse = {
 	maxAge: number | null
 	images: string[]
 	creatorId: number | null
+	creatorName: string | null
 }
 
 export type TuristicPlaceDetailResponse = TuristicPlaceSummaryResponse & {

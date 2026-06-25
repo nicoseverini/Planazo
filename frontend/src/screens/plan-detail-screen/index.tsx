@@ -27,6 +27,7 @@ import { formatAgeRestriction } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
 import { formatDateTimeInTimezone } from '@/utils/date';
 import { openInMaps } from '@/utils/navigation';
+import { ReportModal } from '@/components/ReportModal';
 import { TranslationButton } from '@/components/TranslationButton';
 import { useTranslation } from 'react-i18next';
 import { orderPlanMembers } from '@/utils/plan-members';
@@ -71,6 +72,8 @@ export default function PlanDetailScreen() {
     const [membersSubTab, setMembersSubTab] = useState<'members' | 'requests'>('members');
     const [isImageModalVisible, setIsImageModalVisible] = useState(false);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [isReportModalVisible, setIsReportModalVisible] = useState(false);
+    const [isMenuVisible, setIsMenuVisible] = useState(false);
 
     const { t, i18n } = useTranslation();
     const [translatedDescription, setTranslatedDescription] = useState<string | null>(null);
@@ -411,6 +414,34 @@ export default function PlanDetailScreen() {
                         )}
                     </View>
                 </View>
+                {!isCreator && (
+                    <View style={{ position: 'relative' }}>
+                        <Pressable
+                            onPress={() => setIsMenuVisible(!isMenuVisible)}
+                            style={({ pressed }) => [
+                                styles.headerButton,
+                                { backgroundColor: surface, borderColor: border },
+                                pressed && styles.pressed,
+                            ]}
+                        >
+                            <Ionicons name="ellipsis-vertical" size={24} color={text} />
+                        </Pressable>
+                        {isMenuVisible && (
+                            <View style={[styles.dropdownMenu, { backgroundColor: surface, borderColor: border }]}>
+                                <Pressable
+                                    style={styles.dropdownItem}
+                                    onPress={() => {
+                                        setIsMenuVisible(false);
+                                        setIsReportModalVisible(true);
+                                    }}
+                                >
+                                    <Ionicons name="flag-outline" size={18} color={text} />
+                                    <ThemedText type="body" style={{ color: text, marginLeft: 8 }}>Report</ThemedText>
+                                </Pressable>
+                            </View>
+                        )}
+                    </View>
+                )}
             </View>
 
             <View style={styles.infoRow}>
@@ -835,6 +866,13 @@ export default function PlanDetailScreen() {
                     )}
                 </View>
             </Modal>
+
+            <ReportModal
+                visible={isReportModalVisible}
+                onClose={() => setIsReportModalVisible(false)}
+                planId={plan.id}
+                reportedUserId={plan.creatorId}
+            />
         </AppScreen>
     );
 }

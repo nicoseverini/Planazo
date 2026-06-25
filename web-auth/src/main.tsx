@@ -12,6 +12,7 @@ import { TuristicPlacesPage } from './turistic-places'
 import { CreateTuristicPlacePage } from './create-turistic-place'
 import { TuristicPlaceDetailPage } from './turistic-place-detail'
 import { EditTuristicPlacePage } from './edit-turistic-place'
+import { ReportsPage } from './reports'
 
 function resolveRoute(pathname: string) {
   const normalizedPath = pathname.replace(/\/+$/, '') || '/'
@@ -64,6 +65,10 @@ function resolveRoute(pathname: string) {
     return <ResetPasswordPage />
   }
 
+  if (normalizedPath === '/reports') {
+    return <ReportsPage />
+  }
+
   return (
     <main className="auth-card">
       <h1>web-auth</h1>
@@ -88,6 +93,9 @@ function resolveRoute(pathname: string) {
         </li>
         <li>
           <a href="/reset-password?token=tu-token">/reset-password?token=tu-token</a>
+        </li>
+        <li>
+          <a href="/reports">/reports</a>
         </li>
       </ul>
     </main>

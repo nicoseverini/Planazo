@@ -109,4 +109,24 @@ export const styles = StyleSheet.create({
     pressed: {
         opacity: 0.7,
     },
+    dropdownMenu: {
+        position: 'absolute',
+        top: 45,
+        right: 0,
+        minWidth: 120,
+        borderRadius: 8,
+        borderWidth: 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 5,
+        zIndex: 1000,
+    },
+    dropdownItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+    },
 });

@@ -4,6 +4,7 @@ import type { FormEvent } from 'react'
 import { getBackendUrl } from './config'
 import { PlanImagePicker } from './components/PlanImagePicker'
 import { PlanFormFields } from './components/PlanFormFields'
+import { Navbar } from './components/Navbar'
 import {
 	type PlanFormState,
 	buildDateTime,
@@ -185,15 +186,14 @@ export function CreatePlanPage() {
 	}
 
 	return (
-		<main className="auth-card auth-card--xwide">
-			<div className="page-header">
+		<>
+			<Navbar />
+			<main className="auth-card auth-card--xwide">
+				<div className="page-header">
 				<div>
 					<h1>Create Plan</h1>
 					<p className="subtitle">Form for admins to create a new plan.</p>
 				</div>
-				<a className="button button--secondary" href="/plans">
-					Back to Plans
-				</a>
 			</div>
 
 			<form className="form-stack create-plan-form" onSubmit={handleSubmit}>
@@ -208,6 +208,7 @@ export function CreatePlanPage() {
 					{status === 'loading' ? 'Creating...' : 'Create Plan'}
 				</button>
 			</form>
-		</main>
+			</main>
+		</>
 	)
 }

@@ -1,6 +1,7 @@
 package com.planazo.plan;
 
 import com.planazo.common.constants.Interest;
+import com.planazo.plan.dto.PlanAdminDeleteDTO;
 import com.planazo.plan.dto.PlanCreateDTO;
 import com.planazo.plan.dto.PlanDetailDTO;
 import com.planazo.plan.dto.PendingSubscriberDTO;
@@ -244,8 +245,11 @@ class PlanRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping(value = "/admin/{id}", produces = "application/json")
     @Operation(summary = "Hard delete a plan (admin only)")
-    ResponseEntity<Void> adminDeletePlan(@PathVariable Long id) {
-        if (planService.adminDeletePlan(id)) return ResponseEntity.ok().build();
+    ResponseEntity<Void> adminDeletePlan(
+            @PathVariable Long id,
+            @RequestBody(required = false) PlanAdminDeleteDTO data
+    ) {
+        if (planService.adminDeletePlan(id, data != null ? data.reason() : null)) return ResponseEntity.ok().build();
         return ResponseEntity.notFound().build();
     }
 
