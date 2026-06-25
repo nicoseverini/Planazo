@@ -20,11 +20,18 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 
 /**
  * Seeds a clean install with a realistic, self-consistent baseline data set:
@@ -51,6 +58,8 @@ public class DemoDataInitializer {
     private final PlanRepository planRepository;
     private final ReviewRepository reviewRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SeedLogRepository seedLogRepository;
+    private final TransactionTemplate transactionTemplate;
     private final boolean enabled;
 
     public DemoDataInitializer(
@@ -59,41 +68,53 @@ public class DemoDataInitializer {
             PlanRepository planRepository,
             ReviewRepository reviewRepository,
             PasswordEncoder passwordEncoder,
+            SeedLogRepository seedLogRepository,
+            PlatformTransactionManager transactionManager,
             @Value("${app.seed.demo-data.enabled:true}") boolean enabled) {
         this.userRepository = userRepository;
         this.turisticPlaceRepository = turisticPlaceRepository;
         this.planRepository = planRepository;
         this.reviewRepository = reviewRepository;
         this.passwordEncoder = passwordEncoder;
+        this.seedLogRepository = seedLogRepository;
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.enabled = enabled;
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    @Transactional
     public void seed() {
         if (!enabled) {
             log.info("Demo data seeding disabled (app.seed.demo-data.enabled=false).");
             return;
         }
+        applyOnce("v1_core_demo", this::seedCore);
+        applyOnce("v2_expansion_demo", this::seedExpansion);
+    }
 
-        // 1) Team members — idempotent by unique email.
-        List<User> team = ensureTeam();
-
-        // 2) Guard: if the first seed member already owns plans, the baseline is
-        //    present. The whole method is transactional, so this guard is reliable
-        //    (partial seeds roll back and never reach this state).
-        if (!planRepository.findByCreatorId(team.get(0).getId()).isEmpty()) {
-            log.info("Demo baseline already present — skipping plan/place/review seeding.");
+    /**
+     * Runs a seed batch at most once. The batch body and its version marker commit
+     * together in their own transaction, so a failed batch rolls back fully (and is
+     * retried on the next boot) and a succeeded batch is never re-applied.
+     */
+    private void applyOnce(String version, Runnable batch) {
+        if (seedLogRepository.existsById(version)) {
+            log.info("Seed batch '{}' already applied — skipping.", version);
             return;
         }
+        transactionTemplate.executeWithoutResult(status -> {
+            batch.run();
+            seedLogRepository.save(new SeedLog(version));
+        });
+        log.info("Seed batch '{}' applied.", version);
+    }
 
+    private void seedCore() {
+        List<User> team = ensureTeam();
         List<TuristicPlace> places = seedTuristicPlaces(team);
-        List<Plan> plans = seedPlans(team);
+        seedPlans(team);
         seedVenueReviews(team, places);
         seedUserReviews(team);
-
-        log.info("Seeded demo baseline: {} users, {} tourist places, {} plans, {} reviews.",
-                team.size(), places.size(), plans.size(), reviewRepository.count());
+        log.info("Core batch: ensured {} users and {} tourist places.", team.size(), places.size());
     }
 
     // ---------------------------------------------------------------------
@@ -345,14 +366,180 @@ public class DemoDataInitializer {
     }
 
     private void venueReview(User author, TuristicPlace place, int rating, String comment) {
+        if (reviewRepository.findByUserIdAndTargetTypeAndTargetId(author.getId(), ReviewTarget.VENUE, place.getId()).isPresent()) {
+            return;
+        }
         reviewRepository.save(new Review(author, rating, comment, ReviewTarget.VENUE, place.getId()));
     }
 
     private void userReview(User author, User target, int rating, String comment) {
+        if (reviewRepository.findByUserIdAndTargetTypeAndTargetId(author.getId(), ReviewTarget.USER, target.getId()).isPresent()) {
+            return;
+        }
         reviewRepository.save(new Review(author, rating, comment, ReviewTarget.USER, target.getId()));
     }
 
     private static LocalDateTime dt(int year, int month, int day, int hour, int minute) {
         return LocalDateTime.of(year, month, day, hour, minute);
+    }
+
+    // ---------------------------------------------------------------------
+    // Expansion batch (v2): 35 users, 90 places, 90 plans, reviews up to 400/400.
+    // ---------------------------------------------------------------------
+
+    private void seedExpansion() {
+        Random rng = new Random(20260625L);
+
+        // 35 new users (idempotent by email), remembering each persona's voice.
+        List<User> newUsers = new ArrayList<>();
+        Map<Long, String> personalityByUserId = new HashMap<>();
+        for (SeedData.PersonaSpec spec : SeedData.PERSONAS) {
+            User user = ensurePersona(spec);
+            newUsers.add(user);
+            personalityByUserId.put(user.getId(), spec.personality());
+        }
+
+        // 90 new places from the catalog, attributed to the new users.
+        List<TuristicPlace> newPlaces = new ArrayList<>();
+        int idx = 0;
+        for (SeedData.PlaceSpec spec : SeedData.PLACES) {
+            User creator = newUsers.get(idx % newUsers.size());
+            newPlaces.add(createPlace(spec, creator));
+            idx++;
+        }
+
+        // One coherent plan per new place (keeps the same geographic distribution).
+        seedExpansionPlans(newUsers, newPlaces, rng);
+
+        // Top reviews up to 400 venue + 400 user, authored by the new users.
+        List<User> allUsers = userRepository.findAll();
+        List<TuristicPlace> allPlaces = turisticPlaceRepository.findAll();
+        seedExpansionReviews(newUsers, allUsers, allPlaces, personalityByUserId, rng);
+
+        log.info("Expansion batch: added {} users and {} tourist places.", newUsers.size(), newPlaces.size());
+    }
+
+    private User ensurePersona(SeedData.PersonaSpec s) {
+        return userRepository.findByEmail(s.email()).orElseGet(() -> {
+            User user = new User(s.firstName(), passwordEncoder.encode(SEED_PASSWORD), s.gender(), s.email(),
+                    s.lastName(), "", "USER", s.birthDate(), s.interests(), s.travelType(), s.languages());
+            user.setVerified(true);
+            user.setPreferredLanguage("en");
+            return userRepository.save(user);
+        });
+    }
+
+    private TuristicPlace createPlace(SeedData.PlaceSpec s, User creator) {
+        TuristicPlace place = new TuristicPlace(s.name(), s.cost(), null, null, s.interests(),
+                s.country(), s.city(), s.address(), s.lat(), s.lng(), List.of());
+        place.setDescription(s.description());
+        place.setCreator(creator);
+        return turisticPlaceRepository.save(place);
+    }
+
+    private void seedExpansionPlans(List<User> users, List<TuristicPlace> places, Random rng) {
+        LocalDateTime base = LocalDateTime.of(2026, 7, 1, 0, 0);
+
+        // Pick exactly 90 plan host places so that, combined with the base plans
+        // (4 CABA + 6 provinces), the global plan distribution lands on the same
+        // 60% AR / 40% world and, within AR, 60% CABA / 40% provinces. The new
+        // places are 33 CABA + 17 provinces + 40 world; new plans must therefore be
+        // 32 CABA + 18 provinces + 40 world (one province place hosts two plans, one
+        // CABA place hosts none).
+        List<TuristicPlace> caba = new ArrayList<>();
+        List<TuristicPlace> prov = new ArrayList<>();
+        List<TuristicPlace> world = new ArrayList<>();
+        for (TuristicPlace pl : places) {
+            if (!"Argentina".equals(pl.getCountry())) world.add(pl);
+            else if ("Buenos Aires".equals(pl.getCity())) caba.add(pl);
+            else prov.add(pl);
+        }
+        List<TuristicPlace> hosts = new ArrayList<>();
+        if (caba.size() >= 32 && !prov.isEmpty()) {
+            hosts.addAll(caba.subList(0, 32));
+            hosts.addAll(prov);
+            hosts.add(prov.get(0));
+            hosts.addAll(world);
+        } else {
+            hosts.addAll(places); // safe fallback: one plan per place
+        }
+
+        int i = 0;
+        for (TuristicPlace place : hosts) {
+            User creator = users.get(i % users.size());
+            List<User> members = new ArrayList<>();
+            for (int k = 1; k <= 3; k++) {
+                members.add(users.get((i + k) % users.size()));
+            }
+            Interest primary = place.getInterests().isEmpty() ? Interest.OTHER : place.getInterests().get(0);
+            String title = SeedData.planTitle(primary, place.getCity(), rng);
+            String description = SeedData.planDescription(place.getName(), rng);
+            LocalDateTime start = base.plusDays(i + 1L).withHour(9 + (i % 8)).withMinute(0);
+            LocalDateTime end = start.plusHours(3L + (i % 4));
+            PlanVisibility visibility = (i % 5 == 0) ? PlanVisibility.PRIVATE : PlanVisibility.PUBLIC;
+            Integer minAge = (i % 4 == 0) ? 18 : null;
+            Integer maxSubscribers = 10 + (i % 6) * 5;
+            double budget = 5000.0 + (i % 10) * 2500.0;
+            String tz = "Argentina".equals(place.getCountry()) ? AR_TZ : "UTC";
+
+            Plan plan = new Plan(title, description, start, end, visibility, maxSubscribers, minAge, null,
+                    place.getInterests(), place.getCountry(), place.getCity(), place.getAddress(),
+                    place.getLatitude(), place.getLongitude(), List.of(), creator, tz);
+            plan.setBudget(budget);
+            plan = planRepository.save(plan);
+            for (User member : members) {
+                if (plan.addSubscriber(member, true)) {
+                    plan.incrementSubscriberCount();
+                }
+            }
+            planRepository.save(plan);
+            i++;
+        }
+    }
+
+    private void seedExpansionReviews(List<User> authors, List<User> allUsers, List<TuristicPlace> places,
+                                      Map<Long, String> personalityByUserId, Random rng) {
+        int venueNeeded = (int) Math.max(0L, 400 - reviewRepository.countByTargetType(ReviewTarget.VENUE));
+        int userNeeded = (int) Math.max(0L, 400 - reviewRepository.countByTargetType(ReviewTarget.USER));
+
+        // VENUE reviews — authored by the new users over any place. Their authors
+        // never overlap the base reviews (whose authors are the original team), so
+        // there is no UNIQUE collision.
+        int created = 0;
+        Set<String> used = new HashSet<>();
+        for (int round = 0; round < places.size() && created < venueNeeded; round++) {
+            for (int a = 0; a < authors.size() && created < venueNeeded; a++) {
+                User author = authors.get(a);
+                TuristicPlace place = places.get((a + round) % places.size());
+                if (!used.add(author.getId() + ":" + place.getId())) continue;
+                if (reviewRepository.findByUserIdAndTargetTypeAndTargetId(author.getId(), ReviewTarget.VENUE, place.getId()).isPresent()) {
+                    continue;
+                }
+                int rating = SeedData.weightedRating(SeedData.ratingWeights(personalityByUserId.get(author.getId())), rng);
+                String comment = SeedData.venueComment(rating, place.getName(), rng);
+                reviewRepository.save(new Review(author, rating, comment, ReviewTarget.VENUE, place.getId()));
+                created++;
+            }
+        }
+
+        // USER reviews — authored by the new users, targeting any other user (never
+        // themselves; never overlapping the base user reviews).
+        created = 0;
+        used.clear();
+        for (int round = 0; round < allUsers.size() && created < userNeeded; round++) {
+            for (int a = 0; a < authors.size() && created < userNeeded; a++) {
+                User author = authors.get(a);
+                User target = allUsers.get((a + round) % allUsers.size());
+                if (target.getId().equals(author.getId())) continue;
+                if (!used.add(author.getId() + ":" + target.getId())) continue;
+                if (reviewRepository.findByUserIdAndTargetTypeAndTargetId(author.getId(), ReviewTarget.USER, target.getId()).isPresent()) {
+                    continue;
+                }
+                int rating = SeedData.weightedRating(SeedData.ratingWeights(personalityByUserId.get(author.getId())), rng);
+                String comment = SeedData.userComment(rating, target.getName(), rng);
+                reviewRepository.save(new Review(author, rating, comment, ReviewTarget.USER, target.getId()));
+                created++;
+            }
+        }
     }
 }
