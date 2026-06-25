@@ -26,6 +26,7 @@ type PlanFormProps = PlanFormValues & {
     screenTitle: string;
     submitLabel: string;
     onSubmit: () => void;
+    onBack: () => void;
     descriptionPlaceholder?: string;
 };
 
@@ -33,6 +34,7 @@ export function PlanForm({
     screenTitle,
     submitLabel,
     onSubmit,
+    onBack,
     descriptionPlaceholder = 'Describe this plan...',
     saving,
     error,
@@ -494,6 +496,22 @@ export function PlanForm({
                         {submitLabel}
                     </ThemedText>
                 )}
+            </Pressable>
+
+            {/* Cancel */}
+            <Pressable
+                onPress={onBack}
+                disabled={saving}
+                style={({ pressed }) => [
+                    styles.cancelButton,
+                    { borderColor: border },
+                    pressed && styles.pressed,
+                    saving && styles.disabled,
+                ]}
+            >
+                <ThemedText type="body" style={{ color: text, fontWeight: '600' }}>
+                    {t('cancel')}
+                </ThemedText>
             </Pressable>
         </AppScreen>
     );

@@ -63,6 +63,7 @@
   "select": "Seleccionar",
   "clear": "Limpiar",
   "save_changes": "Guardar cambios",
+  "cancel": "Cancelar",
   "permission_required": "Permiso requerido",
   "gallery_permission_desc": "Necesitamos acceso a tu galería para elegir una foto.",
   "image_read_error": "No se pudo leer la imagen seleccionada.",

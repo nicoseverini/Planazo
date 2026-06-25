@@ -129,6 +129,14 @@ export const styles = StyleSheet.create({
         justifyContent: 'center',
         marginBottom: 24,
     },
+    cancelButton: {
+        paddingVertical: 16,
+        borderRadius: Layout.buttonRadius,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 40,
+    },
     pressed: {
         opacity: 0.7,
     },

@@ -497,6 +497,22 @@ export default function TuristicPlaceFormScreen({
                     </ThemedText>
                 )}
             </Pressable>
+
+            {/* Cancel */}
+            <Pressable
+                onPress={onBack}
+                disabled={saving}
+                style={({ pressed }) => [
+                    styles.cancelButton,
+                    { borderColor: border },
+                    pressed && styles.pressed,
+                    saving && styles.disabled,
+                ]}
+            >
+                <ThemedText type="body" style={{ color: text, fontWeight: '600' }}>
+                    {t('cancel')}
+                </ThemedText>
+            </Pressable>
         </AppScreen>
     );
 }
