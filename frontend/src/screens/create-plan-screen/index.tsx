@@ -1,6 +1,8 @@
+import React from 'react';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { PlanForm } from '@/components/PlanForm';
 import { INTEREST_BY_CATEGORY } from '@/constants/plan-form';
@@ -11,6 +13,7 @@ import { buildDateTimeWithTimezone, getDeviceTimezone } from '@/utils/date';
 
 export default function CreatePlanScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const { create } = usePlans();
     const form = usePlanForm();
 
@@ -21,8 +24,8 @@ export default function CreatePlanScreen() {
         const startDateTime = buildDateTimeWithTimezone(form.startDate, form.startTime, timezone);
         const endDateTime = buildDateTimeWithTimezone(form.endDate, form.endTime, timezone);
 
-        if (!startDateTime) { form.setError('Start date or time has an invalid format.'); return; }
-        if (!endDateTime) { form.setError('End date or time has an invalid format.'); return; }
+        if (!startDateTime) { form.setError(t('error_start_datetime_format')); return; }
+        if (!endDateTime) { form.setError(t('error_end_datetime_format')); return; }
 
         const parsedMaxSubscribers = Number.parseInt(form.maxParticipants, 10);
 
@@ -37,7 +40,7 @@ export default function CreatePlanScreen() {
                 const query = [form.address.trim(), form.city.trim(), form.country.trim()].filter(Boolean).join(', ');
                 const geocodedLocation = await Location.geocodeAsync(query);
                 if (!geocodedLocation || geocodedLocation.length === 0) {
-                    form.setError('We could not find the location on the map. Try being more specific (e.g., add city and country).');
+                    form.setError(t('error_location_geocoding'));
                     form.setSaving(false);
                     return;
                 }
@@ -69,11 +72,11 @@ export default function CreatePlanScreen() {
             };
 
             await create(payload);
-            Alert.alert('Success', 'Plan created successfully', [
+            Alert.alert(t('success'), t('plan_created_success'), [
                 { text: 'OK', onPress: () => router.back() },
             ]);
         } catch (err) {
-            form.setError(err instanceof Error ? err.message : 'Could not create the plan. Please try again.');
+            form.setError(err instanceof Error ? err.message : t('error_create_plan'));
         } finally {
             form.setSaving(false);
         }
@@ -82,8 +85,8 @@ export default function CreatePlanScreen() {
     return (
         <PlanForm
             {...form}
-            screenTitle="Create Plan"
-            submitLabel="CREATE PLAN"
+            screenTitle={t('create_plan_title')}
+            submitLabel={t('create_plan_title').toUpperCase()}
             onSubmit={handleCreate}
         />
     );

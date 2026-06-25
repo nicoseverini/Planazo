@@ -3,7 +3,9 @@ import { StarRating } from '@/components/StarRating';
 import { ThemedText } from '@/components/ThemedText';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { ReviewResponse } from '@/services/review';
-import { StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
+import { TranslationButton } from '@/components/TranslationButton';
 
 export interface ReviewCardProps {
     review: ReviewResponse;
@@ -64,7 +66,9 @@ function formatTimeAgo(createdAt: any): string {
 }
 
 export function ReviewCard({ review }: ReviewCardProps) {
-    const { surface, border, mutedText, text } = useAppTheme();
+    const { surface, border, mutedText, text, tint, tintText } = useAppTheme();
+    const [translatedComment, setTranslatedComment] = useState<string | null>(null);
+
     const fullName = `${review.author.name || 'Anonymous'} ${review.author.lastname || ''}`.trim();
 
     const formattedDate = formatTimeAgo(review.createdAt);
@@ -86,8 +90,14 @@ export function ReviewCard({ review }: ReviewCardProps) {
                 </View>
             </View>
             <ThemedText type="body" style={[styles.comment, { color: text }]}>
-                {review.comment}
+                {translatedComment || review.comment}
             </ThemedText>
+            {review.comment ? (
+                <TranslationButton
+                    originalText={review.comment}
+                    onTranslationRowReceived={setTranslatedComment}
+                />
+            ) : null}
         </View>
     );
 }

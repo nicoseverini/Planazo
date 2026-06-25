@@ -13,16 +13,16 @@ export type ActivityTypeConfig = {
 export const ACTIVITY_TYPES: ActivityTypeConfig[] = [
   {
     id: 'plans',
-    title: 'Plans',
-    description: 'Discover plans created by the community.',
+    title: 'plans',
+    description: 'plans_generic_description',
     icon: 'calendar',
     route: '/search-plans',
     childRoutes: ['/search-plans', '/plan', '/create-plan'],
   },
   {
     id: 'tourist-places',
-    title: 'Tourist Places',
-    description: 'Explore tourist attractions and interesting places.',
+    title: 'tourist_places',
+    description: 'tourist_places_generic_description',
     icon: 'location',
     route: '/turistic-places',
     childRoutes: ['/turistic-places', '/turistic-place'],

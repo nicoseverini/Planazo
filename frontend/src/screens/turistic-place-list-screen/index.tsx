@@ -15,16 +15,18 @@ import { AppScreen } from '@/components/ui';
 import { useToken } from '@/context/token-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useProximityFilter } from '@/hooks/use-proximity-filter';
-import { INTEREST_OPTIONS, TuristicPlaceSummary, useTuristicPlaces } from '@/services/turistic-place';
+import { TuristicPlaceSummary, useTuristicPlaces } from '@/services/turistic-place';
 import { filterPlaces } from '@/utils/place-filters';
 import { normalizeSearch } from '@/utils/search';
-
+import { useTranslation } from 'react-i18next';
+import { formatInterest } from '@/utils/interests';
 import { styles } from './styles';
 
 export default function TuristicPlaceListScreen() {
     const router = useRouter();
     const { tokenData } = useToken();
     const { fetchAll } = useTuristicPlaces();
+    const { t: translate } = useTranslation();
 
     const { tint, tintText, surface, border, mutedText, text: textColor } = useAppTheme();
 
@@ -49,11 +51,11 @@ export default function TuristicPlaceListScreen() {
         try {
             setAllPlaces(await fetchAll());
         } catch {
-            Alert.alert('Error', 'Unable to load tourist places.');
+            Alert.alert(translate('error'), translate('error_load_places'));
         } finally {
             setLoading(false);
         }
-    }, [fetchAll]);
+    }, [fetchAll, translate]);
 
     useFocusEffect(
         useCallback(() => {
@@ -98,14 +100,14 @@ export default function TuristicPlaceListScreen() {
 
     const emptyMessage =
         hasActiveFilters || searchQuery.trim()
-            ? 'No tourist places match your search.'
-            : 'No tourist places found.';
+            ? translate('no_places_match_search')
+            : translate('no_places_found');
 
     return (
         <AppScreen contentStyle={styles.appScreenContent}>
             {/* Header */}
             <View style={styles.header}>
-                <ThemedText type="title">Tourist Places</ThemedText>
+                <ThemedText type="title">{translate('tourist_places')}</ThemedText>
                 <Pressable onPress={() => setShowFilters(true)} style={{ padding: 4 }}>
                     <Ionicons
                         name={hasActiveFilters ? 'filter' : 'filter-outline'}
@@ -118,14 +120,11 @@ export default function TuristicPlaceListScreen() {
             {/* Active filter chips */}
             {hasActiveFilters && (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginHorizontal: 20, marginBottom: 8 }}>
-                    {selectedCategories.map((value) => {
-                        const label = INTEREST_OPTIONS.find((o) => o.value === value)?.label ?? value;
-                        return (
-                            <View key={value} style={activeChipStyle}>
-                                <ThemedText type="label" style={{ color: tintText }}>{label}</ThemedText>
-                            </View>
-                        );
-                    })}
+                    {selectedCategories.map((value) => (
+                        <View key={value} style={activeChipStyle}>
+                            <ThemedText type="label" style={{ color: tintText }}>{formatInterest(value)}</ThemedText>
+                        </View>
+                    ))}
                     {locationFilter ? (
                         <View style={activeChipStyle}>
                             <ThemedText type="label" style={{ color: tintText }}>📍 {locationFilter}</ThemedText>
@@ -133,11 +132,11 @@ export default function TuristicPlaceListScreen() {
                     ) : null}
                     {radius ? (
                         <View style={activeChipStyle}>
-                            <ThemedText type="label" style={{ color: tintText }}>Dist: {radius}km</ThemedText>
+                            <ThemedText type="label" style={{ color: tintText }}>{translate('distance_km', { radius })}</ThemedText>
                         </View>
                     ) : null}
                     <Pressable onPress={clearFilters} style={{ justifyContent: 'center' }}>
-                        <ThemedText type="label" style={{ color: mutedText }}>✕ Clear</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>✕ {translate('clear_all')}</ThemedText>
                     </Pressable>
                 </View>
             )}
@@ -147,7 +146,7 @@ export default function TuristicPlaceListScreen() {
                 <Ionicons name="search-outline" size={20} color={mutedText} />
                 <TextInput
                     style={[styles.searchInput, { color: textColor }]}
-                    placeholder="Search by name"
+                    placeholder={translate('search_by_name')}
                     placeholderTextColor={mutedText}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
@@ -217,14 +216,14 @@ export default function TuristicPlaceListScreen() {
                     keyboardShouldPersistTaps="handled"
                 >
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                        <ThemedText type="heading">Filters</ThemedText>
+                        <ThemedText type="heading">{translate('filters')}</ThemedText>
                         <Pressable onPress={() => setShowFilters(false)}>
                             <Ionicons name="close" size={24} color={textColor} />
                         </Pressable>
                     </View>
 
                     {/* Category */}
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Category</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>{translate('category')}</ThemedText>
                     <View style={{ marginBottom: 24 }}>
                         <CategoryFilterSelector
                             selected={selectedCategories}
@@ -233,12 +232,12 @@ export default function TuristicPlaceListScreen() {
                     </View>
 
                     {/* Location */}
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Location</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>{translate('location')}</ThemedText>
                     <View style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24 }]}>
                         <Ionicons name="location-outline" size={18} color={mutedText} />
                         <TextInput
                             style={[styles.searchInput, { color: textColor }]}
-                            placeholder="E.g.: Buenos Aires, Argentina..."
+                            placeholder={translate('location_placeholder_places')}
                             placeholderTextColor={mutedText}
                             value={locationFilter}
                             onChangeText={setLocationFilter}
@@ -251,7 +250,7 @@ export default function TuristicPlaceListScreen() {
                     </View>
 
                     {/* Proximity */}
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Proximity (Distance)</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>{translate('distance')}</ThemedText>
                     <View style={{ marginBottom: 24 }}>
                         <DistanceSlider radius={radius} onChange={handleRadiusChange} />
                     </View>
@@ -262,13 +261,13 @@ export default function TuristicPlaceListScreen() {
                             onPress={() => setShowFilters(false)}
                             style={{ backgroundColor: tint, borderRadius: 12, padding: 16, alignItems: 'center' }}
                         >
-                            <ThemedText type="subtitle" style={{ color: tintText }}>Apply filters</ThemedText>
+                            <ThemedText type="subtitle" style={{ color: tintText }}>{translate('apply_filters')}</ThemedText>
                         </Pressable>
                         <Pressable
                             onPress={() => { clearFilters(); setShowFilters(false); }}
                             style={{ borderWidth: 1, borderColor: border, borderRadius: 12, padding: 16, alignItems: 'center' }}
                         >
-                            <ThemedText type="subtitle">Clear all</ThemedText>
+                            <ThemedText type="subtitle">{translate('clear_all')}</ThemedText>
                         </Pressable>
                     </View>
                 </ScrollView>

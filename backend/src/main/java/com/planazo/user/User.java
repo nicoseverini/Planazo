@@ -61,6 +61,9 @@ public class User implements UserDetails, UserCredentials {
     @Column(nullable = false)
     private Boolean verified;
 
+    @Column(name = "preferred_language", nullable = false)
+    private String preferredLanguage = "en";
+
     public User(String name, String password, String gender, String email, String lastname, String photo, String role,
             LocalDate birthDate) {
         this.name = name;
@@ -72,6 +75,7 @@ public class User implements UserDetails, UserCredentials {
         this.gender = gender;
         this.role = role;
         this.verified = false;
+        this.preferredLanguage = "en";
     }
 
     public User(String name, String password, String gender, String email, String lastname, String photo, String role,
@@ -181,6 +185,14 @@ public class User implements UserDetails, UserCredentials {
 
     public void setLanguages(List<String> languages) {
         this.languages = languages == null ? new ArrayList<>() : new ArrayList<>(languages);
+    }
+
+    public String getPreferredLanguage() {
+        return preferredLanguage;
+    }
+
+    public void setPreferredLanguage(String preferredLanguage) {
+        this.preferredLanguage = preferredLanguage;
     }
 
     public Boolean isVerified() {

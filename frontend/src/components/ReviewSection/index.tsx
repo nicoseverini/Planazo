@@ -7,6 +7,7 @@ import { ReviewResponse, ReviewTarget, useReviews } from '@/services/review';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 export interface ReviewSectionProps {
     targetType: ReviewTarget;
@@ -16,6 +17,7 @@ export interface ReviewSectionProps {
 
 export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSectionProps) {
     const router = useRouter();
+    const { t } = useTranslation();
     const { getAccessToken, tokenData } = useToken();
     const { tint, tintText, border, mutedText, surface, text } = useAppTheme();
     const { fetchReviews, create, remove } = useReviews();
@@ -81,12 +83,12 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
 
     const handleDeleteReview = () => {
         Alert.alert(
-            'Delete Review',
-            'Are you sure you want to delete your review? This action cannot be undone.',
+            t('delete_review'),
+            t('delete_review_confirm'),
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('cancel'), style: 'cancel' },
                 {
-                    text: 'Delete',
+                    text: t('delete'),
                     style: 'destructive',
                     onPress: async () => {
                         try {
@@ -94,7 +96,7 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
                             // Reload reviews and stats
                             await loadData();
                         } catch (err) {
-                            Alert.alert('Error', err instanceof Error ? err.message : 'Failed to delete review');
+                            Alert.alert(t('error'), err instanceof Error ? err.message : t('error_delete_review'));
                         }
                     },
                 },
@@ -107,7 +109,7 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="small" color={tint} />
                 <ThemedText type="body" style={{ color: mutedText, marginTop: 8 }}>
-                    Loading reviews...
+                    {t('loading_reviews')}
                 </ThemedText>
             </View>
         );
@@ -120,7 +122,7 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
     const otherReviews = filteredReviews.filter((r) => r.author.id !== currentUserId);
 
     const filterOptions = [
-        { label: 'All', value: null },
+        { label: t('all'), value: null },
         { label: '5 ★', value: 5 },
         { label: '4 ★', value: 4 },
         { label: '3 ★', value: 3 },
@@ -144,7 +146,7 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
                     ) : (
                         <View style={[styles.userReviewContainer, { borderColor: border }]}>
                             <ThemedText type="subtitle" style={styles.userReviewHeader}>
-                                Your Review
+                                {t('your_review')}
                             </ThemedText>
                             <ReviewCard review={userReview} />
                             <View style={styles.actionButtonRow}>
@@ -157,7 +159,7 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
                                     ]}
                                 >
                                     <ThemedText type="body" style={[styles.actionButtonText, { color: tint }]}>
-                                        Edit Review
+                                        {t('edit_review')}
                                     </ThemedText>
                                 </Pressable>
                                 <Pressable
@@ -169,7 +171,7 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
                                     ]}
                                 >
                                     <ThemedText type="body" style={[styles.actionButtonText, { color: '#ef4444' }]}>
-                                        Delete Review
+                                        {t('delete_review')}
                                     </ThemedText>
                                 </Pressable>
                             </View>
@@ -181,21 +183,21 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
             ) : (
                 <View style={[styles.loginPrompt, { backgroundColor: surface, borderColor: border }]}>
                     <ThemedText type="body" style={{ color: mutedText, textAlign: 'center', marginBottom: 12 }}>
-                        You must be signed in to leave a review.
+                        {t('sign_in_to_review')}
                     </ThemedText>
                     <Pressable
                         onPress={() => router.push('/')}
                         style={[styles.loginButton, { backgroundColor: tint }]}
                     >
                         <ThemedText type="body" style={{ color: tintText, fontWeight: '700' }}>
-                            Sign In / Sign Up
+                            {t('sign_in_sign_up')}
                         </ThemedText>
                     </Pressable>
                 </View>
             )}
 
             <ThemedText type="subtitle" style={styles.sectionHeader}>
-                User Reviews ({otherReviews.length})
+                {t('user_reviews_count', { count: otherReviews.length })}
             </ThemedText>
 
             {reviews.length > 0 && (
@@ -238,15 +240,15 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
             {reviews.length === 0 ? (
                 <View style={styles.emptyContainer}>
                     <ThemedText type="body" style={{ color: mutedText, fontStyle: 'italic' }}>
-                        No reviews yet. Be the first to leave one!
+                        {t('no_reviews_be_first')}
                     </ThemedText>
                 </View>
             ) : otherReviews.length === 0 ? (
                 <View style={styles.emptyContainer}>
                     <ThemedText type="body" style={{ color: mutedText, fontStyle: 'italic' }}>
                         {selectedRatingFilter !== null 
-                            ? `No other reviews match the ${selectedRatingFilter}-star rating filter.` 
-                            : "No other reviews yet."}
+                            ? t('no_other_reviews_filter', { rating: selectedRatingFilter })
+                            : t('no_other_reviews')}
                     </ThemedText>
                 </View>
             ) : (

@@ -17,6 +17,12 @@ export const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 24,
         paddingBottom: 16,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    filterButton: {
+        padding: 4,
     },
     searchContainer: {
         flexDirection: 'row',
@@ -71,5 +77,79 @@ export const styles = StyleSheet.create({
     fabPressed: {
         opacity: 0.9,
         transform: [{ scale: 0.95 }],
+    },
+    inlinePicker: {
+        borderWidth: 1,
+        borderRadius: 12,
+        padding: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    activeChip: {
+        borderRadius: 12,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+    },
+    activeChipsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 6,
+        marginHorizontal: 20,
+        marginBottom: 8,
+    },
+    clearAllButton: {
+        justifyContent: 'center',
+    },
+    modalScrollView: {
+        flex: 1,
+    },
+    modalContent: {
+        padding: 24,
+        paddingBottom: 60,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    modalSectionTitle: {
+        marginBottom: 12,
+    },
+    modalSectionTitleWithMargin: {
+        marginTop: 24,
+        marginBottom: 12,
+    },
+    modalSection: {
+        marginBottom: 24,
+    },
+    visibilityContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginBottom: 24,
+    },
+    visibilityOption: {
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 20,
+        borderWidth: 1,
+    },
+    flexText: {
+        flex: 1,
+    },
+    actionButtonsContainer: {
+        gap: 12,
+    },
+    applyButton: {
+        borderRadius: 12,
+        padding: 16,
+        alignItems: 'center',
+    },
+    clearButton: {
+        borderWidth: 1,
+        borderRadius: 12,
+        padding: 16,
+        alignItems: 'center',
     },
 });

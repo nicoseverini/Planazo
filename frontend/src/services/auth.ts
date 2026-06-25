@@ -27,10 +27,13 @@ export function getBackendUrl(): string {
   return 'https://api.example.com';
 }
 
+import { UserProfile } from './user';
+
 // Auth types
 export type AuthTokenResponse = {
   accessToken: string;
   refreshToken: string | null;
+  user?: UserProfile;
 };
 
 export type SignupResponse = {

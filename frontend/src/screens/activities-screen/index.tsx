@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Alert, Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
@@ -10,6 +11,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { styles } from './styles';
 
 export default function ActivitiesScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const tint = useThemeColor({}, 'tint');
   const surface = useThemeColor({}, 'surface');
@@ -20,16 +22,16 @@ export default function ActivitiesScreen() {
     try {
       router.push(route as any);
     } catch {
-      Alert.alert('Error', 'Unable to open this activity. Please try again.');
+      Alert.alert(t('error'), t('something_went_wrong'));
     }
   };
 
   return (
     <AppScreen scrollable>
       <View style={styles.header}>
-        <ThemedText type="title">Activities</ThemedText>
+        <ThemedText type="title">{t('activities')}</ThemedText>
         <ThemedText type="body" style={[styles.headerSubtitle, { color: mutedText }]}>
-          Choose what you'd like to explore
+          {t('activities_desc')}
         </ThemedText>
       </View>
 
@@ -49,10 +51,10 @@ export default function ActivitiesScreen() {
             </View>
             <View style={styles.cardContent}>
               <ThemedText type="subtitle" style={styles.cardTitle}>
-                {activity.title}
+                {t(`${activity.title}`)}
               </ThemedText>
               <ThemedText type="body" style={[styles.cardDescription, { color: mutedText }]}>
-                {activity.description}
+                {t(`${activity.description}`)}
               </ThemedText>
             </View>
             <Ionicons name="chevron-forward" size={20} color={mutedText} style={styles.chevron} />
