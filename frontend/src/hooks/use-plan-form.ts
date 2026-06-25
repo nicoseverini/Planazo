@@ -116,7 +116,7 @@ export function usePlanForm() {
                 setAddress(streetAddress.trim());
             }
         } catch (err) {
-            console.error('Error fetching address:', err);
+            Alert.alert(t('error'), t('error_search_address'));
         } finally {
             setIsFetchingAddress(false);
         }

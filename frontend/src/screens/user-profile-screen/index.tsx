@@ -152,7 +152,6 @@ export default function UserProfileScreen() {
             setPhotoUrl(normalizePhotoValue(merged.photo));
             setEditing(false);
         } catch (err) {
-            console.error('[UserProfileScreen] Error saving profile:', err);
             setError('Unable to update your profile. Please try again.');
         } finally {
             setSaving(false);
@@ -202,7 +201,6 @@ export default function UserProfileScreen() {
             setUser((prev) => (prev ? { ...prev, photo: dataUrl } : prev));
             setFormData((prev) => (prev ? { ...prev, photo: dataUrl } : prev));
         } catch (err) {
-            console.error('[UserProfileScreen] Error updating profile picture:', err);
             Alert.alert(t('error'), t('error_update_photo_failed'));
         } finally {
             setUpdatingPhoto(false);
@@ -223,7 +221,6 @@ export default function UserProfileScreen() {
                         if (router.canGoBack()) router.dismissAll();
                         router.replace('/');
                     } catch (err) {
-                        console.error('[UserProfileScreen] Error logging out:', err);
                         setLoggingOut(false);
                         Alert.alert(t('error'), t('error_logout_failed'));
                     }
@@ -250,7 +247,6 @@ export default function UserProfileScreen() {
                             if (router.canGoBack()) router.dismissAll();
                             router.replace('/');
                         } catch (err) {
-                            console.error('[UserProfileScreen] Error deleting account:', err);
                             setError('Unable to delete your account. Please try again.');
                             setDeletingAccount(false);
                         }

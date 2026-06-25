@@ -59,7 +59,7 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
                 onStatsUpdated(averageRating, reviewCount);
             }
         } catch (err) {
-            console.error('Failed to load reviews data:', err);
+            Alert.alert(t('error'), t('unable_load_reviews'));
         } finally {
             setInitialLoading(false);
         }

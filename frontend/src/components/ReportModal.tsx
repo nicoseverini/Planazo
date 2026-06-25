@@ -70,7 +70,6 @@ export function ReportModal({
       setSelectedReason(null);
       setDescription('');
     } catch (error) {
-      console.error('Error submitting report:', error);
       Alert.alert(t('error'), t('error_submit_report_failed'));
     } finally {
       setSubmitting(false);

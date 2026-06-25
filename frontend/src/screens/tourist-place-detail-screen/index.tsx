@@ -100,7 +100,7 @@ export default function TouristPlaceDetailScreen() {
             handleStatsUpdated(statsResult.value.averageRating, statsResult.value.reviewCount);
         } else {
             // Non-blocking: keep the place visible and the last known summary.
-            console.warn('[TouristPlaceDetail] Unable to load rating information:', statsResult.reason);
+            Alert.alert(t('error'), t('unable_load_place'));
         }
 
         setLoading(false);

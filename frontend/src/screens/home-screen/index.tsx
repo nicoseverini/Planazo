@@ -108,7 +108,7 @@ export default function HomeScreen() {
             setMyUserId(Number(decoded.id));
           }
         } catch (e) {
-          console.error('[HomeScreen] Error decoding jwt', e);
+          Alert.alert(t('error'), t('something_went_wrong'));
         }
       }
     }
@@ -135,7 +135,7 @@ export default function HomeScreen() {
             await i18n.changeLanguage(userProfile.preferredLanguage);
           }
         } catch (err) {
-          console.error('[HomeScreen] Error loading profile:', err);
+          Alert.alert(t('error'), t('something_went_wrong'));
         }
 
         // 2. Fetch my joined plans to mark subscribed state
@@ -145,7 +145,7 @@ export default function HomeScreen() {
           joinedSet = new Set(joinedPlans.map((p) => p.id));
           setJoinedIds(joinedSet);
         } catch (err) {
-          console.error('[HomeScreen] Error fetching joined plans:', err);
+          Alert.alert(t('error'), t('unable_load_joined_plans'));
         }
 
         const interests = userProfile.interests || [];
@@ -169,7 +169,7 @@ export default function HomeScreen() {
         try {
           allPublicList = await fetchPublicPlans();
         } catch (err) {
-          console.error('[HomeScreen] Error fetching public list:', err);
+          Alert.alert(t('error'), t('something_went_wrong'));
         }
 
         // Fetch tourist places only if location is granted
@@ -189,7 +189,7 @@ export default function HomeScreen() {
             });
             setTouristPlaces(sortedByDistance.slice(0, 5));
           } catch (err) {
-            console.error('[HomeScreen] Error fetching tourist places:', err);
+            Alert.alert(t('error'), t('unable_load_places_try'));
           }
         } else {
           setTouristPlaces([]);
@@ -209,7 +209,7 @@ export default function HomeScreen() {
               activeCase = 'CASE_1';
               labelKey = 'recommended_near_you';
             } catch (err) {
-              console.error('[HomeScreen] Case 1 fetch error:', err);
+              Alert.alert(t('error'), t('something_went_wrong'));
             }
           }
 
@@ -225,7 +225,7 @@ export default function HomeScreen() {
               activeCase = 'CASE_2';
               labelKey = 'popular_near_you';
             } catch (err) {
-              console.error('[HomeScreen] Case 2 fetch error:', err);
+              Alert.alert(t('error'), t('something_went_wrong'));
             }
           }
         } else {
@@ -250,7 +250,7 @@ export default function HomeScreen() {
               activeCase = 'CASE_3';
               labelKey = 'matching_your_interests';
             } catch (err) {
-              console.error('[HomeScreen] Case 3 fetch error:', err);
+              Alert.alert(t('error'), t('something_went_wrong'));
             }
           }
 
@@ -308,7 +308,7 @@ export default function HomeScreen() {
         setListLabelKey(labelKey);
         setBusinessCase(activeCase);
       } catch (err) {
-        console.error('[HomeScreen] General load error:', err);
+        Alert.alert(t('error'), t('unable_load_plans_try'));
       } finally {
         setLoading(false);
       }
@@ -347,7 +347,7 @@ export default function HomeScreen() {
             setUserCountryCode(geocodes[0].isoCountryCode || null);
           }
         } catch (e) {
-          console.error('[HomeScreen] Error reverse geocoding:', e);
+          Alert.alert(t('error'), t('something_went_wrong'));
         }
 
         await loadData(status, currentCoords);
@@ -355,7 +355,7 @@ export default function HomeScreen() {
         await loadData(status, null);
       }
     } catch (err) {
-      console.error('[HomeScreen] Error checking location permission:', err);
+      Alert.alert(t('error'), t('something_went_wrong'));
       await loadData(null, null);
     }
   };
@@ -388,7 +388,7 @@ export default function HomeScreen() {
             setUserCountryCode(geocodes[0].isoCountryCode || null);
           }
         } catch (e) {
-          console.error('[HomeScreen] Error reverse geocoding:', e);
+          Alert.alert(t('error'), t('something_went_wrong'));
         }
 
         setLoading(true);
@@ -404,7 +404,7 @@ export default function HomeScreen() {
         }
       }
     } catch (err) {
-      console.error('[HomeScreen] Error requesting location permission:', err);
+      Alert.alert(t('error'), t('something_went_wrong'));
     }
   };
 
@@ -430,7 +430,7 @@ export default function HomeScreen() {
             setUserCountryCode(geocodes[0].isoCountryCode || null);
           }
         } catch (e) {
-          console.error('[HomeScreen] Error reverse geocoding:', e);
+          Alert.alert(t('error'), t('something_went_wrong'));
         }
       } else {
         setUserCountry(null);
@@ -438,7 +438,7 @@ export default function HomeScreen() {
       }
       await loadData(status, currentCoords);
     } catch (e) {
-      console.error('[HomeScreen] Error during refresh:', e);
+      Alert.alert(t('error'), t('something_went_wrong'));
     } finally {
       setRefreshing(false);
     }

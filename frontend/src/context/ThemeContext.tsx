@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useColorScheme as useNativeColorScheme, Platform } from 'react-native';
+import { Alert, useColorScheme as useNativeColorScheme, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '@/constants/theme';
 
@@ -78,7 +78,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           setThemeModeState(stored);
         }
       } catch (err) {
-        console.error('[ThemeProvider] Error loading theme:', err);
+        Alert.alert('Error', 'Could not load your theme preferences.');
       }
     }
     loadTheme();
@@ -92,7 +92,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setThemeModeState(mode);
       await setItemSafe(THEME_STORAGE_KEY, mode);
     } catch (err) {
-      console.error('[ThemeProvider] Error saving theme:', err);
+      Alert.alert('Error', 'Could not save your theme preferences.');
     }
   };
 

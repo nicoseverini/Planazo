@@ -166,8 +166,8 @@ export default function PlanDetailScreen() {
             const data = await fetchPendingSubscribers(plan.id);
             setPendingSubscribers(data);
         } catch (err) {
-            console.error('[PlanDetailScreen] Error loading pending subscribers:', err);
             setPendingSubscribers([]);
+            Alert.alert(t('error'), t('unable_load_plan'));
         } finally {
             setPendingLoading(false);
         }
@@ -182,9 +182,9 @@ export default function PlanDetailScreen() {
             const data = await fetchPlanMembers(plan.id);
             setMembers(data);
         } catch (err) {
-            console.error('[PlanDetailScreen] Error loading members:', err);
             setMembers([]);
             setMembersError('Unable to load plan members.');
+            Alert.alert(t('error'), t('unable_load_plan'));
         } finally {
             setMembersLoading(false);
         }
@@ -229,8 +229,9 @@ export default function PlanDetailScreen() {
                 }
             }
         } catch (err) {
-            console.error('[PlanDetailScreen] Error joining/leaving plan:', err);
-            const message = err instanceof Error ? err.message : t('could_not_process_request');
+            const message = err instanceof Error && err.message.includes("age")
+                ? t('error_age_restriction')
+                : (err instanceof Error ? err.message : t('could_not_process_request'));
             Alert.alert(t('error'), message);
         } finally {
             setSubscribing(false);
@@ -260,7 +261,6 @@ export default function PlanDetailScreen() {
                             await removeMember(plan!.id, userId);
                             await Promise.all([handleRefresh(), loadMembers()]);
                         } catch (err) {
-                            console.error('[PlanDetailScreen] Error removing member:', err);
                             const message = err instanceof Error ? err.message : t('error_remove_member_failed');
                             Alert.alert(t('error'), message);
                             setMembersLoading(false);
@@ -280,7 +280,6 @@ export default function PlanDetailScreen() {
             await Promise.all([handleRefresh(), loadPendingSubscribers(), loadMembers()]);
             Alert.alert(t('request_accepted'), t('accepted_user', { name }));
         } catch (err) {
-            console.error('[PlanDetailScreen] Error accepting subscriber:', err);
             const message = err instanceof Error ? err.message : t('something_went_wrong');
             Alert.alert(t('error'), message);
             setPendingLoading(false);
@@ -296,7 +295,6 @@ export default function PlanDetailScreen() {
             await loadPendingSubscribers();
             Alert.alert(t('request_rejected'), t('rejected_user', { name }));
         } catch (err) {
-            console.error('[PlanDetailScreen] Error rejecting subscriber:', err);
             const message = err instanceof Error ? err.message : t('something_went_wrong');
             Alert.alert(t('error'), message);
             setPendingLoading(false);
@@ -362,7 +360,6 @@ export default function PlanDetailScreen() {
                                 { text: 'OK', onPress: () => router.back() },
                             ]);
                         } catch (err) {
-                            console.error('[PlanDetailScreen] Error deleting plan:', err);
                             Alert.alert(t('error'), t('could_not_delete_plan'));
                             setLoading(false);
                         }

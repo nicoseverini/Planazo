@@ -76,7 +76,7 @@ export default function MapScreen() {
                 1000
             );
         } catch (error) {
-            console.log('There is an error when trying to center on user location:', error);
+            Alert.alert(t('error'), t('something_went_wrong'));
         }
     };
 
@@ -109,7 +109,7 @@ export default function MapScreen() {
                     setPlans(plansData);
                     setPlaces(placesData);
                 })
-                .catch(console.error);
+                .catch(() => Alert.alert(t('error'), t('unable_load_places_try')));
         }, [])
     );
 
