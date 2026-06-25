@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
     ActivityIndicator, Alert, FlatList, Modal,
     Pressable, RefreshControl, ScrollView, TextInput, View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { CategoryFilterSelector } from '@/components/CategoryFilterSelector';
 import { DistanceSlider } from '@/components/DistanceSlider';
@@ -42,6 +43,7 @@ type Props = {
 };
 
 export function PlaceListTab({ load, errorMessage, empty, action, onPressPlace }: Props) {
+    const { t } = useTranslation();
     const { surface, border, tint, tintText, mutedText, text: textColor } = useAppTheme();
 
     const [places, setPlaces] = useState<TuristicPlaceSummary[]>([]);
@@ -59,7 +61,7 @@ export function PlaceListTab({ load, errorMessage, empty, action, onPressPlace }
         try {
             setPlaces(await load());
         } catch {
-            Alert.alert('Error', errorMessage);
+            Alert.alert(t('error'), errorMessage);
         } finally {
             setLoading(false);
         }
@@ -99,7 +101,7 @@ export function PlaceListTab({ load, errorMessage, empty, action, onPressPlace }
                         size={22}
                         color={hasFilters ? tint : textColor}
                     />
-                    <ThemedText type="label" style={{ color: hasFilters ? tint : textColor }}>Filters</ThemedText>
+                    <ThemedText type="label" style={{ color: hasFilters ? tint : textColor }}>{t('filters')}</ThemedText>
                 </Pressable>
             </View>
 
@@ -118,11 +120,11 @@ export function PlaceListTab({ load, errorMessage, empty, action, onPressPlace }
                     )}
                     {radius && (
                         <View style={activeChipStyle}>
-                            <ThemedText type="label" style={{ color: tintText }}>Dist: {radius}km</ThemedText>
+                            <ThemedText type="label" style={{ color: tintText }}>{t('distance_km', { radius })}</ThemedText>
                         </View>
                     )}
                     <Pressable onPress={clearFilters} style={{ justifyContent: 'center' }}>
-                        <ThemedText type="label" style={{ color: mutedText }}>✕ Clear</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>✕ {t('clear_all')}</ThemedText>
                     </Pressable>
                 </View>
             )}
@@ -143,7 +145,7 @@ export function PlaceListTab({ load, errorMessage, empty, action, onPressPlace }
                         <View style={styles.emptyContainer}>
                             <Ionicons name={empty.icon} size={48} color={mutedText} />
                             <ThemedText type="body" style={[styles.emptyText, { color: mutedText }]}>
-                                {hasFilters ? 'No places match your filters.' : empty.message}
+                                {hasFilters ? t('no_places_matching_filters') : empty.message}
                             </ThemedText>
                             {!hasFilters && (
                                 <Pressable onPress={action.onPress} style={[styles.emptyCta, { borderColor: tint }]}>
@@ -176,14 +178,14 @@ export function PlaceListTab({ load, errorMessage, empty, action, onPressPlace }
                     keyboardShouldPersistTaps="handled"
                 >
                     <View style={styles.modalHeader}>
-                        <ThemedText type="heading">Filters</ThemedText>
+                        <ThemedText type="heading">{t('filters')}</ThemedText>
                         <Pressable onPress={() => setShowFilters(false)}>
                             <Ionicons name="close" size={24} color={textColor} />
                         </Pressable>
                     </View>
 
                     {/* Category */}
-                    <ThemedText type="subtitle" style={styles.modalLabel}>Category</ThemedText>
+                    <ThemedText type="subtitle" style={styles.modalLabel}>{t('category')}</ThemedText>
                     <View style={{ marginBottom: 24 }}>
                         <CategoryFilterSelector
                             selected={filters.categories}
@@ -192,12 +194,12 @@ export function PlaceListTab({ load, errorMessage, empty, action, onPressPlace }
                     </View>
 
                     {/* Location */}
-                    <ThemedText type="subtitle" style={styles.modalLabel}>Location</ThemedText>
+                    <ThemedText type="subtitle" style={styles.modalLabel}>{t('location')}</ThemedText>
                     <View style={[styles.modalInput, { backgroundColor: surface, borderColor: border }]}>
                         <Ionicons name="location-outline" size={18} color={mutedText} />
                         <TextInput
                             style={[styles.modalInputText, { color: textColor }]}
-                            placeholder="E.g.: Buenos Aires, Argentina..."
+                            placeholder={t('location_placeholder_places')}
                             placeholderTextColor={mutedText}
                             value={filters.location}
                             onChangeText={(location) => setFilters((f) => ({ ...f, location }))}
@@ -210,7 +212,7 @@ export function PlaceListTab({ load, errorMessage, empty, action, onPressPlace }
                     </View>
 
                     {/* Proximity */}
-                    <ThemedText type="subtitle" style={styles.modalLabel}>Proximity (Distance)</ThemedText>
+                    <ThemedText type="subtitle" style={styles.modalLabel}>{t('proximity_distance')}</ThemedText>
                     <View style={{ marginBottom: 24 }}>
                         <DistanceSlider radius={radius} onChange={handleRadiusChange} />
                     </View>
@@ -221,13 +223,13 @@ export function PlaceListTab({ load, errorMessage, empty, action, onPressPlace }
                             onPress={() => setShowFilters(false)}
                             style={{ backgroundColor: tint, borderRadius: 12, padding: 16, alignItems: 'center' }}
                         >
-                            <ThemedText type="subtitle" style={{ color: tintText }}>Apply filters</ThemedText>
+                            <ThemedText type="subtitle" style={{ color: tintText }}>{t('apply_filters')}</ThemedText>
                         </Pressable>
                         <Pressable
                             onPress={() => { clearFilters(); setShowFilters(false); }}
                             style={{ borderWidth: 1, borderColor: border, borderRadius: 12, padding: 16, alignItems: 'center' }}
                         >
-                            <ThemedText type="subtitle">Clear all</ThemedText>
+                            <ThemedText type="subtitle">{t('clear_all')}</ThemedText>
                         </Pressable>
                     </View>
                 </ScrollView>

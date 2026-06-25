@@ -1,5 +1,7 @@
+import React from 'react';
 import { useRouter } from 'expo-router';
 import { Image, Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
@@ -10,6 +12,7 @@ import { styles } from './styles';
 
 export default function LandingScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() ?? 'light';
   const background = useThemeColor({}, 'background');
   const surface = useThemeColor({}, 'surface');
@@ -30,9 +33,9 @@ export default function LandingScreen() {
           resizeMode="contain"
         />
 
-        <ThemedText type="heading" style={styles.titleContainer}>Welcome</ThemedText>
+        <ThemedText type="heading" style={styles.titleContainer}>{t('welcome')}</ThemedText>
         <ThemedText type="body" style={styles.subtitle}>
-          Sign in or create an account to continue.
+          {t('welcome_subtitle')}
         </ThemedText>
       </View>
 
@@ -45,7 +48,7 @@ export default function LandingScreen() {
             pressed && styles.pressed,
           ]}
         >
-          <ThemedText type="buttonLarge" lightColor={tintText} darkColor={tintText} style={styles.buttonPrimaryText}>Sign in</ThemedText>
+          <ThemedText type="buttonLarge" lightColor={tintText} darkColor={tintText} style={styles.buttonPrimaryText}>{t('sign_in')}</ThemedText>
         </Pressable>
 
         <Pressable
@@ -56,7 +59,7 @@ export default function LandingScreen() {
             pressed && styles.pressed,
           ]}
         >
-          <ThemedText type="buttonMedium" style={styles.buttonSecondaryText}>Register</ThemedText>
+          <ThemedText type="buttonMedium" style={styles.buttonSecondaryText}>{t('register')}</ThemedText>
         </Pressable>
       </View>
     </AppScreen>

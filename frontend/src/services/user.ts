@@ -19,6 +19,7 @@ export type UserProfile = {
   languages?: string[];
   interests?: string[];
   birthDate?: string;
+  preferredLanguage?: string;
 };
 
 export type UpdateProfileRequest = {
@@ -158,6 +159,29 @@ export async function deleteMyAccount(accessToken: string): Promise<void> {
   }
 }
 
+export async function updatePreferredLanguage(
+    accessToken: string,
+    preferredLanguage: string
+): Promise<void> {
+  const url = `${getBackendUrl()}/api/v1/users/me/language`;
+  console.log('[UserService] Updating preferred language:', url);
+
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ preferredLanguage }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to update language: ${errorText}`);
+  }
+}
+
 // ============================================
 // Hooks (usando el TokenContext)
 // ============================================
@@ -195,5 +219,11 @@ export function useProfile() {
     return deleteMyAccount(token);
   };
 
-  return { fetchProfile, fetchPicture, updateProfile, updatePicture, deleteAccount };
+  const updateLanguage = async (preferredLanguage: string) => {
+    const token = getAccessToken();
+    if (!token) throw new Error('No access token');
+    return updatePreferredLanguage(token, preferredLanguage);
+  };
+
+  return { fetchProfile, fetchPicture, updateProfile, updatePicture, deleteAccount, updateLanguage };
 }

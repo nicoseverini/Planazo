@@ -27,6 +27,8 @@ import { formatAgeRestriction } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
 import { formatDateTimeInTimezone } from '@/utils/date';
 import { openInMaps } from '@/utils/navigation';
+import { TranslationButton } from '@/components/TranslationButton';
+import { useTranslation } from 'react-i18next';
 
 import { styles } from './styles';
 
@@ -47,7 +49,7 @@ const formatDateTime = (value: string, timezone: string | undefined | null) =>
 export default function PlanDetailScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
-    const { fetchPlanDetail, fetchMyJoinedPlans, fetchPendingSubscribers, join, leave, remove, accept, reject} = usePlans();
+    const { fetchPlanDetail, fetchMyJoinedPlans, fetchPendingSubscribers, join, leave, remove, accept, reject } = usePlans();
     const { getAccessToken } = useToken();
 
     const { tint, tintText, surface, border, mutedText, text } = useAppTheme();
@@ -65,6 +67,9 @@ export default function PlanDetailScreen() {
     const [isImageModalVisible, setIsImageModalVisible] = useState(false);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
+    const { t, i18n } = useTranslation();
+    const [translatedDescription, setTranslatedDescription] = useState<string | null>(null);
+
     const interestLabel = (plan?.interests ?? [])
         .map(formatInterest)
         .join(' · ');
@@ -73,13 +78,14 @@ export default function PlanDetailScreen() {
         const planId = parsePlanId(id);
         if (!planId) {
             setLoading(false);
-            Alert.alert('Error', 'The plan identifier is not valid.');
+            Alert.alert(t('error'), t('plan_invalid_id'));
             return;
         }
 
         try {
             const data = await fetchPlanDetail(planId);
             setPlan(data);
+            setTranslatedDescription(null);
 
             const token = getAccessToken();
             if (token) {
@@ -89,11 +95,11 @@ export default function PlanDetailScreen() {
                 setIsSubscribed(false);
             }
         } catch (err) {
-            Alert.alert('Error', 'Unable to load the plan.');
+            Alert.alert(t('error'), t('unable_load_plan'));
         } finally {
             setLoading(false);
         }
-    }, [id, fetchMyJoinedPlans, fetchPlanDetail, getAccessToken]);
+    }, [id, fetchMyJoinedPlans, fetchPlanDetail, getAccessToken, t]);
 
     const handleRefresh = useCallback(async () => {
         if (refreshingRef.current) return;
@@ -110,6 +116,7 @@ export default function PlanDetailScreen() {
         try {
             const data = await fetchPlanDetail(planId);
             setPlan(data);
+            setTranslatedDescription(null);
 
             const token = getAccessToken();
             if (token) {
@@ -119,13 +126,15 @@ export default function PlanDetailScreen() {
                 setIsSubscribed(false);
             }
         } catch (err) {
-            const message = err instanceof Error ? err.message : 'Unable to refresh the plan.';
-            Alert.alert('Error', message);
+            const message = err instanceof Error ? err.message : t('unable_refresh_plan');
+            Alert.alert(t('error'), message);
         } finally {
             setRefreshing(false);
             refreshingRef.current = false;
         }
-    }, [id, fetchPlanDetail, fetchMyJoinedPlans, getAccessToken]);
+    }, [id, fetchPlanDetail, fetchMyJoinedPlans, getAccessToken, t]);
+
+
 
     useFocusEffect(
         useCallback(() => {
@@ -169,7 +178,7 @@ export default function PlanDetailScreen() {
         if (!plan) return;
 
         if (plan.isFull && !isSubscribed) {
-            Alert.alert('Plan full', 'This plan has already reached its participant limit.');
+            Alert.alert(t('plan_full'), t('plan_full_message'));
             return;
         }
 
@@ -183,8 +192,8 @@ export default function PlanDetailScreen() {
                 await handleRefresh();
                 if (isPrivatePlan) {
                     Alert.alert(
-                        'Join request sent',
-                        'Your join request has been sent. You can check its status in "My Activities".'
+                        t('request_sent'),
+                        t('request_sent_message')
                     );
                 }
             }
@@ -210,11 +219,11 @@ export default function PlanDetailScreen() {
             setPendingLoading(true);
             await accept(plan!.id, id);
             await Promise.all([handleRefresh(), loadPendingSubscribers()]);
-            Alert.alert('Request accepted', `You've just accepted ${name} into the plan.`);
+            Alert.alert(t('request_accepted'), t('accepted_user', { name }));
         } catch (err) {
             console.error('[PlanDetailScreen] Error accepting subscriber:', err);
-            const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
-            Alert.alert('Error', message);
+            const message = err instanceof Error ? err.message : t('something_went_wrong');
+            Alert.alert(t('error'), message);
             setPendingLoading(false);
         }
     };
@@ -226,11 +235,11 @@ export default function PlanDetailScreen() {
             setPendingLoading(true);
             await reject(plan!.id, id);
             await loadPendingSubscribers();
-            Alert.alert('Request rejected', `You've rejected ${name}'s join request.`);
+            Alert.alert(t('request_rejected'), t('rejected_user', { name }));
         } catch (err) {
             console.error('[PlanDetailScreen] Error rejecting subscriber:', err);
-            const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
-            Alert.alert('Error', message);
+            const message = err instanceof Error ? err.message : t('something_went_wrong');
+            Alert.alert(t('error'), message);
             setPendingLoading(false);
         }
     };
@@ -251,13 +260,13 @@ export default function PlanDetailScreen() {
                 <View style={styles.loadingContainer}>
                     <Ionicons name="alert-circle-outline" size={48} color={mutedText} />
                     <ThemedText type="body" style={{ color: mutedText, marginTop: 12 }}>
-                        Plan not found
+                        {t('plan_not_found')}
                     </ThemedText>
                     <Pressable
                         onPress={() => router.back()}
                         style={[styles.backButton, { backgroundColor: tint, marginTop: 24 }]}
                     >
-                        <ThemedText type="body" style={{ color: tintText }}>Back</ThemedText>
+                        <ThemedText type="body" style={{ color: tintText }}>{t('back')}</ThemedText>
                     </Pressable>
                 </View>
             </AppScreen>
@@ -272,32 +281,32 @@ export default function PlanDetailScreen() {
     const isPublic = plan.visibility === 'PUBLIC';
     const isExpired = plan.endDateTime ? new Date(plan.endDateTime) <= new Date() : false;
     const participantsLabel = plan.maxSubscribers != null
-        ? `${plan.subscriberCount} / ${plan.maxSubscribers} participants`
-        : `${plan.subscriberCount} participants`;
+        ? t('participants_max', { count: plan.subscriberCount, max: plan.maxSubscribers })
+        : t('participants', { count: plan.subscriberCount });
     const budgetLabel = plan.budget > 0
         ? `$${plan.budget.toLocaleString()}`
-        : 'Free';
+        : t('free');
     const canUseSubscriptionButton = !isExpired && (!plan.isFull || isSubscribed);
 
     const handleDelete = () => {
         Alert.alert(
-            'Delete Plan',
-            'Are you sure you want to delete this plan? This action cannot be undone.',
+            t('delete_plan'),
+            t('delete_plan_confirm'),
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('cancel'), style: 'cancel' },
                 {
-                    text: 'Delete',
+                    text: t('delete'),
                     style: 'destructive',
                     onPress: async () => {
                         try {
                             setLoading(true);
                             await remove(plan.id);
-                            Alert.alert('Success', 'Plan deleted successfully.', [
+                            Alert.alert(t('success'), t('plan_deleted'), [
                                 { text: 'OK', onPress: () => router.back() },
                             ]);
                         } catch (err) {
                             console.error('[PlanDetailScreen] Error deleting plan:', err);
-                            Alert.alert('Error', 'Could not delete the plan. Check your connection.');
+                            Alert.alert(t('error'), t('could_not_delete_plan'));
                             setLoading(false);
                         }
                     },
@@ -336,13 +345,13 @@ export default function PlanDetailScreen() {
                         </ThemedText>
                         <View style={[styles.visibilityBadge, { backgroundColor: isPublic ? StatusBadgeColors.public.background : StatusBadgeColors.private.background, marginTop: 4 }]}>
                             <ThemedText type="label" style={{ color: isPublic ? StatusBadgeColors.public.text : StatusBadgeColors.private.text, fontSize: 11 }}>
-                                {isPublic ? 'Public' : 'Private'}
+                                {isPublic ? t('public') : t('private')}
                             </ThemedText>
                         </View>
                         {isExpired && (
                             <View style={[styles.visibilityBadge, { backgroundColor: '#fef2f2', marginTop: 4 }]}>
                                 <ThemedText type="label" style={{ color: '#ef4444', fontSize: 11 }}>
-                                    ENDED
+                                    {t('ended').toUpperCase()}
                                 </ThemedText>
                             </View>
                         )}
@@ -354,17 +363,17 @@ export default function PlanDetailScreen() {
                 <ThemedText type="body" style={{ fontWeight: '600' }}>{averageRating.toFixed(1)}</ThemedText>
                 <StarRating rating={averageRating} />
                 <ThemedText type="body" style={{ color: mutedText }}>
-                    ({reviewCount} reviews)
+                    {t('reviews_count', { count: reviewCount })}
                 </ThemedText>
                 <Pressable onPress={() => setActiveTab('reviews')}>
                     <ThemedText type="body" style={{ color: tint, marginLeft: 8 }}>
-                        View reviews
+                        {t('view_reviews')}
                     </ThemedText>
                 </Pressable>
             </View>
 
             <View style={styles.infoRow}>
-                <ThemedText type="label" style={{ color: mutedText, fontWeight: '600', minWidth: 36 }}>Start</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, fontWeight: '600', minWidth: 36 }}>{t('start')}</ThemedText>
                 <View style={styles.infoItem}>
                     <Ionicons name="calendar-outline" size={16} color={mutedText} />
                     <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>{dateLabel}</ThemedText>
@@ -377,7 +386,7 @@ export default function PlanDetailScreen() {
                 ) : null}
             </View>
             <View style={styles.infoRow}>
-                <ThemedText type="label" style={{ color: mutedText, fontWeight: '600', minWidth: 36 }}>End</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, fontWeight: '600', minWidth: 36 }}>{t('end')}</ThemedText>
                 <View style={styles.infoItem}>
                     <Ionicons name="calendar-outline" size={16} color={mutedText} />
                     <ThemedText type="body" style={{ color: mutedText, marginLeft: 4 }}>{endDateLabel}</ThemedText>
@@ -452,7 +461,7 @@ export default function PlanDetailScreen() {
                         >
                             <Ionicons name="map-outline" size={14} color={tintText} />
                             <ThemedText type="label" style={{ color: tintText, fontWeight: '700', fontSize: 11 }}>
-                                Directions
+                                {t('directions')}
                             </ThemedText>
                         </Pressable>
                     ) : null}
@@ -538,7 +547,7 @@ export default function PlanDetailScreen() {
                         type="body"
                         style={[styles.tabText, { color: activeTab === 'description' ? tint : mutedText }]}
                     >
-                        DESCRIPTION
+                        {t('tab_description').toUpperCase()}
                     </ThemedText>
                 </Pressable>
                 <Pressable
@@ -552,7 +561,7 @@ export default function PlanDetailScreen() {
                         type="body"
                         style={[styles.tabText, { color: activeTab === 'members' ? tint : mutedText }]}
                     >
-                        MEMBERS
+                        {t('tab_members').toUpperCase()}
                     </ThemedText>
                 </Pressable>
                 <Pressable
@@ -566,41 +575,47 @@ export default function PlanDetailScreen() {
                         type="body"
                         style={[styles.tabText, { color: activeTab === 'reviews' ? tint : mutedText }]}
                     >
-                        REVIEWS
+                        {t('tab_reviews').toUpperCase()}
                     </ThemedText>
                 </Pressable>
             </View>
 
             {activeTab === 'description' && (
                 <View style={styles.tabContent}>
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Description</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>{t('tab_description')}</ThemedText>
                     <ThemedText type="body" style={{ color: mutedText, lineHeight: 22 }}>
-                        {plan.description || 'No description available'}
+                        {translatedDescription || (plan.description || t('no_description_available'))}
                     </ThemedText>
 
+                    {plan.description && (
+                        <TranslationButton
+                            originalText={plan.description}
+                            onTranslationRowReceived={setTranslatedDescription}
+                        />
+                    )}
                 </View>
             )}
 
             {activeTab === 'members' && (
                 <View style={styles.tabContent}>
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Membership</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>{t('membership')}</ThemedText>
 
                     {isCreator && isPrivatePlan ? (
                         <ThemedText type="body" style={{ color: mutedText, marginBottom: 16 }}>
-                            Join requests waiting for your approval are listed below.
+                            {t('creator_pending_desc')}
                         </ThemedText>
                     ) : (
                         <ThemedText type="body" style={{ color: mutedText, marginBottom: 24 }}>
                             {isSubscribed
-                                ? 'You have already joined this plan. You can leave at any time.'
-                                : 'Join this plan and connect with others who share your interests.'}
+                                ? t('subscribed_desc')
+                                : t('unsubscribed_desc')}
                         </ThemedText>
                     )}
 
                     {isCreator && isPrivatePlan ? (
                         <View style={[styles.pendingSection, { backgroundColor: surface, borderColor: border }]}>
                             <ThemedText type="subtitle" style={{ marginBottom: 12 }}>
-                                Pending join requests
+                                {t('pending_join_requests')}
                             </ThemedText>
                             {pendingLoading ? (
                                 <ActivityIndicator size="small" color={tint} />
@@ -613,21 +628,21 @@ export default function PlanDetailScreen() {
                                                 <ThemedText type="body" style={{ fontWeight: '600' }}>
                                                     {subscriber.name} {subscriber.lastname}
                                                 </ThemedText>
-                                                
-                                                <Pressable 
+
+                                                <Pressable
                                                     onPress={() => handleAcceptUser(subscriber.id)}>
                                                     <ThemedText
                                                         type="body"
                                                         style={{ color: tint, fontWeight: '600' }}>
-                                                        Accept
+                                                        {t('accept')}
                                                     </ThemedText>
                                                 </Pressable>
-                                                <Pressable 
+                                                <Pressable
                                                     onPress={() => handleRejectUser(subscriber.id)}>
                                                     <ThemedText
                                                         type="body"
                                                         style={{ color: '#ef4444', fontWeight: '600' }}>
-                                                        Reject
+                                                        {t('reject')}
                                                     </ThemedText>
                                                 </Pressable>
                                             </View>
@@ -636,7 +651,7 @@ export default function PlanDetailScreen() {
                                 </View>
                             ) : (
                                 <ThemedText type="body" style={{ color: mutedText }}>
-                                    No pending join requests yet.
+                                    {t('no_pending_requests')}
                                 </ThemedText>
                             )}
                         </View>
@@ -647,9 +662,9 @@ export default function PlanDetailScreen() {
 
             {activeTab === 'reviews' && (
                 <View style={styles.tabContent}>
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Reviews</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>{t('tab_reviews')}</ThemedText>
                     <ThemedText type="body" style={{ color: mutedText }}>
-                        No reviews yet. Be the first to leave one!
+                        {t('no_reviews_yet')}
                     </ThemedText>
                 </View>
             )}
@@ -668,7 +683,7 @@ export default function PlanDetailScreen() {
                             ]}
                         >
                             <ThemedText type="body" style={{ color: tint, fontWeight: '600' }}>
-                                EDIT
+                                {t('edit').toUpperCase()}
                             </ThemedText>
                         </Pressable>
 
@@ -681,7 +696,7 @@ export default function PlanDetailScreen() {
                             ]}
                         >
                             <ThemedText type="body" style={{ color: '#ffffff', fontWeight: '600' }}>
-                                DELETE
+                                {t('delete').toUpperCase()}
                             </ThemedText>
                         </Pressable>
                     </View>
@@ -700,7 +715,9 @@ export default function PlanDetailScreen() {
                             <ActivityIndicator size="small" color={tintText} />
                         ) : (
                             <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                                {isExpired ? 'PLAN ENDED' : (isSubscribed ? 'LEAVE' : (plan.isFull ? 'PLAN FULL' : 'JOIN'))}
+                                {isExpired
+                                    ? t('plan_ended').toUpperCase()
+                                    : (isSubscribed ? t('leave').toUpperCase() : (plan.isFull ? t('plan_full').toUpperCase() : t('join').toUpperCase()))}
                             </ThemedText>
                         )}
                     </Pressable>

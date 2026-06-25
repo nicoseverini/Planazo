@@ -1,5 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image, Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import React from 'react';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ParticipationBadgeColors, StatusBadgeColors } from '@/constants/theme';
@@ -18,35 +20,38 @@ export type PlanCardProps = {
      * When true, also shows the join-request status (Pending / Accepted) next to
      * the visibility badge. Used in the Joined Plans tab. Visibility is always shown.
      */
-    showStatus?: boolean;
+     showStatus?: boolean;
 };
 
 function VisibilityBadge({ plan }: { plan: PlanSummary }) {
+    const { t } = useTranslation();
     const isPublic = plan.visibility === 'PUBLIC';
     const palette = isPublic ? StatusBadgeColors.public : StatusBadgeColors.private;
     return (
         <View style={[styles.visibilityBadge, { backgroundColor: palette.background }]}>
             <ThemedText type="label" style={[styles.visibilityBadgeText, { color: palette.text }]}>
-                {isPublic ? 'Public' : 'Private'}
+                {isPublic ? t('public') : t('private')}
             </ThemedText>
         </View>
     );
 }
 
 function StatusBadge({ plan }: { plan: PlanSummary }) {
+    const { t } = useTranslation();
     const status = planParticipationStatus(plan);
     if (status === null) return null;
     const color = status === 'ACCEPTED' ? ParticipationBadgeColors.accepted : ParticipationBadgeColors.pending;
     return (
         <View style={[styles.statusBadge, { borderColor: color, backgroundColor: color + '1A' }]}>
             <ThemedText type="label" style={[styles.statusBadgeText, { color }]}>
-                {status === 'ACCEPTED' ? 'Accepted' : 'Pending'}
+                {status === 'ACCEPTED' ? t('accepted') : t('pending')}
             </ThemedText>
         </View>
     );
 }
 
 export function PlanCard({ plan, onPress, showStatus = false }: PlanCardProps) {
+    const { t } = useTranslation();
     const { surface: cardBg, border, tint, mutedText } = useAppTheme();
 
     const interestLabel = (plan.interests ?? []).map(formatInterest).join(' · ');
@@ -103,7 +108,7 @@ export function PlanCard({ plan, onPress, showStatus = false }: PlanCardProps) {
                     <View style={styles.metaRow}>
                         <Ionicons name="people-outline" size={14} color={mutedText} />
                         <ThemedText type="label" style={[styles.metaText, { color: mutedText }]} numberOfLines={1}>
-                            {plan.subscriberCount}/{plan.maxSubscribers} participants
+                            {t('participants_max', { count: plan.subscriberCount, max: plan.maxSubscribers })}
                         </ThemedText>
                     </View>
                 </View>

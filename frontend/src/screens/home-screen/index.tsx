@@ -14,6 +14,7 @@ import {
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
@@ -25,6 +26,7 @@ import { PlanSummary, usePlans } from '@/services/plan';
 import { useTuristicPlaces, TuristicPlaceSummary } from '@/services/turistic-place';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { formatInterest } from '@/utils/interests';
+import i18n from '@/config/i18n';
 
 import { styles } from './styles';
 
@@ -69,6 +71,7 @@ const CARD_WIDTH = Dimensions.get('window').width * 0.88;
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { tokenData, getAccessToken } = useToken();
   const { fetchProfile } = useProfile();
   const { fetchFilteredPlans, fetchPublicPlans, fetchMyJoinedPlans } = usePlans();
@@ -89,7 +92,7 @@ export default function HomeScreen() {
   const [myUserId, setMyUserId] = useState<number | null>(null);
 
   // Business logic fallback labels
-  const [listLabel, setListLabel] = useState('Recommended plans');
+  const [listLabelKey, setListLabelKey] = useState('recommended_plans');
   const [businessCase, setBusinessCase] = useState('CASE_4');
 
   const { tint, tintText, surface, border, mutedText, text: textColor } = useAppTheme();
@@ -128,6 +131,9 @@ export default function HomeScreen() {
         try {
           userProfile = await fetchProfile();
           setProfile(userProfile);
+          if (userProfile.preferredLanguage) {
+            await i18n.changeLanguage(userProfile.preferredLanguage);
+          }
         } catch (err) {
           console.error('[HomeScreen] Error loading profile:', err);
         }
@@ -145,7 +151,7 @@ export default function HomeScreen() {
         const interests = userProfile.interests || [];
         let fetchedPlans: PlanSummary[] = [];
         let fetchedSecondary: PlanSummary[] = [];
-        let label = 'Featured Plans';
+        let labelKey = 'recommended_plans';
         let activeCase = 'CASE_4';
 
         // Decode current user ID
@@ -201,7 +207,7 @@ export default function HomeScreen() {
                 interests: interests,
               });
               activeCase = 'CASE_1';
-              label = 'Recommended near you';
+              labelKey = 'recommended_near_you';
             } catch (err) {
               console.error('[HomeScreen] Case 1 fetch error:', err);
             }
@@ -217,7 +223,7 @@ export default function HomeScreen() {
                 radius: 50,
               });
               activeCase = 'CASE_2';
-              label = 'Popular near you now';
+              labelKey = 'popular_near_you';
             } catch (err) {
               console.error('[HomeScreen] Case 2 fetch error:', err);
             }
@@ -242,7 +248,7 @@ export default function HomeScreen() {
                 );
               }
               activeCase = 'CASE_3';
-              label = 'Matching your interests';
+              labelKey = 'matching_your_interests';
             } catch (err) {
               console.error('[HomeScreen] Case 3 fetch error:', err);
             }
@@ -254,7 +260,7 @@ export default function HomeScreen() {
             // Shuffle public list and select featured plans
             fetchedPlans = [...allPublicList].sort(() => 0.5 - Math.random()).slice(0, 6);
             activeCase = 'CASE_4';
-            label = 'Trending plans today';
+            labelKey = 'trending_plans';
           }
         }
 
@@ -299,7 +305,7 @@ export default function HomeScreen() {
         setPlans(filterPlans(fetchedPlans));
         setFomoPlans(fomoList);
         setSecondaryPlans(filterPlans(fetchedSecondary).slice(0, 8));
-        setListLabel(label);
+        setListLabelKey(labelKey);
         setBusinessCase(activeCase);
       } catch (err) {
         console.error('[HomeScreen] General load error:', err);
@@ -459,7 +465,7 @@ export default function HomeScreen() {
       <AppScreen centered>
         <ActivityIndicator size="large" color={tint} />
         <ThemedText type="body" style={{ color: mutedText, marginTop: 12 }}>
-          Loading recommendations...
+          {t('loading_recommendations')}
         </ThemedText>
       </AppScreen>
     );
@@ -471,17 +477,17 @@ export default function HomeScreen() {
       <AppScreen centered>
         <Ionicons name="compass-outline" size={64} color={tint} />
         <ThemedText type="heading" style={{ marginTop: 16, textAlign: 'center' }}>
-          Welcome to Planazo!
+          {t('welcome_title')}
         </ThemedText>
         <ThemedText type="body" style={{ color: mutedText, textAlign: 'center', marginHorizontal: 32, marginTop: 8 }}>
-          Sign in to discover and participate in amazing plans with people who share your interests.
+          {t('welcome_desc')}
         </ThemedText>
         <Pressable
           onPress={() => router.replace('/')}
           style={[styles.primaryButton, { backgroundColor: tint, marginTop: 24 }]}
         >
           <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-            Sign in
+            {t('sign_in')}
           </ThemedText>
         </Pressable>
       </AppScreen>
@@ -501,7 +507,7 @@ export default function HomeScreen() {
       {/* Standard Screen Header */}
       <View style={[styles.header, { marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
         <ThemedText type="heading" style={[styles.welcomeText, { flex: 1, marginRight: 16 }]} numberOfLines={1}>
-          Hello, {profile.name || 'Traveler'}! 👋
+          {t('hello_user', { name: profile.name || t('traveler') })}
         </ThemedText>
         <Image 
           source={require('../../../assets/images/icon.png')} 
@@ -518,8 +524,8 @@ export default function HomeScreen() {
             style={{ color: tint, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}
           >
             {userCountry
-              ? `Welcome! You are in ${userCountry} ${userCountryCode ? getFlagEmoji(userCountryCode) : '📍'}`
-              : 'Welcome! Explore the world 🌍'}
+              ? t('welcome_country', { country: userCountry, flag: userCountryCode ? getFlagEmoji(userCountryCode) : '📍' })
+              : t('welcome_world')}
           </ThemedText>
         </View>
       </View>
@@ -528,7 +534,7 @@ export default function HomeScreen() {
       {userInterests.length > 0 && (
         <View style={styles.interestsSection}>
           <ThemedText type="label" style={[styles.sectionLabel, { color: mutedText }]}>
-            Your chosen interests:
+            {t('your_chosen_interests')}
           </ThemedText>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsContainer}>
             {userInterests.map((interest) => (
@@ -550,10 +556,10 @@ export default function HomeScreen() {
           </View>
           <View style={styles.bannerTextContainer}>
             <ThemedText type="defaultSemiBold" style={{ fontSize: 14 }}>
-              Enable Location Proximity
+              {t('enable_location_proximity')}
             </ThemedText>
             <ThemedText type="body" style={{ color: mutedText, fontSize: 12, marginTop: 2 }}>
-              Enable location access to discover plans nearby matching your preferences.
+              {t('enable_location_desc')}
             </ThemedText>
             <Pressable
               onPress={requestLocationPermission}
@@ -564,7 +570,7 @@ export default function HomeScreen() {
               ]}
             >
               <ThemedText type="label" style={{ color: tintText, fontWeight: '700', fontSize: 11 }}>
-                Enable Proximity
+                {t('enable_proximity')}
               </ThemedText>
             </Pressable>
           </View>
@@ -576,7 +582,7 @@ export default function HomeScreen() {
       {/* Horizontal Airbnb Slider for Featured Plans */}
       <View style={styles.sectionHeader}>
         <ThemedText type="subtitle" style={styles.sectionTitle}>
-          {listLabel}
+          {t(listLabelKey)}
         </ThemedText>
       </View>
 
@@ -601,16 +607,16 @@ export default function HomeScreen() {
       ) : (
         <View style={[styles.emptyContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24 }]}>
           <Ionicons name="calendar-outline" size={40} color={mutedText} />
-          <ThemedText type="defaultSemiBold">No plans found here</ThemedText>
+          <ThemedText type="defaultSemiBold">{t('no_plans_found')}</ThemedText>
           <ThemedText type="body" style={{ color: mutedText, textAlign: 'center', fontSize: 13 }}>
-            Be the first to create one!
+            {t('first_to_create')}
           </ThemedText>
           <Pressable
             onPress={() => router.push('/create-plan' as any)}
             style={[styles.createPlanButton, { borderColor: tint, marginTop: 8 }]}
           >
             <ThemedText type="label" style={{ color: tint, fontWeight: '600' }}>
-              Create a Plan
+              {t('create_a_plan')}
             </ThemedText>
           </Pressable>
         </View>
@@ -623,7 +629,7 @@ export default function HomeScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Ionicons name="flash" size={18} color="#FF3B30" />
               <ThemedText type="subtitle" style={[styles.sectionTitle, { color: textColor }]}>
-                Starting soon near you
+                {t('starting_soon')}
               </ThemedText>
             </View>
           </View>
@@ -652,7 +658,7 @@ export default function HomeScreen() {
         <View style={{ marginBottom: 24 }}>
           <View style={styles.sectionHeader}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Famous places nearby
+              {t('famous_places_nearby')}
             </ThemedText>
           </View>
           <FlatList
@@ -680,7 +686,7 @@ export default function HomeScreen() {
         <View style={{ marginBottom: 24 }}>
           <View style={styles.sectionHeader}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Discover more adventures
+              {t('discover_more_adventures')}
             </ThemedText>
           </View>
           <FlatList

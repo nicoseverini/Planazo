@@ -1,5 +1,7 @@
+import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { CategoryFilterSelector } from '@/components/CategoryFilterSelector';
 import { DistanceSlider } from '@/components/DistanceSlider';
 import { ThemedText } from '@/components/ThemedText';
@@ -23,16 +25,16 @@ export const DEFAULT_MAP_FILTERS: MapFilters = {
     radius: null,
 };
 
-const ACTIVITY_OPTIONS: { label: string; value: ActivityFilter }[] = [
-    { label: 'Both', value: 'ALL' },
-    { label: 'Plans only', value: 'PLANS' },
-    { label: 'Tourist places only', value: 'PLACES' },
+const ACTIVITY_OPTIONS: { translationKey: string; value: ActivityFilter }[] = [
+    { translationKey: 'both_activities', value: 'ALL' },
+    { translationKey: 'plans_only', value: 'PLANS' },
+    { translationKey: 'tourist_places_only', value: 'PLACES' },
 ];
 
-const VISIBILITY_OPTIONS: { label: string; value: VisibilityFilter }[] = [
-    { label: 'Any', value: 'ANY' },
-    { label: 'Public', value: 'PUBLIC' },
-    { label: 'Private', value: 'PRIVATE' },
+const VISIBILITY_OPTIONS: { translationKey: string; value: VisibilityFilter }[] = [
+    { translationKey: 'any', value: 'ANY' },
+    { translationKey: 'public', value: 'PUBLIC' },
+    { translationKey: 'private', value: 'PRIVATE' },
 ];
 
 type Props = {
@@ -44,6 +46,7 @@ type Props = {
 };
 
 export function MapFilterModal({ visible, filters, onFiltersChange, onReset, onClose }: Props) {
+    const { t } = useTranslation();
     const surface = useThemeColor({}, 'surface');
     const border = useThemeColor({}, 'border');
     const tint = useThemeColor({}, 'tint');
@@ -70,14 +73,14 @@ export function MapFilterModal({ visible, filters, onFiltersChange, onReset, onC
             >
                 {/* Header */}
                 <View style={styles.header}>
-                    <ThemedText type="heading">Filters</ThemedText>
+                    <ThemedText type="heading">{t('filters')}</ThemedText>
                     <Pressable onPress={onClose} hitSlop={8}>
                         <Ionicons name="close" size={24} color={text} />
                     </Pressable>
                 </View>
 
                 {/* Activity Type */}
-                <ThemedText type="subtitle" style={styles.sectionTitle}>Activity Type</ThemedText>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>{t('activity_type')}</ThemedText>
                 <View style={styles.chips}>
                     {ACTIVITY_OPTIONS.map((opt) => {
                         const active = filters.activity === opt.value;
@@ -88,7 +91,7 @@ export function MapFilterModal({ visible, filters, onFiltersChange, onReset, onC
                                 style={chipStyle(active)}
                             >
                                 <ThemedText type="label" style={{ color: active ? tintText : text }}>
-                                    {opt.label}
+                                    {t(opt.translationKey)}
                                 </ThemedText>
                             </Pressable>
                         );
@@ -96,7 +99,7 @@ export function MapFilterModal({ visible, filters, onFiltersChange, onReset, onC
                 </View>
 
                 {/* Category */}
-                <ThemedText type="subtitle" style={styles.sectionTitle}>Category</ThemedText>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>{t('category')}</ThemedText>
                 <View style={styles.chips}>
                     <CategoryFilterSelector
                         selected={filters.categories}
@@ -105,9 +108,9 @@ export function MapFilterModal({ visible, filters, onFiltersChange, onReset, onC
                 </View>
 
                 {/* Plan Visibility */}
-                <ThemedText type="subtitle" style={styles.sectionTitle}>Plan Visibility</ThemedText>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>{t('plan_visibility')}</ThemedText>
                 <ThemedText type="label" style={[styles.sectionHint, { color: mutedText }]}>
-                    Does not affect tourist places.
+                    {t('visibility_hint')}
                 </ThemedText>
                 <View style={styles.chips}>
                     {VISIBILITY_OPTIONS.map((opt) => {
@@ -119,7 +122,7 @@ export function MapFilterModal({ visible, filters, onFiltersChange, onReset, onC
                                 style={chipStyle(active)}
                             >
                                 <ThemedText type="label" style={{ color: active ? tintText : text }}>
-                                    {opt.label}
+                                    {t(opt.translationKey)}
                                 </ThemedText>
                             </Pressable>
                         );
@@ -127,7 +130,7 @@ export function MapFilterModal({ visible, filters, onFiltersChange, onReset, onC
                 </View>
 
                 {/* Proximity */}
-                <ThemedText type="subtitle" style={[styles.sectionTitle, { marginTop: 16 }]}>Proximity</ThemedText>
+                <ThemedText type="subtitle" style={[styles.sectionTitle, { marginTop: 16 }]}>{t('proximity')}</ThemedText>
                 <View style={styles.lastSection}>
                     <DistanceSlider
                         radius={filters.radius}
@@ -141,13 +144,13 @@ export function MapFilterModal({ visible, filters, onFiltersChange, onReset, onC
                         onPress={onClose}
                         style={[styles.actionButton, { backgroundColor: tint }]}
                     >
-                        <ThemedText type="subtitle" style={{ color: tintText }}>Apply</ThemedText>
+                        <ThemedText type="subtitle" style={{ color: tintText }}>{t('apply')}</ThemedText>
                     </Pressable>
                     <Pressable
                         onPress={onReset}
                         style={[styles.actionButton, { borderWidth: 1, borderColor: border }]}
                     >
-                        <ThemedText type="subtitle">Reset Filters</ThemedText>
+                        <ThemedText type="subtitle">{t('reset_filters')}</ThemedText>
                     </Pressable>
                 </View>
             </ScrollView>

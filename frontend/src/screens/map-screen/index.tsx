@@ -1,6 +1,8 @@
+import React from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { Alert, View, Pressable, ActivityIndicator, Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import MapView, { Marker, Callout } from 'react-native-maps';
 
 import { Ionicons } from '@expo/vector-icons';
@@ -41,6 +43,7 @@ type SelectedMapItem =
     | { type: 'place'; item: TuristicPlaceSummary };
 
 export default function MapScreen() {
+    const { t } = useTranslation();
     const router = useRouter();
     const { fetchPublicPlans, loading } = usePlans();
     const { fetchAll: fetchTouristicPlaces } = useTuristicPlaces();
@@ -82,18 +85,18 @@ export default function MapScreen() {
             try {
                 const coords = await acquireUserLocation();
                 if (coords === null) {
-                    Alert.alert('Permission denied', 'Location permission is required for proximity search.');
+                    Alert.alert(t('permission_denied'), t('location_permission_required'));
                     setFilters({ ...newFilters, radius: null });
                     return;
                 }
             } catch {
-                Alert.alert('Error', 'Could not get current location.');
+                Alert.alert(t('error'), t('could_not_get_location'));
                 setFilters({ ...newFilters, radius: null });
                 return;
             }
         }
         setFilters(newFilters);
-    }, [userLocation, acquireUserLocation]);
+    }, [userLocation, acquireUserLocation, t]);
 
     useEffect(() => {
         centerOnUser();
@@ -242,7 +245,7 @@ export default function MapScreen() {
                                         📍 {plan.location}
                                     </ThemedText>
                                     <ThemedText type="label" style={{ fontSize: 12, color: tint, marginTop: 4, fontWeight: 'bold' }}>
-                                        View details &rarr;
+                                        {t('view_details')} &rarr;
                                     </ThemedText>
                                 </View>
                                 </Callout>
@@ -270,7 +273,7 @@ export default function MapScreen() {
                                         📍 {place.location}
                                     </ThemedText>
                                     <ThemedText type="label" style={{ fontSize: 12, color: tint, marginTop: 4, fontWeight: 'bold' }}>
-                                        View details &rarr;
+                                        {t('view_details')} &rarr;
                                     </ThemedText>
                                 </View>
                                 </Callout>
@@ -295,7 +298,7 @@ export default function MapScreen() {
                             📍 {selectedPreview.location}
                         </ThemedText>
                         <ThemedText type="label" style={{ fontSize: 12, color: selectedPreview.tint, marginTop: 4, fontWeight: 'bold' }}>
-                            View details &rarr;
+                            {t('view_details')} &rarr;
                         </ThemedText>
                     </Pressable>
                 )}

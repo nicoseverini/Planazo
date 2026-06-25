@@ -2,6 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/config/i18n';
 import {
     ActivityIndicator,
     Alert,
@@ -46,18 +48,32 @@ const DEFAULT_PROFILE: UserProfile = {
     photo: '',
 };
 
-function formatList(values: string[] | undefined, labelMap?: Record<string, string>) {
+import { formatInterest } from '@/utils/interests';
+
+function formatList(values: string[] | undefined, type?: 'interest' | 'gender' | 'travel_type' | 'lang') {
     if (!values || values.length === 0) {
-        return 'Not set';
+        return i18n.t('not_set');
     }
-    return values.map((value) => labelMap?.[value] ?? value).join(', ');
+    return values.map((value) => {
+        if (type === 'interest') return formatInterest(value);
+        const lowerVal = value.toLowerCase();
+        if (type === 'gender' && i18n.exists(`gender_${lowerVal}`)) return i18n.t(`gender_${lowerVal}`);
+        if (type === 'travel_type' && i18n.exists(`travel_type_${lowerVal}`)) return i18n.t(`travel_type_${lowerVal}`);
+        if (type === 'lang' && i18n.exists(`lang_${lowerVal}`)) return i18n.t(`lang_${lowerVal}`);
+        return value;
+    }).join(', ');
 }
 
-function formatValue(value?: string, labelMap?: Record<string, string>) {
+function formatValue(value?: string, type?: 'interest' | 'gender' | 'travel_type' | 'lang') {
     if (!value) {
-        return 'Not set';
+        return i18n.t('not_set');
     }
-    return labelMap?.[value] ?? value;
+    if (type === 'interest') return formatInterest(value);
+    const lowerVal = value.toLowerCase();
+    if (type === 'gender' && i18n.exists(`gender_${lowerVal}`)) return i18n.t(`gender_${lowerVal}`);
+    if (type === 'travel_type' && i18n.exists(`travel_type_${lowerVal}`)) return i18n.t(`travel_type_${lowerVal}`);
+    if (type === 'lang' && i18n.exists(`lang_${lowerVal}`)) return i18n.t(`lang_${lowerVal}`);
+    return value;
 }
 
 function normalizeProfile(profile: UserProfile | null) {
@@ -132,6 +148,7 @@ function MenuItem({ icon, label, onPress, danger = false }: MenuItemProps) {
 
 export default function ProfileScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const { tokenData, logout } = useToken();
     const { fetchProfile, updateProfile, deleteAccount } = useProfile();
 
@@ -240,7 +257,7 @@ export default function ProfileScreen() {
         if (Platform.OS !== 'ios') {
             const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (permission.status !== 'granted') {
-                Alert.alert('Permission required', 'We need access to your gallery to choose a photo.');
+                Alert.alert(t('permission_required'), t('gallery_permission_desc'));
                 return;
             }
         }
@@ -260,7 +277,7 @@ export default function ProfileScreen() {
 
         const asset = result.assets[0];
         if (!asset.base64) {
-            setError('Could not read selected image.');
+            setError(t('image_read_error'));
             return;
         }
 
@@ -282,12 +299,12 @@ export default function ProfileScreen() {
 
     async function handleLogout() {
         Alert.alert(
-            'Log out',
-            'Are you sure you want to log out?',
+            t('logout'),
+            t('logout_confirm'),
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('cancel'), style: 'cancel' },
                 {
-                    text: 'Log out',
+                    text: t('logout'),
                     style: 'destructive',
                     onPress: async () => {
                         setLoggingOut(true);
@@ -305,12 +322,12 @@ export default function ProfileScreen() {
 
     async function handleDeleteAccount() {
         Alert.alert(
-            'Delete account',
-            'Are you sure? This action is irreversible and will delete all your data.',
+            t('delete_account'),
+            t('delete_account_confirm'),
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('cancel'), style: 'cancel' },
                 {
-                    text: 'Delete',
+                    text: t('delete_account'),
                     style: 'destructive',
                     onPress: async () => {
                         setError(null);
@@ -337,10 +354,10 @@ export default function ProfileScreen() {
     // Loading state
     if (loggingOut || deletingAccount || loading || tokenData.state === 'LOADING') {
         const loadingText = deletingAccount
-            ? 'Deleting account...'
+            ? t('deleting_account')
             : loggingOut
-                ? 'Logging out...'
-                : 'Loading...';
+                ? t('logging_out')
+                : t('loading');
         return (
             <AppScreen>
                 <View style={styles.loadingContainer}>
@@ -360,14 +377,14 @@ export default function ProfileScreen() {
                 <View style={styles.loadingContainer}>
                     <Ionicons name="person-outline" size={48} color={mutedText} />
                     <ThemedText type="body" style={{ color: mutedText, marginTop: 12 }}>
-                        Sign in to view your profile
+                        {t('sign_in_view_profile')}
                     </ThemedText>
                     <Pressable
                         onPress={() => router.replace('/')}
                         style={[styles.primaryButton, { backgroundColor: tint, marginTop: 24 }]}
                     >
                         <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                            Sign in
+                            {t('sign_in')}
                         </ThemedText>
                     </Pressable>
                 </View>
@@ -468,8 +485,8 @@ export default function ProfileScreen() {
                             <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
                                 <Ionicons name="person-outline" size={20} color={mutedText} />
                                 <View style={styles.infoContent}>
-                                    <ThemedText type="label" style={{ color: mutedText }}>Gender</ThemedText>
-                                    <ThemedText type="body">{formatValue(displayUser.gender, GENDER_LABELS)}</ThemedText>
+                                    <ThemedText type="label" style={{ color: mutedText }}>{t('gender')}</ThemedText>
+                                    <ThemedText type="body">{formatValue(displayUser.gender, 'gender')}</ThemedText>
                                 </View>
                             </View>
                         )}
@@ -477,7 +494,7 @@ export default function ProfileScreen() {
                             <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
                                 <Ionicons name="calendar-outline" size={20} color={mutedText} />
                                 <View style={styles.infoContent}>
-                                    <ThemedText type="label" style={{ color: mutedText }}>Birth date</ThemedText>
+                                    <ThemedText type="label" style={{ color: mutedText }}>{t('birth_date')}</ThemedText>
                                     <ThemedText type="body">{displayUser.birthDate}</ThemedText>
                                 </View>
                             </View>
@@ -486,7 +503,7 @@ export default function ProfileScreen() {
                             <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
                                 <Ionicons name="location-outline" size={20} color={mutedText} />
                                 <View style={styles.infoContent}>
-                                    <ThemedText type="label" style={{ color: mutedText }}>Location</ThemedText>
+                                    <ThemedText type="label" style={{ color: mutedText }}>{t('location')}</ThemedText>
                                     <ThemedText type="body">{displayUser.zone}</ThemedText>
                                 </View>
                             </View>
@@ -494,22 +511,22 @@ export default function ProfileScreen() {
                         <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
                             <Ionicons name="heart-outline" size={20} color={mutedText} />
                             <View style={styles.infoContent}>
-                                <ThemedText type="label" style={{ color: mutedText }}>Interests</ThemedText>
-                                <ThemedText type="body">{formatList(displayUser.interests, INTEREST_LABELS)}</ThemedText>
+                                <ThemedText type="label" style={{ color: mutedText }}>{t('interests')}</ThemedText>
+                                <ThemedText type="body">{formatList(displayUser.interests, 'interest')}</ThemedText>
                             </View>
                         </View>
                         <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
                             <Ionicons name="language-outline" size={20} color={mutedText} />
                             <View style={styles.infoContent}>
-                                <ThemedText type="label" style={{ color: mutedText }}>Languages</ThemedText>
-                                <ThemedText type="body">{formatList(displayUser.languages)}</ThemedText>
+                                <ThemedText type="label" style={{ color: mutedText }}>{t('languages')}</ThemedText>
+                                <ThemedText type="body">{formatList(displayUser.languages, 'lang')}</ThemedText>
                             </View>
                         </View>
                         <View style={[styles.infoCard, { backgroundColor: surface, borderColor: border }]}>
                             <Ionicons name="airplane-outline" size={20} color={mutedText} />
                             <View style={styles.infoContent}>
-                                <ThemedText type="label" style={{ color: mutedText }}>Travel type</ThemedText>
-                                <ThemedText type="body">{formatValue(displayUser.travelType, TRAVEL_TYPE_LABELS)}</ThemedText>
+                                <ThemedText type="label" style={{ color: mutedText }}>{t('travel_type')}</ThemedText>
+                                <ThemedText type="body">{formatValue(displayUser.travelType, 'travel_type')}</ThemedText>
                             </View>
                         </View>
                     </View>
@@ -525,28 +542,33 @@ export default function ProfileScreen() {
                     {/* Menu de opciones */}
                     <View style={styles.menuSection}>
                         <ThemedText type="label" style={[styles.sectionTitle, { color: mutedText }]}>
-                            Account
+                            {t('account')}
                         </ThemedText>
                         <View style={styles.menuGroup}>
                             <MenuItem
                                 icon="person-outline"
-                                label="Edit profile"
+                                label={t('edit_profile')}
                                 onPress={() => setEditing(true)}
+                            />
+                            <MenuItem
+                                icon="settings-outline"
+                                label={t('configurations')}
+                                onPress={() => router.push('/configurations')}
                             />
                         </View>
                     </View>
-
+ 
                     <View style={styles.menuSection}>
                         <View style={styles.menuGroup}>
                             <MenuItem
                                 icon="log-out-outline"
-                                label="Log out"
+                                label={t('logout')}
                                 onPress={handleLogout}
                                 danger
                             />
                             <MenuItem
                                 icon="trash-outline"
-                                label="Delete account"
+                                label={t('delete_account')}
                                 onPress={handleDeleteAccount}
                                 danger
                             />
@@ -557,45 +579,45 @@ export default function ProfileScreen() {
                 /* Modo edicion */
                 <View style={styles.editForm}>
                     <ThemedText type="subtitle" style={styles.editTitle}>
-                        Edit information
+                        {t('edit_information')}
                     </ThemedText>
-
+ 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Name</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>{t('name')}</ThemedText>
                         <TextInput
                             style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
                             value={formData?.name || ''}
                             onChangeText={(value) => onChange('name', value.replace(/[0-9]/g, ''))}
-                            placeholder="Your name"
+                            placeholder={t('your_name')}
                             placeholderTextColor={mutedText}
                         />
                     </View>
-
+ 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Last name</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>{t('lastname')}</ThemedText>
                         <TextInput
                             style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
                             value={formData?.lastname || ''}
                             onChangeText={(value) => onChange('lastname', value.replace(/[0-9]/g, ''))}
-                            placeholder="Your last name"
+                            placeholder={t('your_last_name')}
                             placeholderTextColor={mutedText}
                         />
                     </View>
-
+ 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Email</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>{t('email')}</ThemedText>
                         <TextInput
                             style={[styles.input, styles.disabledInput, { backgroundColor: background, borderColor: border, color: mutedText }]}
                             value={formData?.email || ''}
                             editable={false}
                         />
                         <ThemedText type="label" style={{ color: mutedText, fontSize: 11, marginTop: 4 }}>
-                            Email cannot be changed
+                            {t('email_disabled_warning')}
                         </ThemedText>
                     </View>
-
+ 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Photo</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>{t('photo')}</ThemedText>
                         <View style={styles.photoRow}>
                             <TextInput
                                 style={[
@@ -614,7 +636,7 @@ export default function ProfileScreen() {
                                 style={[styles.photoButton, { borderColor: border }]}
                             >
                                 <ThemedText type="label" style={{ color: text }}>
-                                    Select
+                                    {t('select')}
                                 </ThemedText>
                             </Pressable>
                             <Pressable
@@ -622,14 +644,14 @@ export default function ProfileScreen() {
                                 style={[styles.photoButton, { borderColor: border }]}
                             >
                                 <ThemedText type="label" style={{ color: text }}>
-                                    Clear
+                                    {t('clear')}
                                 </ThemedText>
                             </Pressable>
                         </View>
                     </View>
-
+ 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Gender</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>{t('gender')}</ThemedText>
                         <View style={[styles.selectContainer, { backgroundColor: surface, borderColor: border }]}>
                             {GENDER_OPTIONS.map((option) => (
                                 <Pressable
@@ -647,7 +669,7 @@ export default function ProfileScreen() {
                                             fontSize: 12,
                                         }}
                                     >
-                                        {GENDER_LABELS[option] ?? option}
+                                        {t(`gender_${option.toLowerCase()}`)}
                                     </ThemedText>
                                 </Pressable>
                             ))}
@@ -655,7 +677,7 @@ export default function ProfileScreen() {
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Interests</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>{t('interests')}</ThemedText>
                         <View style={[styles.selectContainer, { backgroundColor: surface, borderColor: border }]}>
                             {INTEREST_OPTIONS.map((option) => {
                                 const selected = formData?.interests?.includes(option);
@@ -675,7 +697,7 @@ export default function ProfileScreen() {
                                                 fontSize: 12,
                                             }}
                                         >
-                                            {INTEREST_LABELS[option] ?? option}
+                                            {formatInterest(option)}
                                         </ThemedText>
                                     </Pressable>
                                 );
@@ -684,7 +706,7 @@ export default function ProfileScreen() {
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Languages</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>{t('languages')}</ThemedText>
                         <View style={[styles.selectContainer, { backgroundColor: surface, borderColor: border }]}>
                             {LANGUAGE_OPTIONS.map((option) => {
                                 const selected = formData?.languages?.includes(option);
@@ -704,7 +726,7 @@ export default function ProfileScreen() {
                                                 fontSize: 12,
                                             }}
                                         >
-                                            {option}
+                                            {t(`lang_${option.toLowerCase()}`)}
                                         </ThemedText>
                                     </Pressable>
                                 );
@@ -713,7 +735,7 @@ export default function ProfileScreen() {
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <ThemedText type="label" style={{ color: mutedText }}>Travel type</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>{t('travel_type')}</ThemedText>
                         <View style={[styles.selectContainer, { backgroundColor: surface, borderColor: border }]}>
                             {TRAVEL_TYPE_OPTIONS.map((option) => (
                                 <Pressable
@@ -731,13 +753,13 @@ export default function ProfileScreen() {
                                             fontSize: 12,
                                         }}
                                     >
-                                        {TRAVEL_TYPE_LABELS[option] ?? option}
+                                        {t(`travel_type_${option.toLowerCase()}`)}
                                     </ThemedText>
                                 </Pressable>
                             ))}
                         </View>
                     </View>
-
+ 
                     {error && (
                         <View style={styles.errorContainer}>
                             <ThemedText type="body" style={{ color: '#ef4444' }}>
@@ -745,7 +767,7 @@ export default function ProfileScreen() {
                             </ThemedText>
                         </View>
                     )}
-
+ 
                     <View style={styles.formActions}>
                         <Pressable
                             onPress={handleSave}
@@ -756,7 +778,7 @@ export default function ProfileScreen() {
                                 <ActivityIndicator size="small" color={tintText} />
                             ) : (
                                 <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                                    Save changes
+                                    {t('save_changes')}
                                 </ThemedText>
                             )}
                         </Pressable>
@@ -766,7 +788,7 @@ export default function ProfileScreen() {
                             style={[styles.secondaryButton, { borderColor: border }]}
                         >
                             <ThemedText type="body" style={{ color: text }}>
-                                Cancel
+                                {t('cancel')}
                             </ThemedText>
                         </Pressable>
                     </View>

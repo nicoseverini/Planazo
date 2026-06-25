@@ -1,3 +1,5 @@
+import i18n from '@/config/i18n';
+
 /**
  * Formats age restriction data for human-readable display.
  * Treats null, undefined, and 0 as "no restriction" for backward compatibility
@@ -9,10 +11,10 @@ export function formatAgeRestriction(
 ): string {
     const hasMin = minAge != null && minAge > 0;
     const hasMax = maxAge != null && maxAge > 0;
-    if (hasMin && hasMax) return `Age restriction: ${minAge}–${maxAge} years`;
-    if (hasMin) return `Age restriction: ${minAge} years and older`;
-    if (hasMax) return `Age restriction: Up to ${maxAge} years`;
-    return 'No age restrictions';
+    if (hasMin && hasMax) return i18n.t('age_restriction_range', { min: minAge, max: maxAge });
+    if (hasMin) return i18n.t('age_restriction_min', { min: minAge });
+    if (hasMax) return i18n.t('age_restriction_max', { max: maxAge });
+    return i18n.t('no_age_restrictions');
 }
 
 /**
@@ -25,13 +27,13 @@ export function validateAgeFields(minAgeStr: string, maxAgeStr: string): string 
     const max = parseAgeInput(maxAgeStr);
 
     if (min === 'invalid') {
-        return 'Minimum age must be a whole number between 1 and 120, or left empty for no restrictions.';
+        return i18n.t('error_min_age_invalid');
     }
     if (max === 'invalid') {
-        return 'Maximum age must be a whole number between 1 and 120, or left empty for no restrictions.';
+        return i18n.t('error_max_age_invalid');
     }
     if (min !== null && max !== null && min > max) {
-        return 'Minimum age cannot be greater than maximum age.';
+        return i18n.t('error_min_age_greater');
     }
     return null;
 }

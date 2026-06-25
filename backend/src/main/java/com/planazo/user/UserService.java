@@ -149,7 +149,8 @@ public class UserService implements UserDetailsService {
                         user.getBirthDate(),
                         user.getInterests(),
                         user.getTravelType(),
-                        user.getLanguages()));
+                        user.getLanguages(),
+                        user.getPreferredLanguage()));
     }
 
     Optional<UserProfileDTO> getUserProfileByEmail(String email) {
@@ -164,7 +165,8 @@ public class UserService implements UserDetailsService {
                         user.getBirthDate(),
                         user.getInterests(),
                         user.getTravelType(),
-                        user.getLanguages()));
+                        user.getLanguages(),
+                        user.getPreferredLanguage()));
     }
 
     Optional<User> deleteUser(Long id) {
@@ -211,7 +213,20 @@ public class UserService implements UserDetailsService {
                 user.getId()
         ));
         RefreshToken refreshToken = refreshTokenService.createFor(user);
-        return new TokenDTO(accessToken, refreshToken.value());
+        UserProfileDTO userProfile = new UserProfileDTO(
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getLastname(),
+                user.getPhoto(),
+                user.getGender(),
+                user.getBirthDate(),
+                user.getInterests(),
+                user.getTravelType(),
+                user.getLanguages(),
+                user.getPreferredLanguage()
+        );
+        return new TokenDTO(accessToken, refreshToken.value(), userProfile);
     }
 
     public User getUserByEmail(String email) {
@@ -292,6 +307,17 @@ public class UserService implements UserDetailsService {
 
                     userRepository.save(findedUser);
                     return ResponseEntity.status(HttpStatus.OK).body(new StatusResponseDTO("success", "User updated"));
+                });
+    }
+
+    public Optional<ResponseEntity<StatusResponseDTO>> updateUserLanguage(UserLanguageUpdateDTO languageDTO, Long id) {
+        return userRepository.findById(id)
+                .map(findedUser -> {
+                    if (languageDTO.preferredLanguage() != null) {
+                        findedUser.setPreferredLanguage(languageDTO.preferredLanguage());
+                    }
+                    userRepository.save(findedUser);
+                    return ResponseEntity.status(HttpStatus.OK).body(new StatusResponseDTO("success", "Language updated"));
                 });
     }
 

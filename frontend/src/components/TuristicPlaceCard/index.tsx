@@ -1,5 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image, Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import React from 'react';
 
 import { ThemedText } from '@/components/ThemedText';
 import { useAppTheme } from '@/hooks/use-app-theme';
@@ -14,11 +16,12 @@ export type TuristicPlaceCardProps = {
 };
 
 export function TuristicPlaceCard({ place, onPress }: TuristicPlaceCardProps) {
+    const { t } = useTranslation();
     const { surface: cardBg, border, tint, mutedText } = useAppTheme();
 
     const categoryLabel = (place.interests ?? []).map(formatInterest).join(' · ');
     const locationLine = [place.address, place.city, place.country].filter(Boolean).join(', ') || place.location;
-    const costLabel = place.cost == null ? null : place.cost === 0 ? 'Free' : `$${place.cost.toLocaleString()}`;
+    const costLabel = place.cost == null ? null : place.cost === 0 ? t('free') : `$${place.cost.toLocaleString()}`;
 
     const imageUrl = place.images && place.images.length > 0 && place.images[0]
         ? place.images[0]
@@ -56,7 +59,7 @@ export function TuristicPlaceCard({ place, onPress }: TuristicPlaceCardProps) {
                     <View style={styles.metaRow}>
                         <Ionicons name="time-outline" size={14} color={mutedText} />
                         <ThemedText type="label" style={[styles.metaText, { color: mutedText }]} numberOfLines={1}>
-                            Hours coming soon
+                            {t('hours_coming_soon')}
                         </ThemedText>
                     </View>
 
