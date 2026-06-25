@@ -26,6 +26,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: "${DB_PASSWORD:?DB_PASSWORD is required}"
       SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/${DB_NAME}"
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
+      # Toggle the demo/baseline data seeding (idempotent; only inserts on a clean DB).
+      SEED_DEMO_DATA: "${SEED_DEMO_DATA:?SEED_DEMO_DATA is required}"
     ports:
       - "${BACKEND_EXTERNAL_PORT:-8080}:8080"
 
