@@ -38,7 +38,6 @@ export default function ConfigurationsScreen() {
       // 2. Persist choice in backend
       await updateLanguage(lang);
     } catch (error) {
-      console.error('[ConfigurationsScreen] Error updating language:', error);
       Alert.alert(t('translation_error'), t('error_save_language_preferences'));
     } finally {
       setSaving(false);

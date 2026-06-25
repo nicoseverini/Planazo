@@ -141,7 +141,6 @@ export default function EditPlanScreen() {
                 { text: 'OK', onPress: () => router.back() },
             ]);
         } catch (err) {
-            console.error('[EditPlanScreen] Error updating plan:', err);
             form.setError(err instanceof Error ? err.message : t('error_update_plan'));
         } finally {
             form.setSaving(false);

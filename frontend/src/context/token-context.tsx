@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type TokenContextData =
@@ -135,7 +136,7 @@ export function decodeJwt(token: string): { role: string; id?: number; sub?: str
         );
         return JSON.parse(jsonPayload);
     } catch (error) {
-        console.error('[TokenContext] Error decoding JWT:', error);
+        Alert.alert('Error', 'Could not verify your session.');
         return { role: 'USER' };
     }
 }
