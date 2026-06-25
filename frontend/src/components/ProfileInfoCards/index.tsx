@@ -2,16 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
-import {
-    GENDER_LABELS,
-    INTEREST_LABELS,
-    TRAVEL_TYPE_LABELS,
-} from '@/constants/profile-options';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { UserProfile } from '@/services/user';
 import { styles } from '@/screens/user-profile-screen/styles';
 import { formatBirthDate } from '@/utils/date';
-import { formatList, formatValue } from '@/utils/profile';
+
+import { useTranslation } from 'react-i18next';
+import { formatInterest } from '@/utils/interests';
 
 type InfoCardProps = {
     icon: keyof typeof Ionicons.glyphMap;
@@ -34,27 +31,45 @@ function InfoCard({ icon, label, value }: InfoCardProps) {
 
 /** Read-only grid with the public profile information shared by own and other profiles. */
 export function ProfileInfoCards({ user }: { user: UserProfile }) {
+    const { t } = useTranslation();
+
+    const genderValue = user.gender
+        ? t(`gender_${user.gender.toLowerCase()}`, { defaultValue: user.gender })
+        : t('not_set');
+
+    const interestsValue = user.interests && user.interests.length > 0
+        ? user.interests.map(interest => formatInterest(interest)).join(', ')
+        : t('not_set');
+
+    const languagesValue = user.languages && user.languages.length > 0
+        ? user.languages.map(lang => t(`lang_${lang.toLowerCase()}`, { defaultValue: lang })).join(', ')
+        : t('not_set');
+
+    const travelTypeValue = user.travelType
+        ? t(`travel_type_${user.travelType.toLowerCase()}`, { defaultValue: user.travelType })
+        : t('not_set');
+
     return (
         <View style={styles.infoGrid}>
             {user.gender ? (
-                <InfoCard icon="person-outline" label="Gender" value={formatValue(user.gender, GENDER_LABELS)} />
+                <InfoCard icon="person-outline" label={t('gender')} value={genderValue} />
             ) : null}
             {user.birthDate ? (
-                <InfoCard icon="calendar-outline" label="Birth date" value={formatBirthDate(user.birthDate)} />
+                <InfoCard icon="calendar-outline" label={t('birth_date')} value={formatBirthDate(user.birthDate)} />
             ) : null}
             {user.zone ? (
-                <InfoCard icon="location-outline" label="Location" value={user.zone} />
+                <InfoCard icon="location-outline" label={t('location')} value={user.zone} />
             ) : null}
             <InfoCard
                 icon="heart-outline"
-                label="Interests"
-                value={formatList(user.interests, INTEREST_LABELS)}
+                label={t('interests')}
+                value={interestsValue}
             />
-            <InfoCard icon="language-outline" label="Languages" value={formatList(user.languages)} />
+            <InfoCard icon="language-outline" label={t('languages')} value={languagesValue} />
             <InfoCard
                 icon="airplane-outline"
-                label="Travel type"
-                value={formatValue(user.travelType, TRAVEL_TYPE_LABELS)}
+                label={t('travel_type')}
+                value={travelTypeValue}
             />
         </View>
     );

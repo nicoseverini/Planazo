@@ -8,6 +8,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useProfile } from '@/services/user';
+import { useAppThemeContext } from '@/context/ThemeContext';
 
 import { styles } from './styles';
 
@@ -16,6 +17,7 @@ export default function ConfigurationsScreen() {
   const { t, i18n } = useTranslation();
   const { updateLanguage } = useProfile();
   const { tint, surface, border, mutedText, text } = useAppTheme();
+  const { themeMode, setThemeMode } = useAppThemeContext();
 
   const [currentLang, setCurrentLang] = useState(i18n.language || 'en');
   const [saving, setSaving] = useState(false);
@@ -37,7 +39,7 @@ export default function ConfigurationsScreen() {
       await updateLanguage(lang);
     } catch (error) {
       console.error('[ConfigurationsScreen] Error updating language:', error);
-      Alert.alert(t('translation_error'), 'Failed to save language preferences on server.');
+      Alert.alert(t('translation_error'), t('error_save_language_preferences'));
     } finally {
       setSaving(false);
     }
@@ -47,7 +49,14 @@ export default function ConfigurationsScreen() {
     <AppScreen centered={false}>
       {/* Header Row */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}>
+        <Pressable
+          onPress={() => router.back()}
+          style={({ pressed }) => [
+            styles.backButton,
+            { backgroundColor: surface, borderColor: border },
+            pressed && styles.pressed,
+          ]}
+        >
           <Ionicons name="arrow-back" size={24} color={text} />
         </Pressable>
         <ThemedText type="heading" style={styles.headerTitle}>
@@ -100,6 +109,75 @@ export default function ConfigurationsScreen() {
               </ThemedText>
             </View>
             {currentLang === 'es' && (
+              <Ionicons name="checkmark-circle" size={22} color={tint} />
+            )}
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Theme Section */}
+      <View style={[styles.section, { marginTop: 24 }]}>
+        <ThemedText type="subtitle" style={[styles.sectionTitle, { color: mutedText }]}>
+          {t('theme')}
+        </ThemedText>
+
+        <View style={styles.optionsContainer}>
+          {/* Light Theme */}
+          <Pressable
+            onPress={() => setThemeMode('light')}
+            style={({ pressed }) => [
+              styles.optionItem,
+              { backgroundColor: surface, borderColor: themeMode === 'light' ? tint : border },
+              pressed && styles.pressed,
+            ]}
+          >
+            <View style={styles.optionLeft}>
+              <Ionicons name="sunny-outline" size={22} color={themeMode === 'light' ? tint : text} />
+              <ThemedText type="body" style={styles.optionLabel}>
+                {t('light_theme')}
+              </ThemedText>
+            </View>
+            {themeMode === 'light' && (
+              <Ionicons name="checkmark-circle" size={22} color={tint} />
+            )}
+          </Pressable>
+
+          {/* Dark Theme */}
+          <Pressable
+            onPress={() => setThemeMode('dark')}
+            style={({ pressed }) => [
+              styles.optionItem,
+              { backgroundColor: surface, borderColor: themeMode === 'dark' ? tint : border },
+              pressed && styles.pressed,
+            ]}
+          >
+            <View style={styles.optionLeft}>
+              <Ionicons name="moon-outline" size={22} color={themeMode === 'dark' ? tint : text} />
+              <ThemedText type="body" style={styles.optionLabel}>
+                {t('dark_theme')}
+              </ThemedText>
+            </View>
+            {themeMode === 'dark' && (
+              <Ionicons name="checkmark-circle" size={22} color={tint} />
+            )}
+          </Pressable>
+
+          {/* System Theme */}
+          <Pressable
+            onPress={() => setThemeMode('system')}
+            style={({ pressed }) => [
+              styles.optionItem,
+              { backgroundColor: surface, borderColor: themeMode === 'system' ? tint : border },
+              pressed && styles.pressed,
+            ]}
+          >
+            <View style={styles.optionLeft}>
+              <Ionicons name="settings-outline" size={22} color={themeMode === 'system' ? tint : text} />
+              <ThemedText type="body" style={styles.optionLabel}>
+                {t('system_theme')}
+              </ThemedText>
+            </View>
+            {themeMode === 'system' && (
               <Ionicons name="checkmark-circle" size={22} color={tint} />
             )}
           </Pressable>

@@ -2,6 +2,8 @@ import * as Location from 'expo-location';
 import { useCallback, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
+import i18n from '@/config/i18n';
+
 export type UserLocation = { lat: number; lng: number };
 
 /**
@@ -31,14 +33,14 @@ export function useProximityFilter() {
             try {
                 const { status } = await Location.requestForegroundPermissionsAsync();
                 if (status !== 'granted') {
-                    Alert.alert('Permission denied', 'Location permission is required for proximity search.');
+                    Alert.alert(i18n.t('permission_denied'), i18n.t('location_permission_required'));
                     return;
                 }
                 const loc = await Location.getCurrentPositionAsync({});
                 setUserLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude });
                 setRadius(r);
             } catch {
-                Alert.alert('Error', 'Could not get current location.');
+                Alert.alert(i18n.t('error'), i18n.t('could_not_get_location'));
             } finally {
                 fetchingRef.current = false;
             }

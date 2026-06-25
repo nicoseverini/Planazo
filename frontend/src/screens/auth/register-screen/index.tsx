@@ -1,8 +1,9 @@
+import React, { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useState } from 'react';
 import { Alert, Modal, Platform, Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { AuthButton, AuthCard, AuthInput, ChoiceGroup, MultiChoiceGroup } from '@/components/auth';
 import { ThemedText } from '@/components/ThemedText';
@@ -16,7 +17,8 @@ import {
   TRAVEL_TYPE_LABELS,
   TRAVEL_TYPE_OPTIONS,
 } from '@/constants/profile-options';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import {
   buildSignupRequest,
   validateSignupForm,
@@ -49,64 +51,84 @@ type PickerOption = {
   value: string;
 };
 
-function SelectField({
+function MultiSelectField({
   label,
   placeholder,
-  value,
+  values,
   options,
   onChange,
 }: {
   label: string;
   placeholder: string;
-  value: string;
+  values: string[];
   options: PickerOption[];
-  onChange: (value: string) => void;
+  onChange: (values: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const { t } = useTranslation();
+  const { surface, border, text: textColor, tint } = useAppTheme();
+
+  const selectedOptions = options.filter((opt) => values.includes(opt.value));
+  const displayLabel = selectedOptions.length > 0
+    ? selectedOptions.map((opt) => opt.label).join(', ')
+    : placeholder;
+
+  const toggleOption = (optValue: string) => {
+    if (values.includes(optValue)) {
+      onChange(values.filter((v) => v !== optValue));
+    } else {
+      onChange([...values, optValue]);
+    }
+  };
 
   return (
     <View style={styles.pickerGroup}>
       <ThemedText type="defaultSemiBold" style={styles.fieldLabel}>
         {label}
       </ThemedText>
-      <Pressable onPress={() => setOpen(true)} style={({ pressed }) => [styles.pickerTrigger, pressed && styles.pressedField]}>
-        <ThemedText style={[styles.pickerValue, !value && styles.placeholderValue]}>
-          {value || placeholder}
+      <Pressable
+        onPress={() => setOpen(true)}
+        style={({ pressed }) => [
+          styles.pickerTrigger,
+          { backgroundColor: surface, borderColor: border },
+          pressed && styles.pressedField
+        ]}
+      >
+        <ThemedText style={[styles.pickerValue, { color: textColor }, values.length === 0 && styles.placeholderValue]}>
+          {displayLabel}
         </ThemedText>
-        <ThemedText style={styles.pickerChevron}>▾</ThemedText>
+        <ThemedText style={[styles.pickerChevron, { color: textColor }]}>▾</ThemedText>
       </Pressable>
 
       <Modal transparent visible={open} animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setOpen(false)} />
-        <View style={styles.modalShell}>
-          <ThemedText type="defaultSemiBold" style={styles.modalTitle}>
+        <View style={[styles.modalShell, { backgroundColor: surface, borderColor: border, borderWidth: 1 }]}>
+          <ThemedText type="defaultSemiBold" style={[styles.modalTitle, { color: textColor }]}>
             {label}
           </ThemedText>
 
           {options.map((option) => {
-            const selected = option.value === value;
+            const selected = values.includes(option.value);
 
             return (
               <Pressable
                 key={option.value}
-                onPress={() => {
-                  onChange(option.value);
-                  setOpen(false);
-                }}
+                onPress={() => toggleOption(option.value)}
                 style={({ pressed }) => [
                   styles.optionRow,
+                  { borderColor: border, backgroundColor: selected ? tint + '15' : 'transparent' },
                   selected && styles.optionRowSelected,
                   pressed && styles.optionPressed,
                 ]}
               >
-                <ThemedText style={styles.optionText}>{option.label}</ThemedText>
-                {selected ? <ThemedText style={styles.optionCheck}>✓</ThemedText> : null}
+                <ThemedText style={[styles.optionText, { color: textColor }]}>{option.label}</ThemedText>
+                {selected ? <ThemedText style={[styles.optionCheck, { color: tint }]}>✓</ThemedText> : null}
               </Pressable>
             );
           })}
 
           <Pressable onPress={() => setOpen(false)} style={styles.modalCancelButton}>
-            <ThemedText style={styles.modalCancelText}>Cancel</ThemedText>
+            <ThemedText style={[styles.modalCancelText, { color: textColor }]}>{t('done')}</ThemedText>
           </Pressable>
         </View>
       </Modal>
@@ -117,29 +139,35 @@ function SelectField({
 function BirthDateField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const [open, setOpen] = useState(false);
   const selectedDate = fromIsoDate(value) ?? new Date(2013, 11, 31);
+  const { t } = useTranslation();
+  const { surface, border, text: textColor, tint } = useAppTheme();
+  const colorScheme = useColorScheme();
 
   return (
     <View style={styles.pickerGroup}>
       <ThemedText type="defaultSemiBold" style={styles.fieldLabel}>
-        Birth date
+        {t('birth_date')}
       </ThemedText>
       <Pressable
         onPress={() => setOpen((current) => !current)}
-        style={({ pressed }) => [styles.pickerTrigger, pressed && styles.pressedField]}
+        style={({ pressed }) => [styles.pickerTrigger, { backgroundColor: surface, borderColor: border }, pressed && styles.pressedField]}
       >
         <ThemedText style={[styles.pickerValue, !value && styles.placeholderValue]}>
-          {value ? formatBirthDate(value) : 'Select your birth date'}
+          {value ? formatBirthDate(value) : t('select_birth_date')}
         </ThemedText>
         <ThemedText style={styles.pickerChevron}>📅</ThemedText>
       </Pressable>
 
       {open ? (
-        <View style={styles.inlinePicker}>
+        <View style={[styles.inlinePicker, { backgroundColor: surface, borderColor: border }]}>
           <DateTimePicker
             value={selectedDate}
             mode="date"
             display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
             maximumDate={new Date(2013, 11, 31)}
+            textColor={textColor}
+            themeVariant={colorScheme}
+            accentColor={tint}
             onChange={(_, nextDate) => {
               if (nextDate) {
                 onChange(toIsoDate(nextDate));
@@ -174,7 +202,8 @@ function CheckboxField({
 
 export default function RegisterScreen() {
   const router = useRouter();
-  
+  const { t } = useTranslation();
+
   const [values, setValues] = useState<SignupFormState>({
     email: '',
     password: '',
@@ -185,11 +214,13 @@ export default function RegisterScreen() {
     birthDate: '',
     interests: [],
     travelType: '',
-    language: '',
+    languages: [],
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+
+  const { surface, border, text: textColor } = useAppTheme();
 
   const update = <K extends keyof SignupFormState>(key: K, value: SignupFormState[K]) => {
     setValues((current) => ({ ...current, [key]: value }));
@@ -207,17 +238,15 @@ export default function RegisterScreen() {
 
     try {
       const response = await signupUser(buildSignupRequest(values));
-      Alert.alert('Account created', response.message || 'Check your email to verify your account.');
+      Alert.alert(t('account_created'), t('check_email_verify'));
       router.replace('/login');
     } catch (requestError) {
-      const message = requestError instanceof Error ? requestError.message : 'Could not create account';
+      const message = requestError instanceof Error ? requestError.message : 'error_could_not_create_account';
       setError(message);
     } finally {
       setLoading(false);
     }
   };
-
-  const textColor = useThemeColor({}, 'text');
 
   const goBack = () => {
     router.dismissAll();
@@ -227,15 +256,22 @@ export default function RegisterScreen() {
   return (
     <AppScreen scrollable contentStyle={styles.wrapper}>
       <View style={styles.backButtonWrapper}>
-        <Pressable onPress={goBack} style={styles.backButton}>
+        <Pressable
+          onPress={goBack}
+          style={({ pressed }) => [
+            styles.backButton,
+            { backgroundColor: surface, borderColor: border },
+            pressed && styles.pressed,
+          ]}
+        >
           <Ionicons name="arrow-back" size={24} color={textColor} />
         </Pressable>
       </View>
-      <AuthCard kicker="Registration" title="Create account" body="Fill in the details to create your account and start a new session.">
-        <AuthInput label="Email" value={values.email} onChangeText={(value) => update('email', value)} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
+      <AuthCard kicker={t('registration')} title={t('create_account')} body={t('fill_in_details_register')}>
+        <AuthInput label={t('email')} value={values.email} onChangeText={(value) => update('email', value)} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
         <View style={{ position: 'relative' }}>
           <AuthInput
-            label="Password"
+            label={t('password')}
             value={values.password}
             onChangeText={(value) => update('password', value)}
             secureTextEntry={!showPassword}
@@ -243,14 +279,14 @@ export default function RegisterScreen() {
             autoComplete="password"
           />
           <View style={{ position: 'relative' }}>
-              <AuthInput
-                  label="Confirm password"
-                  value={values.confirmPassword}
-                  onChangeText={(value) => update('confirmPassword', value)}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  autoComplete="password"
-              />
+            <AuthInput
+              label={t('confirm_password')}
+              value={values.confirmPassword}
+              onChangeText={(value) => update('confirmPassword', value)}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoComplete="password"
+            />
           </View>
 
           <Pressable
@@ -269,12 +305,12 @@ export default function RegisterScreen() {
             />
           </Pressable>
         </View>
-        <AuthInput label="First name" value={values.name} onChangeText={(value) => update('name', value)} autoCapitalize="words" />
-        <AuthInput label="Last name" value={values.lastname} onChangeText={(value) => update('lastname', value)} autoCapitalize="words" />
+        <AuthInput label={t('name')} value={values.name} onChangeText={(value) => update('name', value)} autoCapitalize="words" />
+        <AuthInput label={t('lastname')} value={values.lastname} onChangeText={(value) => update('lastname', value)} autoCapitalize="words" />
         <ChoiceGroup
-          label="Gender"
+          label={t('gender')}
           options={GENDER_OPTIONS.map((value) => ({
-            label: GENDER_LABELS[value] ?? value,
+            label: t(`gender_${value.toLowerCase()}`, { defaultValue: GENDER_LABELS[value] ?? value }),
             value,
           }))}
           value={values.gender}
@@ -282,32 +318,35 @@ export default function RegisterScreen() {
         />
         <BirthDateField value={values.birthDate} onChange={(value) => update('birthDate', value)} />
         <MultiChoiceGroup
-          label="Interests (optional)"
+          label={t('interests_optional')}
           options={INTEREST_OPTIONS.map((value) => ({
-            label: INTEREST_LABELS[value] ?? value,
+            label: t(`interest_${value.toLowerCase()}`, { defaultValue: INTEREST_LABELS[value] ?? value }),
             value,
           }))}
           value={values.interests}
           onChange={(value) => update('interests', value as typeof values.interests)}
         />
         <ChoiceGroup
-          label="Travel type (optional)"
+          label={t('travel_type_optional')}
           options={TRAVEL_TYPE_OPTIONS.map((value) => ({
-            label: TRAVEL_TYPE_LABELS[value] ?? value,
+            label: t(`travel_type_${value.toLowerCase()}`, { defaultValue: TRAVEL_TYPE_LABELS[value] ?? value }),
             value,
           }))}
           value={values.travelType}
           onChange={(value) => update('travelType', value as typeof values.travelType)}
         />
-        <SelectField
-          label="Language"
-          placeholder="Select a language"
-          value={values.language}
-          options={LANGUAGE_OPTIONS.map((value) => ({ label: value, value }))}
-          onChange={(value) => update('language', value)}
+        <MultiSelectField
+          label={t('languages')}
+          placeholder={t('select_language_placeholder')}
+          values={values.languages}
+          options={LANGUAGE_OPTIONS.map((value) => ({
+            label: t(`lang_${value.toLowerCase()}`, { defaultValue: value }),
+            value,
+          }))}
+          onChange={(val) => update('languages', val)}
         />
-        <AuthButton label={loading ? 'Registering...' : 'Create account'} onPress={handleSignup} disabled={loading} />
-        {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
+        <AuthButton label={loading ? t('registering') : t('create_account')} onPress={handleSignup} disabled={loading} />
+        {error ? <ThemedText style={styles.error}>{t(error)}</ThemedText> : null}
       </AuthCard>
     </AppScreen>
   );

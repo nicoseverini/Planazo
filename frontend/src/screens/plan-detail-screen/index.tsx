@@ -230,8 +230,8 @@ export default function PlanDetailScreen() {
             }
         } catch (err) {
             console.error('[PlanDetailScreen] Error joining/leaving plan:', err);
-            const message = err instanceof Error ? err.message : 'Could not process the request. Please try again.';
-            Alert.alert('Error', message);
+            const message = err instanceof Error ? err.message : t('could_not_process_request');
+            Alert.alert(t('error'), message);
         } finally {
             setSubscribing(false);
         }
@@ -247,12 +247,12 @@ export default function PlanDetailScreen() {
 
     const handleRemoveMember = (userId: number) => {
         Alert.alert(
-            'Remove Member',
-            'Are you sure you want to remove this member from the activity?',
+            t('remove_member'),
+            t('remove_member_confirm'),
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('cancel'), style: 'cancel' },
                 {
-                    text: 'Remove',
+                    text: t('remove'),
                     style: 'destructive',
                     onPress: async () => {
                         try {
@@ -261,8 +261,8 @@ export default function PlanDetailScreen() {
                             await Promise.all([handleRefresh(), loadMembers()]);
                         } catch (err) {
                             console.error('[PlanDetailScreen] Error removing member:', err);
-                            const message = err instanceof Error ? err.message : 'Unable to remove the member. Please try again.';
-                            Alert.alert('Error', message);
+                            const message = err instanceof Error ? err.message : t('error_remove_member_failed');
+                            Alert.alert(t('error'), message);
                             setMembersLoading(false);
                         }
                     },

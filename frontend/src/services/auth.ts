@@ -109,13 +109,13 @@ export async function signupUser(req: SignupRequest): Promise<SignupResponse> {
 
     if (!response.ok) {
         if (response.status === 409) {
-            throw new Error('This email is already registered. Try logging in.');
+            throw new Error('error_email_already_registered');
         }
         if (response.status === 400) {
             const errorText = await response.text();
-            throw new Error(errorText || 'Please check your information and try again.');
+            throw new Error(errorText || 'error_invalid_signup_info');
         }
-        throw new Error('Could not create account. Please try again later.');
+        throw new Error('error_could_not_create_account');
     }
 
     return response.json();

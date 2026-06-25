@@ -11,6 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { ReportReason, createReport } from '@/services/report';
 import { ThemedText } from '@/components/ThemedText';
@@ -24,13 +25,13 @@ type ReportModalProps = {
   reportedUserId?: number;
 };
 
-const REPORT_REASONS: { value: ReportReason; label: string }[] = [
-  { value: 'INAPPROPRIATE_CONTENT', label: 'Inappropriate content' },
-  { value: 'FALSE_DATA', label: 'False data' },
-  { value: 'SPAM', label: 'Spam' },
-  { value: 'HARASSMENT', label: 'Harassment' },
-  { value: 'COPYRIGHT_INFRINGEMENT', label: 'Copyright infringement' },
-  { value: 'OTHER', label: 'Other' },
+const REPORT_REASONS: { value: ReportReason; labelKey: string }[] = [
+  { value: 'INAPPROPRIATE_CONTENT', labelKey: 'report_reason_inappropriate' },
+  { value: 'FALSE_DATA', labelKey: 'report_reason_false_data' },
+  { value: 'SPAM', labelKey: 'report_reason_spam' },
+  { value: 'HARASSMENT', labelKey: 'report_reason_harassment' },
+  { value: 'COPYRIGHT_INFRINGEMENT', labelKey: 'report_reason_copyright' },
+  { value: 'OTHER', labelKey: 'report_reason_other' },
 ];
 
 export function ReportModal({
@@ -42,6 +43,7 @@ export function ReportModal({
 }: ReportModalProps) {
   const { tint, tintText, surface, border, text } = useAppTheme();
   const { getAccessToken } = useToken();
+  const { t } = useTranslation();
   const [selectedReason, setSelectedReason] = useState<ReportReason | null>(null);
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -53,7 +55,7 @@ export function ReportModal({
       setSubmitting(true);
       const token = getAccessToken();
       if (!token) {
-        Alert.alert('Error', 'You must be logged in to submit a report.');
+        Alert.alert(t('error'), t('error_submit_report_login'));
         return;
       }
       await createReport({
@@ -68,7 +70,7 @@ export function ReportModal({
       setDescription('');
     } catch (error) {
       console.error('Error submitting report:', error);
-      Alert.alert('Error', 'Failed to submit report. Please try again.');
+      Alert.alert(t('error'), t('error_submit_report_failed'));
     } finally {
       setSubmitting(false);
     }
@@ -90,14 +92,14 @@ export function ReportModal({
       <View style={[styles.overlay, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
         <View style={[styles.container, { backgroundColor: surface, borderColor: border }]}>
           <View style={styles.header}>
-            <Text style={[styles.title, { color: text }]}>Report Content</Text>
+            <Text style={[styles.title, { color: text }]}>{t('report_content')}</Text>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color={text} />
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.content}>
-            <Text style={[styles.label, { color: text }]}>Reason for reporting:</Text>
+            <Text style={[styles.label, { color: text }]}>{t('reason_reporting')}</Text>
             {REPORT_REASONS.map((reason) => (
               <TouchableOpacity
                 key={reason.value}
@@ -124,20 +126,20 @@ export function ReportModal({
                     { color: selectedReason === reason.value ? tintText : text },
                   ]}
                 >
-                  {reason.label}
+                  {t(reason.labelKey)}
                 </Text>
               </TouchableOpacity>
             ))}
 
             <Text style={[styles.label, { color: text, marginTop: 16 }]}>
-              Description (optional):
+              {t('description_optional')}
             </Text>
             <TextInput
               style={[
                 styles.textInput,
                 { backgroundColor: surface, borderColor: border, color: text },
               ]}
-              placeholder="Add more details..."
+              placeholder={t('add_more_details')}
               placeholderTextColor={text}
               value={description}
               onChangeText={setDescription}
@@ -152,7 +154,7 @@ export function ReportModal({
               onPress={handleClose}
               disabled={submitting}
             >
-              <Text style={[styles.buttonText, { color: text }]}>Cancel</Text>
+              <Text style={[styles.buttonText, { color: text }]}>{t('cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
@@ -166,7 +168,7 @@ export function ReportModal({
               {submitting ? (
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
-                <Text style={[styles.buttonText, { color: tintText }]}>Submit Report</Text>
+                <Text style={[styles.buttonText, { color: tintText }]}>{t('submit_report')}</Text>
               )}
             </TouchableOpacity>
           </View>

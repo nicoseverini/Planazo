@@ -1,32 +1,34 @@
+import React, { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { AuthButton, AuthCard, AuthInput } from '@/components/auth';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { forgotPassword } from '@/services/auth';
 
 import { styles } from './styles';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const textColor = useThemeColor({}, 'text');
+  const { surface, border, text: textColor } = useAppTheme();
 
   const handleSendRecoveryEmail = async () => {
     if (!email.trim()) {
-      setError('Email is required');
+      setError(t('error_email_required'));
       return;
     }
 
     if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
-      setError('Enter a valid email');
+      setError(t('error_invalid_email'));
       return;
     }
 
@@ -36,14 +38,14 @@ export default function ForgotPasswordScreen() {
     try {
       await forgotPassword({ email: email.trim() });
 
-      Alert.alert('Email sent', 'Check your email to recover your password.');
+      Alert.alert(t('email_sent'), t('email_sent_alert_desc'));
       setSuccess(true);
 
       setTimeout(() => {
         router.back();
       }, 2000);
     } catch (requestError) {
-      const message = requestError instanceof Error ? requestError.message : 'Could not send the email';
+      const message = requestError instanceof Error ? requestError.message : t('error_send_email');
       setError(message);
     } finally {
       setLoading(false);
@@ -54,8 +56,8 @@ export default function ForgotPasswordScreen() {
     return (
       <AppScreen centered scrollable>
         <View style={styles.shell}>
-          <AuthCard kicker="Recovery" title="Email sent" body="Check your email for recovery instructions.">
-            <AuthButton label="Back to login" onPress={() => router.back()} />
+          <AuthCard kicker={t('recovery')} title={t('email_sent')} body={t('email_sent_body')}>
+            <AuthButton label={t('back_to_login')} onPress={() => router.back()} />
           </AuthCard>
         </View>
       </AppScreen>
@@ -66,17 +68,24 @@ export default function ForgotPasswordScreen() {
     <AppScreen centered scrollable>
       <View style={styles.shell}>
         <View style={styles.backButtonWrapper}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Pressable
+            onPress={() => router.back()}
+            style={({ pressed }) => [
+              styles.backButton,
+              { backgroundColor: surface, borderColor: border },
+              pressed && styles.pressed,
+            ]}
+          >
             <Ionicons name="arrow-back" size={24} color={textColor} />
           </Pressable>
         </View>
         <AuthCard
-          kicker="Recovery"
-          title="Recover password"
-          body="Enter your email and we will send you a link to recover your password."
+          kicker={t('recovery')}
+          title={t('recover_password')}
+          body={t('recover_password_desc')}
         >
-          <AuthInput label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
-          <AuthButton label={loading ? 'Sending...' : 'Send link'} onPress={handleSendRecoveryEmail} disabled={loading} />
+          <AuthInput label={t('email')} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
+          <AuthButton label={loading ? t('sending') : t('send_link')} onPress={handleSendRecoveryEmail} disabled={loading} />
           {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
         </AuthCard>
       </View>

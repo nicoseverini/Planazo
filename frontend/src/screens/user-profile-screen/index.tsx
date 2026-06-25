@@ -26,11 +26,13 @@ import { ProfileEditForm } from '@/components/ProfileEditForm';
 import { ProfileInfoCards } from '@/components/ProfileInfoCards';
 import { ensureMediaLibraryPermission } from '@/utils/media-permissions';
 import { normalizePhotoValue, normalizeProfile } from '@/utils/profile';
+import { useTranslation } from 'react-i18next';
 
 import { styles } from './styles';
 
 export default function UserProfileScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const { id } = useLocalSearchParams<{ id?: string }>();
     const { tokenData, logout } = useToken();
     const { fetchProfile, fetchProfileById, updateProfile, deleteAccount } = useProfile();
@@ -169,8 +171,8 @@ export default function UserProfileScreen() {
         const granted = await ensureMediaLibraryPermission();
         if (!granted) {
             Alert.alert(
-                'Photo access needed',
-                'To change your picture, allow photo access for this app in your device settings.'
+                t('photo_access_title'),
+                t('photo_access_desc')
             );
             return;
         }
@@ -185,7 +187,7 @@ export default function UserProfileScreen() {
 
         const asset = result.assets[0];
         if (!asset.base64) {
-            Alert.alert('Error', 'Could not load the selected image. Please try another one.');
+            Alert.alert(t('error'), t('error_load_image_failed'));
             return;
         }
 
@@ -198,17 +200,17 @@ export default function UserProfileScreen() {
             setFormData((prev) => (prev ? { ...prev, photo: dataUrl } : prev));
         } catch (err) {
             console.error('[UserProfileScreen] Error updating profile picture:', err);
-            Alert.alert('Error', 'Unable to update your profile picture. Please try again.');
+            Alert.alert(t('error'), t('error_update_photo_failed'));
         } finally {
             setUpdatingPhoto(false);
         }
     }
 
     function handleLogout() {
-        Alert.alert('Log out', 'Are you sure you want to log out?', [
-            { text: 'Cancel', style: 'cancel' },
+        Alert.alert(t('logout'), t('logout_confirm'), [
+            { text: t('cancel'), style: 'cancel' },
             {
-                text: 'Log out',
+                text: t('logout'),
                 style: 'destructive',
                 onPress: async () => {
                     setLoggingOut(true);
@@ -220,7 +222,7 @@ export default function UserProfileScreen() {
                     } catch (err) {
                         console.error('[UserProfileScreen] Error logging out:', err);
                         setLoggingOut(false);
-                        Alert.alert('Error', 'Unable to log out. Please try again.');
+                        Alert.alert(t('error'), t('error_logout_failed'));
                     }
                 },
             },
@@ -229,12 +231,12 @@ export default function UserProfileScreen() {
 
     function handleDeleteAccount() {
         Alert.alert(
-            'Delete account',
-            'Are you sure? This action is irreversible and will delete all your data.',
+            t('delete_account'),
+            t('delete_account_confirm'),
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('cancel'), style: 'cancel' },
                 {
-                    text: 'Delete',
+                    text: t('delete'),
                     style: 'destructive',
                     onPress: async () => {
                         setError(null);
@@ -351,7 +353,7 @@ export default function UserProfileScreen() {
                     >
                         <Ionicons name="arrow-back" size={24} color={mutedText} />
                     </Pressable>
-                    <ThemedText type="subtitle">Profile</ThemedText>
+                    <ThemedText type="subtitle">{t('profile')}</ThemedText>
                 </View>
             )}
 
@@ -375,10 +377,32 @@ export default function UserProfileScreen() {
                 <ThemedText type="title" style={styles.userName}>
                     {fullName}
                 </ThemedText>
+                {!isOwnProfile && (
+                    <View style={styles.ratingRow}>
+                        <ThemedText type="body" style={{ fontWeight: '600' }}>
+                            {averageRating.toFixed(1)}
+                        </ThemedText>
+                        <StarRating rating={averageRating} />
+                        <ThemedText type="body" style={{ color: mutedText }}>
+                            ({reviewCount} reviews)
+                        </ThemedText>
+                    </View>
+                )}
                 {isOwnProfile && displayUser.email ? (
-                    <ThemedText type="body" style={{ color: mutedText }}>
-                        {displayUser.email}
-                    </ThemedText>
+                    <>
+                        <ThemedText type="body" style={{ color: mutedText }}>
+                            {displayUser.email}
+                        </ThemedText>
+                        <View style={styles.ratingRow}>
+                            <ThemedText type="body" style={{ fontWeight: '600' }}>
+                                {averageRating.toFixed(1)}
+                            </ThemedText>
+                            <StarRating rating={averageRating} />
+                            <ThemedText type="body" style={{ color: mutedText }}>
+                                ({reviewCount} reviews)
+                            </ThemedText>
+                        </View>
+                    </>
                 ) : null}
             </View>
 
@@ -406,7 +430,7 @@ export default function UserProfileScreen() {
                                 type="body"
                                 style={[styles.tabText, { color: activeTab === 'profile' ? tint : mutedText }]}
                             >
-                                PROFILE
+                                {t('profile')}
                             </ThemedText>
                         </Pressable>
                         <Pressable
@@ -420,31 +444,22 @@ export default function UserProfileScreen() {
                                 type="body"
                                 style={[styles.tabText, { color: activeTab === 'reviews' ? tint : mutedText }]}
                             >
-                                REVIEWS
+                                {t('tab_reviews')}
                             </ThemedText>
                         </Pressable>
                     </View>
 
-                    {activeTab === 'reviews' ? (
-                        <View>
-                            <View style={styles.ratingRow}>
-                                <ThemedText type="body" style={{ fontWeight: '600' }}>
-                                    {averageRating.toFixed(1)}
-                                </ThemedText>
-                                <StarRating rating={averageRating} />
-                                <ThemedText type="body" style={{ color: mutedText }}>
-                                    ({reviewCount} reviews)
-                                </ThemedText>
-                            </View>
-                            {targetId != null && (
-                                <ReviewSection
-                                    targetType="USER"
-                                    targetId={targetId}
-                                    onStatsUpdated={handleStatsUpdated}
-                                />
-                            )}
-                        </View>
-                    ) : (
+                    <View style={{ display: activeTab === 'reviews' ? 'flex' : 'none' }}>
+                        {targetId != null && (
+                            <ReviewSection
+                                targetType="USER"
+                                targetId={targetId}
+                                onStatsUpdated={handleStatsUpdated}
+                            />
+                        )}
+                    </View>
+
+                    {activeTab === 'profile' && (
                         <>
                             <ProfileInfoCards user={displayUser} />
 

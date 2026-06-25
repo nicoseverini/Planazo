@@ -396,11 +396,11 @@ export default function HomeScreen() {
       } else {
         if (!canAskAgain) {
           Alert.alert(
-            'Location Disabled',
-            'You have permanently denied location access. Please enable it in your device settings to find plans near you.'
+            t('location_disabled'),
+            t('location_disabled_desc')
           );
         } else {
-          Alert.alert('Permission Denied', "We couldn't access your location, showing general fallback recommendations.");
+          Alert.alert(t('permission_denied'), t('permission_denied_desc'));
         }
       }
     } catch (err) {

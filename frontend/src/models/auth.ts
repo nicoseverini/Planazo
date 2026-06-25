@@ -30,7 +30,7 @@ export type SignupFormState = {
   birthDate: string;
   interests: InterestValue[];
   travelType: TravelTypeValue | '';
-  language: string;
+  languages: string[];
 };
 
 export type SignupRequest = {
@@ -50,15 +50,15 @@ export const travelTypeOptions = travelTypeValues;
 
 export function validateLoginForm(values: LoginRequest) {
   if (!values.email.trim()) {
-    return 'Email is required';
+    return 'error_email_required';
   }
 
   if (!/^\S+@\S+\.\S+$/.test(values.email.trim())) {
-    return 'Enter a valid email';
+    return 'error_invalid_email';
   }
 
   if (!values.password) {
-    return 'Password is required';
+    return 'error_password_required';
   }
 
   return null;
@@ -66,43 +66,43 @@ export function validateLoginForm(values: LoginRequest) {
 
 export function validateSignupForm(values: SignupFormState) {
   if (!values.email.trim()) {
-    return 'Email is required';
+    return 'error_email_required';
   }
 
   if (!/^\S+@\S+\.\S+$/.test(values.email.trim())) {
-    return 'Please enter a valid email';
+    return 'error_invalid_email';
   }
 
   if (values.password.length < 8) {
-    return 'Password must be at least 8 characters';
+    return 'error_password_length';
   }
 
   if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(values.password)) {
-    return 'Password must include uppercase, lowercase and number';
+    return 'error_password_pattern';
   }
 
   if (values.password !== values.confirmPassword) {
-    return 'Passwords do not match';
+    return 'error_passwords_dont_match';
   }
 
   if (!values.name.trim()) {
-    return 'Name is required';
+    return 'error_name_required';
   }
 
   if (!values.lastname.trim()) {
-    return 'Last name is required';
+    return 'error_lastname_required';
   }
 
   if (!values.gender.trim()) {
-    return 'Gender is required';
+    return 'error_gender_required';
   }
 
   if (!values.birthDate.trim()) {
-    return 'Birth date is required';
+    return 'error_birthdate_required';
   }
 
-  if (!values.language.trim()) {
-    return 'Language is required';
+  if (!values.languages || values.languages.length === 0) {
+    return 'error_language_required';
   }
 
   return null;
@@ -118,6 +118,6 @@ export function buildSignupRequest(values: SignupFormState): SignupRequest {
     birthDate: values.birthDate.trim(),
     interests: values.interests.length > 0 ? values.interests : undefined,
     travelType: values.travelType || undefined,
-    languages: values.language ? [values.language] : undefined,
+    languages: values.languages.length > 0 ? values.languages : undefined,
   };
 }

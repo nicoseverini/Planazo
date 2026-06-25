@@ -8,7 +8,7 @@ import { AuthButton, AuthCard, AuthInput } from '@/components/auth';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { useToken } from '@/context/token-context';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { validateLoginForm } from '@/models/auth';
 import { loginUser } from '@/services/auth';
 import i18n from '@/config/i18n';
@@ -30,6 +30,8 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+
+  const { surface, border, text: textColor } = useAppTheme();
 
   const handleLogin = async () => {
     const validationError = validateLoginForm({ email, password });
@@ -69,8 +71,6 @@ export default function LoginScreen() {
     }
   };
 
-  const textColor = useThemeColor({}, 'text');
-
   const goBack = () => {
     router.dismissAll();
     router.replace('/');
@@ -80,7 +80,14 @@ export default function LoginScreen() {
     <AppScreen centered scrollable>
       <View style={styles.shell}>
         <View style={styles.backButtonWrapper}>
-          <Pressable onPress={goBack} style={styles.backButton}>
+          <Pressable
+            onPress={goBack}
+            style={({ pressed }) => [
+              styles.backButton,
+              { backgroundColor: surface, borderColor: border },
+              pressed && styles.pressed,
+            ]}
+          >
             <Ionicons name="arrow-back" size={24} color={textColor} />
           </Pressable>
         </View>
@@ -104,7 +111,7 @@ export default function LoginScreen() {
             </ThemedText>
           </Pressable>
 
-          {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
+          {error ? <ThemedText style={styles.error}>{t(error)}</ThemedText> : null}
         </AuthCard>
       </View>
       <View style={styles.footer}>
