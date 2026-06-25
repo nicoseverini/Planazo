@@ -88,6 +88,7 @@ export default function CreatePlanScreen() {
             screenTitle={t('create_plan_title')}
             submitLabel={t('create_plan_title').toUpperCase()}
             onSubmit={handleCreate}
+            onBack={() => router.back()}
         />
     );
 }

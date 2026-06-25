@@ -9,5 +9,9 @@ export function useAppTheme() {
         mutedText: useThemeColor({}, 'mutedText'),
         text: useThemeColor({}, 'text'),
         background: useThemeColor({}, 'background'),
+        secondary: useThemeColor({}, 'secondary'),
+        accent: useThemeColor({}, 'accent'),
+        success: useThemeColor({}, 'success'),
+        star: useThemeColor({}, 'star'),
     };
 }

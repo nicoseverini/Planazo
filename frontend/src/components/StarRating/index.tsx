@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ComponentProps } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 export interface StarRatingProps {
     rating: number;
@@ -11,7 +12,9 @@ export interface StarRatingProps {
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
-export function StarRating({ rating, onChange, size = 16, color = '#22c55e' }: StarRatingProps) {
+export function StarRating({ rating, onChange, size = 16, color }: StarRatingProps) {
+    const { star } = useAppTheme();
+    const activeColor = color ?? star;
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
 
@@ -27,7 +30,7 @@ export function StarRating({ rating, onChange, size = 16, color = '#22c55e' }: S
                     name = 'star-half';
                 }
 
-                const starIcon = <Ionicons name={name} size={size} color={color} />;
+                const starIcon = <Ionicons name={name} size={size} color={activeColor} />;
 
                 if (onChange) {
                     return (

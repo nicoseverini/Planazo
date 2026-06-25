@@ -11,7 +11,12 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
   },
   backButton: {
-    padding: 4,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
   },
   headerTitle: {
     fontSize: 24,

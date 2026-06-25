@@ -16,6 +16,10 @@ export const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+  },
+  pressed: {
+    opacity: 0.7,
   },
   error: {
     color: '#dc2626',

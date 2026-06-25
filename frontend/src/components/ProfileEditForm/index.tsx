@@ -2,17 +2,29 @@ import { ActivityIndicator, Pressable, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import {
-    GENDER_LABELS,
     GENDER_OPTIONS,
-    INTEREST_LABELS,
     INTEREST_OPTIONS,
     LANGUAGE_OPTIONS,
-    TRAVEL_TYPE_LABELS,
     TRAVEL_TYPE_OPTIONS,
 } from '@/constants/profile-options';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { UserProfile } from '@/services/user';
 import { styles } from '@/screens/user-profile-screen/styles';
+import { useTranslation } from 'react-i18next';
+import { formatInterest } from '@/utils/interests';
+
+function calculateAge(birthDateString?: string): string {
+    if (!birthDateString) return '';
+    const today = new Date();
+    const birthDate = new Date(birthDateString);
+    if (isNaN(birthDate.getTime())) return '';
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    return String(age);
+}
 
 type ProfileEditFormProps = {
     formData: UserProfile | null;
@@ -34,49 +46,64 @@ export function ProfileEditForm({
     error,
 }: ProfileEditFormProps) {
     const { tint, tintText, surface, border, mutedText, text, background } = useAppTheme();
+    const { t } = useTranslation();
 
     return (
         <View style={styles.editForm}>
             <ThemedText type="subtitle" style={styles.editTitle}>
-                Edit information
+                {t('edit_information')}
             </ThemedText>
 
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText }}>Name</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText }}>{t('name')}</ThemedText>
                 <TextInput
                     style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
                     value={formData?.name || ''}
                     onChangeText={(value) => onChange('name', value.replace(/[0-9]/g, ''))}
-                    placeholder="Your name"
+                    placeholder={t('your_name')}
                     placeholderTextColor={mutedText}
                 />
             </View>
 
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText }}>Last name</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText }}>{t('lastname')}</ThemedText>
                 <TextInput
                     style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
                     value={formData?.lastname || ''}
                     onChangeText={(value) => onChange('lastname', value.replace(/[0-9]/g, ''))}
-                    placeholder="Your last name"
+                    placeholder={t('your_last_name')}
                     placeholderTextColor={mutedText}
                 />
             </View>
 
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText }}>Email</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText }}>{t('email')}</ThemedText>
                 <TextInput
                     style={[styles.input, styles.disabledInput, { backgroundColor: background, borderColor: border, color: mutedText }]}
                     value={formData?.email || ''}
                     editable={false}
                 />
                 <ThemedText type="label" style={{ color: mutedText, fontSize: 11, marginTop: 4 }}>
-                    Email cannot be changed
+                    {t('email_disabled_warning')}
                 </ThemedText>
             </View>
 
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText }}>Gender</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText }}>{t('age')}</ThemedText>
+                <TextInput
+                    style={[styles.input, styles.disabledInput, { backgroundColor: background, borderColor: border, color: mutedText }]}
+                    value={formData?.age ? String(formData.age) : (formData?.birthDate ? calculateAge(formData.birthDate) : '')}
+                    editable={false}
+                    placeholder={t('not_set')}
+                    placeholderTextColor={mutedText}
+                />
+                <ThemedText type="label" style={{ color: mutedText, fontSize: 11, marginTop: 4 }}>
+                    {t('age_disabled_warning')}
+                </ThemedText>
+            </View>
+
+            <View style={styles.inputGroup}>
+                <ThemedText type="label" style={{ color: mutedText }}>{t('gender')}</ThemedText>
                 <View style={[styles.selectContainer, { backgroundColor: surface, borderColor: border }]}>
                     {GENDER_OPTIONS.map((option) => (
                         <Pressable
@@ -88,7 +115,7 @@ export function ProfileEditForm({
                                 type="label"
                                 style={{ color: formData?.gender === option ? tintText : text, fontSize: 12 }}
                             >
-                                {GENDER_LABELS[option] ?? option}
+                                {t(`gender_${option.toLowerCase()}`, { defaultValue: option })}
                             </ThemedText>
                         </Pressable>
                     ))}
@@ -96,7 +123,7 @@ export function ProfileEditForm({
             </View>
 
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText }}>Interests</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText }}>{t('interests')}</ThemedText>
                 <View style={[styles.selectContainer, { backgroundColor: surface, borderColor: border }]}>
                     {INTEREST_OPTIONS.map((option) => {
                         const selected = formData?.interests?.includes(option);
@@ -107,7 +134,7 @@ export function ProfileEditForm({
                                 style={[styles.selectOption, selected && { backgroundColor: tint }]}
                             >
                                 <ThemedText type="label" style={{ color: selected ? tintText : text, fontSize: 12 }}>
-                                    {INTEREST_LABELS[option] ?? option}
+                                    {formatInterest(option)}
                                 </ThemedText>
                             </Pressable>
                         );
@@ -116,7 +143,7 @@ export function ProfileEditForm({
             </View>
 
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText }}>Languages</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText }}>{t('languages')}</ThemedText>
                 <View style={[styles.selectContainer, { backgroundColor: surface, borderColor: border }]}>
                     {LANGUAGE_OPTIONS.map((option) => {
                         const selected = formData?.languages?.includes(option);
@@ -127,7 +154,7 @@ export function ProfileEditForm({
                                 style={[styles.selectOption, selected && { backgroundColor: tint }]}
                             >
                                 <ThemedText type="label" style={{ color: selected ? tintText : text, fontSize: 12 }}>
-                                    {option}
+                                    {t(`lang_${option.toLowerCase()}`, { defaultValue: option })}
                                 </ThemedText>
                             </Pressable>
                         );
@@ -136,7 +163,7 @@ export function ProfileEditForm({
             </View>
 
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText }}>Travel type</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText }}>{t('travel_type')}</ThemedText>
                 <View style={[styles.selectContainer, { backgroundColor: surface, borderColor: border }]}>
                     {TRAVEL_TYPE_OPTIONS.map((option) => (
                         <Pressable
@@ -148,7 +175,7 @@ export function ProfileEditForm({
                                 type="label"
                                 style={{ color: formData?.travelType === option ? tintText : text, fontSize: 12 }}
                             >
-                                {TRAVEL_TYPE_LABELS[option] ?? option}
+                                {t(`travel_type_${option.toLowerCase()}`, { defaultValue: option })}
                             </ThemedText>
                         </Pressable>
                     ))}
@@ -173,7 +200,7 @@ export function ProfileEditForm({
                         <ActivityIndicator size="small" color={tintText} />
                     ) : (
                         <ThemedText type="body" style={{ color: tintText, fontWeight: '600' }}>
-                            Save changes
+                            {t('save_changes')}
                         </ThemedText>
                     )}
                 </Pressable>
@@ -183,7 +210,7 @@ export function ProfileEditForm({
                     style={[styles.secondaryButton, { borderColor: border }]}
                 >
                     <ThemedText type="body" style={{ color: text }}>
-                        Cancel
+                        {t('cancel')}
                     </ThemedText>
                 </Pressable>
             </View>

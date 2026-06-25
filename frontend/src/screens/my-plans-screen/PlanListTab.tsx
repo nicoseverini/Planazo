@@ -13,6 +13,7 @@ import { DistanceSlider } from '@/components/DistanceSlider';
 import { PlanCard } from '@/components/PlanCard';
 import { ThemedText } from '@/components/ThemedText';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useProximityFilter } from '@/hooks/use-proximity-filter';
 import { PlanSummary, PlanVisibility } from '@/services/plan';
 import { formatInterest } from '@/utils/interests';
@@ -66,6 +67,7 @@ export function PlanListTab({
 }: Props) {
     const { t } = useTranslation();
     const { surface, border, tint, tintText, mutedText, text: textColor } = useAppTheme();
+    const colorScheme = useColorScheme();
 
     const [plans, setPlans] = useState<PlanSummary[]>([]);
     const [loading, setLoading] = useState(true);
@@ -323,15 +325,20 @@ export function PlanListTab({
                         )}
                     </Pressable>
                     {showDateFrom && (
-                        <DateTimePicker
-                            value={filters.dateFrom ?? new Date()}
-                            mode="date"
-                            display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                            onChange={(_, date) => {
-                                setShowDateFrom(Platform.OS === 'ios');
-                                if (date) setFilters((f) => ({ ...f, dateFrom: date }));
-                            }}
-                        />
+                        <View style={{ backgroundColor: surface, borderColor: border, borderWidth: 1, borderRadius: 12, padding: 8, marginBottom: 24, overflow: 'hidden', alignItems: 'center' }}>
+                            <DateTimePicker
+                                value={filters.dateFrom ?? new Date()}
+                                mode="date"
+                                display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                                textColor={textColor}
+                                themeVariant={colorScheme}
+                                accentColor={tint}
+                                onChange={(_, date) => {
+                                    setShowDateFrom(Platform.OS === 'ios');
+                                    if (date) setFilters((f) => ({ ...f, dateFrom: date }));
+                                }}
+                            />
+                        </View>
                     )}
 
                     {/* End date */}
@@ -351,16 +358,21 @@ export function PlanListTab({
                         )}
                     </Pressable>
                     {showDateTo && (
-                        <DateTimePicker
-                            value={filters.dateTo ?? new Date()}
-                            mode="date"
-                            minimumDate={filters.dateFrom ?? undefined}
-                            display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                            onChange={(_, date) => {
-                                setShowDateTo(Platform.OS === 'ios');
-                                if (date) setFilters((f) => ({ ...f, dateTo: date }));
-                            }}
-                        />
+                        <View style={{ backgroundColor: surface, borderColor: border, borderWidth: 1, borderRadius: 12, padding: 8, marginBottom: 24, overflow: 'hidden', alignItems: 'center' }}>
+                            <DateTimePicker
+                                value={filters.dateTo ?? new Date()}
+                                mode="date"
+                                minimumDate={filters.dateFrom ?? undefined}
+                                display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                                textColor={textColor}
+                                themeVariant={colorScheme}
+                                accentColor={tint}
+                                onChange={(_, date) => {
+                                    setShowDateTo(Platform.OS === 'ios');
+                                    if (date) setFilters((f) => ({ ...f, dateTo: date }));
+                                }}
+                            />
+                        </View>
                     )}
 
                     {/* Proximity */}

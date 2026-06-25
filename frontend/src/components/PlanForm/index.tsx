@@ -17,6 +17,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { CATEGORY_OPTIONS } from '@/constants/plan-form';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { PlanFormValues } from '@/hooks/use-plan-form';
 import { formatInterest } from '@/utils/interests';
 
@@ -26,6 +27,7 @@ type PlanFormProps = PlanFormValues & {
     screenTitle: string;
     submitLabel: string;
     onSubmit: () => void;
+    onBack: () => void;
     descriptionPlaceholder?: string;
 };
 
@@ -33,6 +35,7 @@ export function PlanForm({
     screenTitle,
     submitLabel,
     onSubmit,
+    onBack,
     descriptionPlaceholder = 'Describe this plan...',
     saving,
     error,
@@ -72,6 +75,7 @@ export function PlanForm({
     const router = useRouter();
     const { t } = useTranslation();
     const { tint, tintText, surface, border, mutedText, text, background } = useAppTheme();
+    const colorScheme = useColorScheme();
 
     return (
         <AppScreen scrollable>
@@ -179,23 +183,29 @@ export function PlanForm({
 
             {/* Start inline pickers (Full Width) */}
             {showStartDatePicker && (
-                <View style={[styles.inlinePicker, { borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
+                <View style={[styles.inlinePicker, { backgroundColor: surface, borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
                     <DateTimePicker
                         value={internalStartDate}
                         mode="date"
                         display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
                         minimumDate={new Date()}
+                        textColor={text}
+                        themeVariant={colorScheme}
+                        accentColor={tint}
                         onChange={handleStartDateChange}
                     />
                 </View>
             )}
             {showStartTimePicker && (
-                <View style={[styles.inlinePicker, { borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
+                <View style={[styles.inlinePicker, { backgroundColor: surface, borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
                     <DateTimePicker
                         value={internalStartDate}
                         mode="time"
                         display="spinner"
                         is24Hour={true}
+                        textColor={text}
+                        themeVariant={colorScheme}
+                        accentColor={tint}
                         onChange={handleStartTimeChange}
                     />
                 </View>
@@ -255,23 +265,29 @@ export function PlanForm({
 
             {/* End inline pickers (Full Width) */}
             {showEndDatePicker && (
-                <View style={[styles.inlinePicker, { borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
+                <View style={[styles.inlinePicker, { backgroundColor: surface, borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
                     <DateTimePicker
                         value={internalEndDate}
                         mode="date"
                         display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
                         minimumDate={new Date()}
+                        textColor={text}
+                        themeVariant={colorScheme}
+                        accentColor={tint}
                         onChange={handleEndDateChange}
                     />
                 </View>
             )}
             {showEndTimePicker && (
-                <View style={[styles.inlinePicker, { borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
+                <View style={[styles.inlinePicker, { backgroundColor: surface, borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
                     <DateTimePicker
                         value={internalEndDate}
                         mode="time"
                         display="spinner"
                         is24Hour={true}
+                        textColor={text}
+                        themeVariant={colorScheme}
+                        accentColor={tint}
                         onChange={handleEndTimeChange}
                     />
                 </View>
@@ -494,6 +510,22 @@ export function PlanForm({
                         {submitLabel}
                     </ThemedText>
                 )}
+            </Pressable>
+
+            {/* Cancel */}
+            <Pressable
+                onPress={onBack}
+                disabled={saving}
+                style={({ pressed }) => [
+                    styles.cancelButton,
+                    { borderColor: border },
+                    pressed && styles.pressed,
+                    saving && styles.disabled,
+                ]}
+            >
+                <ThemedText type="body" style={{ color: text, fontWeight: '600' }}>
+                    {t('cancel')}
+                </ThemedText>
             </Pressable>
         </AppScreen>
     );

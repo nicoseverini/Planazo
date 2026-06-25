@@ -15,6 +15,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { decodeJwt, useToken } from '@/context/token-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useProximityFilter } from '@/hooks/use-proximity-filter';
 import { useRefreshControl } from '@/hooks/use-refresh-control';
 import { PlanFilters, PlanSummary, PlanVisibility, usePlans } from '@/services/plan';
@@ -56,6 +57,7 @@ export function SearchPlansScreen() {
     const { radius, userLocation, handleRadiusChange, clearRadius } = useProximityFilter();
 
     const { surface, border, tint, tintText, mutedText, text: textColor } = useAppTheme();
+    const colorScheme = useColorScheme();
 
     const hasActiveFilters = !!(
         selectedCategories.length > 0 || locationFilter || dateFrom || dateTo || radius || visibility
@@ -336,11 +338,14 @@ export function SearchPlansScreen() {
                         )}
                     </Pressable>
                     {showDateFrom && (
-                        <View style={[styles.inlinePicker, { borderColor: border, marginBottom: 24 }]}>
+                        <View style={[styles.inlinePicker, { backgroundColor: surface, borderColor: border, marginBottom: 24, overflow: 'hidden', alignItems: 'center', padding: 8, borderWidth: 1, borderRadius: 12 }]}>
                             <DateTimePicker
                                 value={dateFrom ?? new Date()}
                                 mode="date"
                                 display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                                textColor={textColor}
+                                themeVariant={colorScheme}
+                                accentColor={tint}
                                 onChange={(_, date) => {
                                     setShowDateFrom(Platform.OS === 'ios');
                                     if (date) setDateFrom(date);
@@ -370,12 +375,15 @@ export function SearchPlansScreen() {
                         )}
                     </Pressable>
                     {showDateTo && (
-                        <View style={[styles.inlinePicker, { borderColor: border, marginBottom: 24 }]}>
+                        <View style={[styles.inlinePicker, { backgroundColor: surface, borderColor: border, marginBottom: 24, overflow: 'hidden', alignItems: 'center', padding: 8, borderWidth: 1, borderRadius: 12 }]}>
                             <DateTimePicker
                                 value={dateTo ?? new Date()}
                                 mode="date"
                                 minimumDate={dateFrom ?? undefined}
                                 display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                                textColor={textColor}
+                                themeVariant={colorScheme}
+                                accentColor={tint}
                                 onChange={(_, date) => {
                                     setShowDateTo(Platform.OS === 'ios');
                                     if (date) setDateTo(date);

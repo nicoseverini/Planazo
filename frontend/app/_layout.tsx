@@ -1,4 +1,5 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import React from 'react';
+import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
@@ -7,19 +8,19 @@ import '@/config/i18n';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { TokenProvider } from '@/context/token-context';
+import { ThemeProvider, useAppThemeContext } from '@/context/ThemeContext';
 
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const theme = colorScheme === 'dark' ? DarkTheme : DefaultTheme;
-  const colors = Colors[colorScheme];
+function AppRootContent() {
+  const { theme } = useAppThemeContext();
+  const colors = Colors[theme];
+  const navigationTheme = theme === 'dark' ? DarkTheme : DefaultTheme;
 
   return (
-    <ThemeProvider
+    <NavigationThemeProvider
       value={{
-        ...theme,
+        ...navigationTheme,
         colors: {
-          ...theme.colors,
+          ...navigationTheme.colors,
           background: colors.background,
           card: colors.surface,
           text: colors.text,
@@ -40,7 +41,15 @@ export default function RootLayout() {
           }}
         />
       </TokenProvider>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
+    </NavigationThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <AppRootContent />
     </ThemeProvider>
   );
 }

@@ -1,31 +1,33 @@
+import React, { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { AuthButton, AuthCard, AuthInput } from '@/components/auth';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { resendVerificationEmail } from '@/services/auth';
 
 import { styles } from '../forgot-password-screen/styles';
 
 export default function ResendVerificationScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const textColor = useThemeColor({}, 'text');
+  const { surface, border, text: textColor } = useAppTheme();
 
   const handleResend = async () => {
     if (!email.trim()) {
-      setError('Email is required');
+      setError('error_email_required');
       return;
     }
     if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
-      setError('Enter a valid email');
+      setError('error_invalid_email');
       return;
     }
 
@@ -48,11 +50,11 @@ export default function ResendVerificationScreen() {
       <AppScreen centered scrollable>
         <View style={styles.shell}>
           <AuthCard
-            kicker="Verification"
-            title="Check your inbox"
-            body="If an account exists for this email and it hasn't been verified yet, a new verification link has been sent."
+            kicker={t('verification_kicker')}
+            title={t('check_inbox')}
+            body={t('resend_success_body')}
           >
-            <AuthButton label="Back to sign in" onPress={() => router.back()} />
+            <AuthButton label={t('back_to_sign_in')} onPress={() => router.back()} />
           </AuthCard>
         </View>
       </AppScreen>
@@ -63,17 +65,24 @@ export default function ResendVerificationScreen() {
     <AppScreen centered scrollable>
       <View style={styles.shell}>
         <View style={styles.backButtonWrapper}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Pressable
+            onPress={() => router.back()}
+            style={({ pressed }) => [
+              styles.backButton,
+              { backgroundColor: surface, borderColor: border },
+              pressed && styles.pressed,
+            ]}
+          >
             <Ionicons name="arrow-back" size={24} color={textColor} />
           </Pressable>
         </View>
         <AuthCard
-          kicker="Verification"
-          title="Resend verification email"
-          body="Enter your email address and we'll send you a new verification link."
+          kicker={t('verification_kicker')}
+          title={t('resend_verification_email')}
+          body={t('resend_verification_desc')}
         >
           <AuthInput
-            label="Email"
+            label={t('email')}
             value={email}
             onChangeText={(v) => { setEmail(v); setError(null); }}
             keyboardType="email-address"
@@ -81,11 +90,11 @@ export default function ResendVerificationScreen() {
             autoComplete="email"
           />
           <AuthButton
-            label={loading ? 'Sending...' : 'Send verification email'}
+            label={loading ? t('sending') : t('send_verification_email_btn')}
             onPress={handleResend}
             disabled={loading}
           />
-          {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
+          {error ? <ThemedText style={styles.error}>{t(error)}</ThemedText> : null}
         </AuthCard>
       </View>
     </AppScreen>
