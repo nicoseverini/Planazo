@@ -109,7 +109,7 @@ export default function MapScreen() {
                     setPlans(plansData);
                     setPlaces(placesData);
                 })
-                .catch(console.error);
+                .catch(() => Alert.alert(t('error'), t('unable_load_places_try')));
         }, [])
     );
 
