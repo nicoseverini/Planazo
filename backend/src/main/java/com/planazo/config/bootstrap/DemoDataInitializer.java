@@ -239,77 +239,260 @@ public class DemoDataInitializer {
 
     private List<Plan> seedPlans(List<User> team) {
         User seba = team.get(0), marcos = team.get(1), rocio = team.get(2), bryan = team.get(3), emanuel = team.get(4);
+        
+        // Get all users from database for random creators
+        List<User> allUsers = userRepository.findAll();
+        Random rng = new Random(20260625L);
 
         Plan p1 = plan(seba, "Asado y fútbol en Palermo",
                 "Casual Sunday asado before the Boca match. Bring something to share — we cover the meat and the fire.",
                 dt(2026, 7, 12, 13, 0), dt(2026, 7, 12, 19, 0), PlanVisibility.PUBLIC, 20, 18, null,
                 List.of(Interest.FOOD, Interest.SPORTS), "Argentina", "Buenos Aires", "Parque Tres de Febrero, Palermo",
-                -34.5711, -58.4173, 8000.0, List.of(marcos, bryan, emanuel));
+                -34.5711, -58.4173, 8000.0, List.of(marcos, bryan, emanuel), 
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410450/Gemini_Generated_Image_osoyo4osoyo4osoy_pyaqsr.png",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410454/p12_n8gts3.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410458/p1_mg85ub.jpg"
+                ));
 
         Plan p2 = plan(marcos, "Trekking a la Laguna de los Tres",
                 "Full-day hike to the base of Mount Fitz Roy. Moderate-to-hard, ~10h round trip. Decent boots required.",
                 dt(2026, 8, 9, 6, 30), dt(2026, 8, 9, 18, 0), PlanVisibility.PUBLIC, 12, 16, null,
                 List.of(Interest.NATURE, Interest.MOUNTAINS, Interest.ADVENTURE), "Argentina", "El Chaltén", "Sendero Laguna de los Tres",
-                -49.3300, -72.8860, 15000.0, List.of(bryan, emanuel));
+                -49.3300, -72.8860, 15000.0, List.of(bryan, emanuel), 
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410624/p2_xxf27b.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410628/p23_yjd98z.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410621/p22_sw9pvv.jpg"
+                ));
 
         Plan p3 = plan(rocio, "Noche de ópera en el Colón",
                 "We grabbed a block of seats for the season's Traviata. Smart-casual dress, dinner nearby afterwards.",
                 dt(2026, 9, 3, 20, 0), dt(2026, 9, 3, 23, 30), PlanVisibility.PUBLIC, 8, 18, null,
                 List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "Buenos Aires", "Teatro Colón, Cerrito 628",
-                -34.6010, -58.3835, 22000.0, List.of(seba, emanuel));
+                -34.6010, -58.3835, 22000.0, List.of(seba, emanuel), 
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410796/colon2_nrvsao.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410800/colon3_oawyog.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410793/colon_cgdm3y.jpg"
+                ));
 
         Plan p4 = plan(bryan, "Día de ski en Cerro Catedral",
                 "Mid-week ski day to dodge the crowds. Carpooling from Bariloche centre at 8am. All levels welcome.",
                 dt(2026, 7, 22, 8, 0), dt(2026, 7, 22, 17, 0), PlanVisibility.PUBLIC, 16, null, null,
                 List.of(Interest.SPORTS, Interest.MOUNTAINS), "Argentina", "San Carlos de Bariloche", "Cerro Catedral",
-                -41.1667, -71.4333, 45000.0, List.of(marcos, seba));
+                -41.1667, -71.4333, 45000.0, List.of(marcos, seba), 
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410903/dia-de-ski-en-cerro-catedral_47796_202507071715330_f2ekwe.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410895/0_ugxpjv.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410899/3-dias-de-ski-en-cerro-catedral_2403_201706021317020.Mobile_a0dzqg.jpg"
+                ));
 
         Plan p5 = plan(emanuel, "Tour de bodegas en Mendoza",
                 "Three wineries in Luján de Cuyo with a long lunch in the middle. We split a driver so everyone can taste.",
                 dt(2026, 10, 4, 10, 0), dt(2026, 10, 4, 18, 0), PlanVisibility.PUBLIC, 10, 18, null,
                 List.of(Interest.FOOD, Interest.CULTURE), "Argentina", "Mendoza", "Luján de Cuyo",
-                -33.0386, -68.8794, 30000.0, List.of(seba, rocio));
+                -33.0386, -68.8794, 30000.0, List.of(seba, rocio), 
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411005/df_nrtp3a.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411009/mendoza_0_202011300955440_bnqnba.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410997/04_zgkm5e.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411001/16897a44-787d-4fdf-9d8f-deaf5d606ec4_cjz2ma.avif"
+                ));
 
         Plan p6 = plan(seba, "Recorrida foodie en San Telmo",
                 "Sunday market crawl: empanadas, choripán, and the best dulce de leche stalls. Cash helps at the fair.",
                 dt(2026, 7, 19, 11, 0), dt(2026, 7, 19, 16, 0), PlanVisibility.PUBLIC, 15, null, null,
                 List.of(Interest.FOOD, Interest.CULTURE, Interest.SHOPPING), "Argentina", "Buenos Aires", "Feria de San Telmo, Defensa 900",
-                -34.6208, -58.3735, 12000.0, List.of(rocio, emanuel, marcos));
+                -34.6208, -58.3735, 12000.0, List.of(rocio, emanuel, marcos), 
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411091/p3_vzgyfj.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411096/d8_utns2r.jpg"
+                ));
 
         Plan p7 = plan(marcos, "Avistaje y caminata en Iguazú",
                 "Two days at the falls: Argentine side on day one, the boat under the falls on day two. Ponchos provided.",
                 dt(2026, 9, 19, 9, 0), dt(2026, 9, 20, 17, 0), PlanVisibility.PUBLIC, 14, 8, null,
                 List.of(Interest.NATURE, Interest.ADVENTURE), "Argentina", "Puerto Iguazú", "Parque Nacional Iguazú",
-                -25.6953, -54.4367, 38000.0, List.of(emanuel, bryan));
+                -25.6953, -54.4367, 38000.0, List.of(emanuel, bryan), 
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411175/ig_pbmouj.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411171/img1_dblmzq.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411167/0000_wpxpdo.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411163/2222_ynyin2.jpg"
+                ));
 
         Plan p8 = plan(rocio, "Tarde de tango en La Boca",
                 "Caminito stroll, a milonga lesson for total beginners, and coffee with a view of the river.",
                 dt(2026, 8, 16, 15, 0), dt(2026, 8, 16, 20, 0), PlanVisibility.PUBLIC, 18, null, null,
                 List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "Buenos Aires", "Caminito, La Boca",
-                -34.6395, -58.3625, 9000.0, List.of(seba, emanuel));
+                -34.6395, -58.3625, 9000.0, List.of(seba, emanuel), 
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411275/tang_izmyga.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411270/tang2_ndsl7x.jpg"
+                ));
 
         Plan p9 = plan(bryan, "Escapada de surf a Mar del Plata",
                 "Weekend of beginner surf lessons and beach volley. Boards and wetsuits rented on site.",
                 dt(2026, 11, 7, 9, 0), dt(2026, 11, 8, 18, 0), PlanVisibility.PUBLIC, 12, 16, 45,
                 List.of(Interest.BEACH, Interest.SPORTS, Interest.ADVENTURE), "Argentina", "Mar del Plata", "Playa Grande",
-                -38.0500, -57.5300, 26000.0, List.of(seba, marcos));
+                -38.0500, -57.5300, 26000.0, List.of(seba, marcos),
+                 List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411346/123_qjemzs.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411350/010203_vqqbyr.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411341/0102_exzzrq.jpg"
+                 ));
 
         Plan p10 = plan(emanuel, "Amanecer en Purmamarca",
                 "Early start to catch the Cerro de los Siete Colores at sunrise, then a slow breakfast in the village.",
                 dt(2026, 10, 25, 6, 0), dt(2026, 10, 25, 11, 0), PlanVisibility.PRIVATE, 8, null, null,
                 List.of(Interest.NATURE, Interest.HISTORY), "Argentina", "Purmamarca", "Cerro de los Siete Colores",
-                -23.7450, -65.5000, 7000.0, List.of(marcos, rocio));
+                -23.7450, -65.5000, 7000.0, List.of(marcos, rocio), 
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411449/p10_advyub.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411452/p102_arrjnv.jpg"
+                ));
+        Plan p11 = plan(allUsers.get(rng.nextInt(allUsers.size())), 
+        "Recorrida de tiendas en Buenos Aires",
+            "A friendly get-together to enjoy Mercado de San Telmo without rushing.",
+            dt(2026, 7, 12, 11, 0), dt(2026, 7, 12, 16, 0),
+            PlanVisibility.PRIVATE, 30, null, 5000,
+            List.of(), "Argentina", "Buenos Aires",
+            "Mercado de San Telmo",
+            -34.6206, -58.3716, 300,
+            List.of(marcos, rocio),
+            List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782413526/rec_ayyfvh.jpg"));
 
-        return List.of(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10);
+        Plan p12 = plan(allUsers.get(rng.nextInt(allUsers.size())), 
+        "Día de museos en Buenos Aires",
+                "Group plan at Usina del Arte; bring good vibes and comfy shoes.",
+                dt(2026, 7, 13, 12, 0), dt(2026, 11, 02, 18, 0),
+                PlanVisibility.PUBLIC, 35, null, 7500,
+                List.of(), "Argentina", "Buenos Aires",
+                "Usina del Arte",
+                -34.6286, -58.3568, 360,
+                List.of(seba),
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782413579/flyer-nochedelosmuseos-lineup-historico_hpw7ia.png",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782413611/mus_jixvu6.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782413609/mus_hctzcy.jpg"
+                    
+                ));
+
+        Plan p13 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Caminata y naturaleza en Buenos Aires",
+                "Discovering Reserva Ecológica Costanera Sur together and grabbing a bite nearby afterwards.",
+                dt(2026, 7, 14, 13, 0), dt(2026, 7, 14, 16, 0),
+                PlanVisibility.PUBLIC, 10, 18, 10000,
+                List.of(), "Argentina", "Buenos Aires",
+                "Reserva Ecológica Costanera Sur",
+                -34.612, -58.35, 180,
+                List.of(seba, marcos),
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782413778/90_pieaqu.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782413777/91_w4jn2t.jpg"
+                ));
+
+        Plan p14 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Recorrido de arte en Buenos Aires",
+                "A friendly get-together to enjoy Centro Cultural Kirchner without rushing.",
+                dt(2026, 7, 15, 14, 0), dt(2026, 7, 15, 18, 0),
+                PlanVisibility.PUBLIC, 15, null, 12500,
+                List.of(), "Argentina", "Buenos Aires",
+                "Centro Cultural Kirchner",
+                -34.6075, -58.3702, 240,
+                List.of(),
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782413869/c3_mesaf1.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782413870/e3_kwyqsg.jpg"
+                ));
+
+        Plan p15 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Paseo por el Estadio Monumental",
+                "Group plan at Estadio Monumental; bring good vibes and comfy shoes.",
+                dt(2026, 7, 16, 15, 0), dt(2026, 7, 16, 20, 0),
+                PlanVisibility.PUBLIC, 20, null, 15000,
+                List.of(), "Argentina", "Buenos Aires",
+                "Estadio Monumental",
+                -34.5453, -58.4498, 300,
+                List.of(),
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782414004/visita-estadios-monumental-y-bombonera-river-y-boca_42_202406280957240.Mobile_oy35jp.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782414006/mun_buci2o.jpg"
+                ));
+
+        Plan p16 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Partido y deporte en Buenos Aires",
+                "Exploring La Bombonera at an easy pace, with plenty of time to chat.",
+                dt(2026, 7, 17, 16, 0), dt(2026, 7, 17, 22, 0),
+                PlanVisibility.PRIVATE, 25, null, 17500,
+                List.of(), "Argentina", "Buenos Aires",
+                "La Bombonera",
+                -34.6356, -58.3647, 360,
+                List.of(),
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782414062/bomb_szuqm3.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782414064/33_obxfek.jpg"
+                ));
+
+        Plan p17 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Noche de sabores en Buenos Aires",
+                "Discovering Barrio Chino de Belgrano together and grabbing a bite nearby afterwards.",
+                dt(2026, 7, 18, 9, 0), dt(2026, 7, 18, 12, 0),
+                PlanVisibility.PUBLIC, 30, 18, 20000,
+                List.of(), "Argentina", "Buenos Aires",
+                "Barrio Chino de Belgrano",
+                -34.561, -58.454, 180,
+                List.of(),
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782414123/1_na8lon.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782414121/chine_cy7shq.jpg"
+                ));
+
+        Plan p18 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Recorrida de tiendas en Buenos Aires",
+                "Group plan at Galerías Pacífico; bring good vibes and comfy shoes.",
+                dt(2026, 7, 19, 10, 0), dt(2026, 7, 19, 14, 0),
+                PlanVisibility.PUBLIC, 35, null, 22500,
+                List.of(), "Argentina", "Buenos Aires",
+                "Galerías Pacífico",
+                -34.601, -58.375, 240,
+                List.of(),
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782414197/1762789578691208ca2985e691208ca29860_fpci4s.jpg"
+                ));
+
+        Plan p19 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Tarde cultural en Buenos Aires",
+                "Exploring Avenida Corrientes at an easy pace, with plenty of time to chat.",
+                dt(2026, 7, 20, 11, 0), dt(2026, 7, 20, 16, 0),
+                PlanVisibility.PUBLIC, 10, null, 25000,
+                List.of(), "Argentina", "Buenos Aires",
+                "Avenida Corrientes",
+                -34.6038, -58.385, 300,
+                List.of(),
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782414260/avcor_qwo9sm.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782414262/03_xpv04p.jpg"
+                ));
+
+        Plan p20 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Recorrido histórico por Buenos Aires",
+                "Meeting up around Congreso de la Nación for a relaxed few hours together.",
+                dt(2026, 7, 21, 12, 0), dt(2026, 7, 21, 18, 0),
+                PlanVisibility.PUBLIC, 15, null, 27500,
+                List.of(), "Argentina", "Buenos Aires",
+                "Congreso de la Nación",
+                -34.6097, -58.3925, 360,
+                List.of(emanuel, rocio, seba, marcos, bryan),
+                List.of(
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782414325/14_gmjknc.jpg",
+                    "https://res.cloudinary.com/p5hffsjm/image/upload/v1782414328/Pasos-Perdidos-La-Noche-de-los-Museos-visto-desde-arriba-1024x683_xs1njl.jpg"
+                ));
+
+
+        return List.of(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20);
     }
 
     private Plan plan(User creator, String title, String description,
                       LocalDateTime start, LocalDateTime end, PlanVisibility visibility,
                       Integer maxSubscribers, Integer minAge, Integer maxAge,
                       List<Interest> interests, String country, String city, String address,
-                      double lat, double lng, double budget, List<User> members) {
+                      double lat, double lng, double budget, List<User> members, List<String> images) {
         Plan plan = new Plan(title, description, start, end, visibility, maxSubscribers, minAge, maxAge,
-                interests, country, city, address, lat, lng, List.of(), creator, AR_TZ);
+                interests, country, city, address, lat, lng, images, creator, AR_TZ);
         plan.setBudget(budget);
         // Persist first so the generated id backs the @MapsId subscriber key.
         plan = planRepository.save(plan);
@@ -418,8 +601,7 @@ public class DemoDataInitializer {
             idx++;
         }
 
-        // One coherent plan per new place (keeps the same geographic distribution).
-        seedExpansionPlans(newUsers, newPlaces, rng);
+        // Expansion plans removed - using manual plans with random creators instead.
 
         // Top reviews up to 400 venue + 400 user, authored by the new users.
         List<User> allUsers = userRepository.findAll();
