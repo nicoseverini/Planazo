@@ -14,6 +14,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     java.util.Optional<Review> findByUserIdAndTargetTypeAndTargetId(Long userId, ReviewTarget targetType, Long targetId);
 
+    // Used by the demo-data seeder to top reviews up to the target totals.
+    long countByTargetType(ReviewTarget targetType);
+
     @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.targetType = :type AND r.targetId = :id")
     Double getAverageRatingByTarget(@Param("type") ReviewTarget targetType, @Param("id") Long targetId);
 
