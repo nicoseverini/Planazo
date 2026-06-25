@@ -27,14 +27,18 @@ const formatReason = (reason: string): string => {
 }
 
 const formatDate = (dateString: string): string => {
-	const date = new Date(dateString)
-	return date.toLocaleDateString('en-US', {
+	// Ensure the date is interpreted as UTC by appending 'Z' if not present
+	const utcDateString = dateString.endsWith('Z') ? dateString : dateString + 'Z'
+	const date = new Date(utcDateString)
+	return new Intl.DateTimeFormat('en-US', {
 		year: 'numeric',
 		month: 'short',
 		day: 'numeric',
 		hour: '2-digit',
 		minute: '2-digit',
-	})
+		timeZone: 'America/Argentina/Buenos_Aires',
+		hour12: false,
+	}).format(date)
 }
 
 export function ReportsPage() {
