@@ -8,7 +8,7 @@ export type CreateReportRequest = {
   reason: ReportReason;
   description?: string;
   planId?: number;
-  turisticPlaceId?: number;
+  touristPlaceId?: number;
   reportedUserId?: number;
 };
 
@@ -22,8 +22,8 @@ export type ReportResponse = {
   reportedUserName: string | null;
   planId: number | null;
   planTitle: string | null;
-  turisticPlaceId: number | null;
-  turisticPlaceName: string | null;
+  touristPlaceId: number | null;
+  touristPlaceName: string | null;
   createdAt: string;
   resolved: boolean;
 };

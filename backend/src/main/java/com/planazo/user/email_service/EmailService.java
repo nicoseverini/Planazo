@@ -112,12 +112,12 @@ public class EmailService {
         send(to, "Your plan has been deleted", html);
     }
 
-    public void sendTuristicPlaceDeletedEmail(String to, String placeName, String reason) {
-        String html = loadHtmlTemplate("classpath:templates/mail/turistic_place_deleted.html");
+    public void sendTouristPlaceDeletedEmail(String to, String placeName, String reason) {
+        String html = loadHtmlTemplate("classpath:templates/mail/tourist_place_deleted.html");
         html = html.replace("${placeName}", placeName);
         html = html.replace("${reason}", reason != null && !reason.isEmpty() ? reason : "No reason provided");
 
-        send(to, "Your turistic place has been deleted", html);
+        send(to, "Your tourist place has been deleted", html);
     }
 
     private String loadHtmlTemplate(String path) {

@@ -8,10 +8,10 @@ import { PlansPage } from './plans.tsx'
 import { CreatePlanPage } from './create-plan'
 import { PlanDetailPage } from './plan-detail'
 import { EditPlanPage } from './edit-plan'
-import { TuristicPlacesPage } from './turistic-places'
-import { CreateTuristicPlacePage } from './create-turistic-place'
-import { TuristicPlaceDetailPage } from './turistic-place-detail'
-import { EditTuristicPlacePage } from './edit-turistic-place'
+import { TouristPlacesPage } from './tourist-places'
+import { CreateTouristPlacePage } from './create-tourist-place'
+import { TouristPlaceDetailPage } from './tourist-place-detail'
+import { EditTouristPlacePage } from './edit-tourist-place'
 import { ReportsPage } from './reports'
 
 function isAuthenticated(): boolean {
@@ -33,12 +33,12 @@ function resolveRoute(pathname: string) {
     return <PlansPage />
   }
 
-  if (normalizedPath === '/turistic-places') {
+  if (normalizedPath === '/tourist-places') {
     if (!isAuthenticated()) {
       window.location.href = '/login'
       return null
     }
-    return <TuristicPlacesPage />
+    return <TouristPlacesPage />
   }
 
   const planDetailMatch = normalizedPath.match(/^\/plans\/(\d+)$/)
@@ -59,22 +59,22 @@ function resolveRoute(pathname: string) {
     return <EditPlanPage planId={Number(planEditMatch[1])} />
   }
 
-  const placeDetailMatch = normalizedPath.match(/^\/turistic-places\/(\d+)$/)
+  const placeDetailMatch = normalizedPath.match(/^\/tourist-places\/(\d+)$/)
   if (placeDetailMatch) {
     if (!isAuthenticated()) {
       window.location.href = '/login'
       return null
     }
-    return <TuristicPlaceDetailPage placeId={Number(placeDetailMatch[1])} />
+    return <TouristPlaceDetailPage placeId={Number(placeDetailMatch[1])} />
   }
 
-  const placeEditMatch = normalizedPath.match(/^\/turistic-places\/(\d+)\/edit$/)
+  const placeEditMatch = normalizedPath.match(/^\/tourist-places\/(\d+)\/edit$/)
   if (placeEditMatch) {
     if (!isAuthenticated()) {
       window.location.href = '/login'
       return null
     }
-    return <EditTuristicPlacePage placeId={Number(placeEditMatch[1])} />
+    return <EditTouristPlacePage placeId={Number(placeEditMatch[1])} />
   }
 
   if (normalizedPath === '/create-plan') {
@@ -85,12 +85,12 @@ function resolveRoute(pathname: string) {
     return <CreatePlanPage />
   }
 
-  if (normalizedPath === '/create-turistic-place') {
+  if (normalizedPath === '/create-tourist-place') {
     if (!isAuthenticated()) {
       window.location.href = '/login'
       return null
     }
-    return <CreateTuristicPlacePage />
+    return <CreateTouristPlacePage />
   }
 
   if (normalizedPath === '/verify-email') {
@@ -120,13 +120,13 @@ function resolveRoute(pathname: string) {
           <a href="/plans">/plans</a>
         </li>
         <li>
-          <a href="/turistic-places">/turistic-places</a>
+          <a href="/tourist-places">/tourist-places</a>
         </li>
         <li>
           <a href="/create-plan">/create-plan</a>
         </li>
         <li>
-          <a href="/create-turistic-place">/create-turistic-place</a>
+          <a href="/create-tourist-place">/create-tourist-place</a>
         </li>
         <li>
           <a href="/verify-email?token=tu-token">/verify-email?token=tu-token</a>

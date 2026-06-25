@@ -61,7 +61,7 @@ public class SecurityConfig {
                                 "/error")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/plans", "/api/v1/plans/filter", "/api/v1/plans/nearby").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/turistic-places", "/api/v1/turistic-places/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/tourist-places", "/api/v1/tourist-places/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")

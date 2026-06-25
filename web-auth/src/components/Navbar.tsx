@@ -19,7 +19,7 @@ export function Navbar() {
 					<a href="/plans" className="nav-link">Plans</a>
 				</li>
 				<li className="nav-item">
-					<a href="/turistic-places" className="nav-link">Turistic Places</a>
+					<a href="/tourist-places" className="nav-link">Tourist Places</a>
 				</li>
 				<li className="nav-item">
 					<a href="/reports" className="nav-link">Reports</a>

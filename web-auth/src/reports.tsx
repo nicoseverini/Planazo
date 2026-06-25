@@ -13,8 +13,8 @@ type ReportResponse = {
 	reportedUserName: string | null
 	planId: number | null
 	planTitle: string | null
-	turisticPlaceId: number | null
-	turisticPlaceName: string | null
+	touristPlaceId: number | null
+	touristPlaceName: string | null
 	createdAt: string
 	resolved: boolean
 }
@@ -116,7 +116,7 @@ export function ReportsPage() {
 				<div className="page-header">
 					<div>
 						<h1>Reports</h1>
-						<p className="subtitle">Manage user reports for plans, turistic places, and users.</p>
+						<p className="subtitle">Manage user reports for plans, tourist places, and users.</p>
 					</div>
 					<div className="filter-buttons">
 						<button
@@ -175,11 +175,11 @@ export function ReportsPage() {
 										</div>
 									)}
 
-									{report.turisticPlaceId && (
+									{report.touristPlaceId && (
 										<div className="report-field">
-											<span className="field-label">Turistic Place:</span>
-											<a href={`/turistic-places/${report.turisticPlaceId}`} className="link">
-												{report.turisticPlaceName || `Place #${report.turisticPlaceId}`}
+											<span className="field-label"> Tourist Place:</span>
+											<a href={`/tourist-places/${report.touristPlaceId}`} className="link">
+												{report.touristPlaceName || `Place #${report.touristPlaceId}`}
 											</a>
 										</div>
 									)}

@@ -7,7 +7,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { usePlans } from '@/services/plan';
-import { useTuristicPlaces } from '@/services/turistic-place';
+import { useTouristPlaces } from '@/services/tourist-place';
 
 import { PlaceListTab } from './PlaceListTab';
 import { PlanListTab } from './PlanListTab';
@@ -25,14 +25,14 @@ export function MyActivitiesScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const { fetchMyCreatedPlans, fetchMyJoinedPlansButNotMine } = usePlans();
-    const { fetchMine: fetchMyPlaces } = useTuristicPlaces();
+    const { fetchMine: fetchMyPlaces } = useTouristPlaces();
 
     const { surface, border, tint, tintText, text: textColor } = useAppTheme();
 
     const [activeTab, setActiveTab] = useState<TabKey>('created');
 
     const goToPlan = (id: number) => router.push(`/plan/${id}` as any);
-    const goToPlace = (id: number) => router.push(`/turistic-place/${id}` as any);
+    const goToPlace = (id: number) => router.push(`/tourist-place/${id}` as any);
 
     const renderTab = () => {
         switch (activeTab) {
@@ -85,7 +85,7 @@ export function MyActivitiesScreen() {
                         action={{
                             icon: 'add',
                             label: t('create_tourist_place'),
-                            onPress: () => router.push('/turistic-place/create' as any),
+                            onPress: () => router.push('/tourist-place/create' as any),
                         }}
                         onPressPlace={goToPlace}
                     />

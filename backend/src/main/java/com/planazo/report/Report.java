@@ -32,8 +32,8 @@ public class Report {
     private com.planazo.plan.Plan plan;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "turistic_place_id")
-    private com.planazo.turistic_place.TuristicPlace turisticPlace;
+    @JoinColumn(name = "tourist_place_id")
+    private com.planazo.tourist_place.TouristPlace touristPlace;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -46,14 +46,14 @@ public class Report {
     }
 
     public Report(ReportReason reason, String description, User reporter, User reportedUser, 
-                  com.planazo.plan.Plan plan, com.planazo.turistic_place.TuristicPlace turisticPlace) {
+                  com.planazo.plan.Plan plan, com.planazo.tourist_place.TouristPlace touristPlace) {
         this();
         this.reason = reason;
         this.description = description;
         this.reporter = reporter;
         this.reportedUser = reportedUser;
         this.plan = plan;
-        this.turisticPlace = turisticPlace;
+        this.touristPlace = touristPlace;
     }
 
     public Long getId() { return id; }
@@ -67,8 +67,8 @@ public class Report {
     public void setReportedUser(User reportedUser) { this.reportedUser = reportedUser; }
     public com.planazo.plan.Plan getPlan() { return plan; }
     public void setPlan(com.planazo.plan.Plan plan) { this.plan = plan; }
-    public com.planazo.turistic_place.TuristicPlace getTuristicPlace() { return turisticPlace; }
-    public void setTuristicPlace(com.planazo.turistic_place.TuristicPlace turisticPlace) { this.turisticPlace = turisticPlace; }
+    public com.planazo.tourist_place.TouristPlace getTouristPlace() { return touristPlace; }
+    public void setTouristPlace(com.planazo.tourist_place.TouristPlace touristPlace) { this.touristPlace = touristPlace; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public Boolean getResolved() { return resolved; }
