@@ -19,11 +19,11 @@ import { useTranslation } from 'react-i18next';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { PlanCard } from '@/components/PlanCard';
-import { TuristicPlaceCard } from '@/components/TuristicPlaceCard';
+import { TouristPlaceCard } from '@/components/TouristPlaceCard';
 import { useToken, decodeJwt } from '@/context/token-context';
 import { useProfile, UserProfile } from '@/services/user';
 import { PlanSummary, usePlans } from '@/services/plan';
-import { useTuristicPlaces, TuristicPlaceSummary } from '@/services/turistic-place';
+import { useTouristPlaces, TouristPlaceSummary } from '@/services/tourist-place';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { formatInterest } from '@/utils/interests';
 import i18n from '@/config/i18n';
@@ -75,7 +75,7 @@ export default function HomeScreen() {
   const { tokenData, getAccessToken } = useToken();
   const { fetchProfile } = useProfile();
   const { fetchFilteredPlans, fetchPublicPlans, fetchMyJoinedPlans } = usePlans();
-  const { fetchAll: fetchAllTuristicPlaces } = useTuristicPlaces();
+  const { fetchAll: fetchAllTouristPlaces } = useTouristPlaces();
 
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [locationPermission, setLocationPermission] = useState<Location.PermissionStatus | null>(null);
@@ -84,7 +84,7 @@ export default function HomeScreen() {
   const [userCountryCode, setUserCountryCode] = useState<string | null>(null);
   const [plans, setPlans] = useState<PlanSummary[]>([]);
   const [fomoPlans, setFomoPlans] = useState<PlanSummary[]>([]);
-  const [turisticPlaces, setTuristicPlaces] = useState<TuristicPlaceSummary[]>([]);
+  const [touristPlaces, setTouristPlaces] = useState<TouristPlaceSummary[]>([]);
   const [secondaryPlans, setSecondaryPlans] = useState<PlanSummary[]>([]);
   const [joinedIds, setJoinedIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -175,7 +175,7 @@ export default function HomeScreen() {
         // Fetch tourist places only if location is granted
         if (currentPermStatus === 'granted' && currentCoords) {
           try {
-            const allPlaces = await fetchAllTuristicPlaces();
+            const allPlaces = await fetchAllTouristPlaces();
             const sortedByDistance = [...allPlaces].sort((a, b) => {
               if (a.latitude == null || a.longitude == null) return 1;
               if (b.latitude == null || b.longitude == null) return -1;
@@ -187,12 +187,12 @@ export default function HomeScreen() {
                 Math.pow(b.longitude - currentCoords.longitude, 2);
               return distA - distB;
             });
-            setTuristicPlaces(sortedByDistance.slice(0, 5));
+            setTouristPlaces(sortedByDistance.slice(0, 5));
           } catch (err) {
             console.error('[HomeScreen] Error fetching tourist places:', err);
           }
         } else {
-          setTuristicPlaces([]);
+          setTouristPlaces([]);
         }
 
         // Evaluate location state and interest configuration
@@ -319,7 +319,7 @@ export default function HomeScreen() {
       fetchMyJoinedPlans,
       fetchFilteredPlans,
       fetchPublicPlans,
-      fetchAllTuristicPlaces,
+      fetchAllTouristPlaces,
       getAccessToken,
       myUserId,
     ]
@@ -638,7 +638,7 @@ export default function HomeScreen() {
       )}
 
       {/* Famous Tourist Places Horizontal Slider */}
-      {turisticPlaces.length > 0 && (
+      {touristPlaces.length > 0 && (
         <View style={{ marginBottom: 24 }}>
           <View style={styles.sectionHeader}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>
@@ -648,16 +648,16 @@ export default function HomeScreen() {
           <FlatList
             horizontal
             showsHorizontalScrollIndicator={false}
-            data={turisticPlaces}
+            data={touristPlaces}
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={styles.carouselContainer}
             snapToInterval={CARD_WIDTH + 16}
             decelerationRate="fast"
             renderItem={({ item }) => (
               <View style={{ width: CARD_WIDTH, marginRight: 16 }}>
-                <TuristicPlaceCard 
+                <TouristPlaceCard 
                   place={item} 
-                  onPress={(id) => router.push(`/turistic-place/${id}` as any)} 
+                  onPress={(id) => router.push(`/tourist-place/${id}` as any)} 
                 />
               </View>
             )}

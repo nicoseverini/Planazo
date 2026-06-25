@@ -6,6 +6,6 @@ public record CreateReportRequest(
     ReportReason reason,
     String description,
     Long planId,
-    Long turisticPlaceId,
+    Long touristPlaceId,
     Long reportedUserId
 ) {}

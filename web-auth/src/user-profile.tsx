@@ -29,7 +29,7 @@ type PlanSummary = {
 	isFull: boolean
 }
 
-type TuristicPlaceSummary = {
+type TouristPlaceSummary = {
 	id: number
 	name: string
 	city: string
@@ -60,7 +60,7 @@ type UserProfilePageProps = {
 export function UserProfilePage({ userId }: UserProfilePageProps) {
 	const [user, setUser] = useState<UserProfile | null>(null)
 	const [plans, setPlans] = useState<PlanSummary[]>([])
-	const [places, setPlaces] = useState<TuristicPlaceSummary[]>([])
+	const [places, setPlaces] = useState<TouristPlaceSummary[]>([])
 	const [reviews, setReviews] = useState<Review[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState('')
@@ -103,8 +103,8 @@ export function UserProfilePage({ userId }: UserProfilePageProps) {
 					setPlans(plansData)
 				}
 
-				// Load user's turistic places
-				const placesResponse = await fetch(`${backendUrl}/api/v1/turistic-places/user/${userId}`, {
+				// Load user's tourist places
+				const placesResponse = await fetch(`${backendUrl}/api/v1/tourist-places/user/${userId}`, {
 					headers: {
 						Accept: 'application/json',
 						Authorization: `Bearer ${token}`,
@@ -113,7 +113,7 @@ export function UserProfilePage({ userId }: UserProfilePageProps) {
 				})
 
 				if (placesResponse.ok) {
-					const placesData = (await placesResponse.json()) as TuristicPlaceSummary[]
+					const placesData = (await placesResponse.json()) as TouristPlaceSummary[]
 					setPlaces(placesData)
 				}
 
@@ -284,14 +284,14 @@ export function UserProfilePage({ userId }: UserProfilePageProps) {
 					</section>
 
 					<section className="user-places">
-						<h2>Turistic Places Created</h2>
+						<h2>Tourist Places Created</h2>
 						{places.length === 0 ? (
-							<div className="message">No turistic places created by this user.</div>
+							<div className="message">No tourist places created by this user.</div>
 						) : (
 							<div className="places-list">
 								{places.map((place) => (
 									<div key={place.id} className="place-card">
-										<a href={`/turistic-places/${place.id}`} className="link">
+										<a href={`/tourist-places/${place.id}`} className="link">
 											<strong>{place.name}</strong>
 										</a>
 										<div className="place-meta">

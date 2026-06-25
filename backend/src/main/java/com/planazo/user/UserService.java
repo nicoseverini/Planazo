@@ -6,7 +6,7 @@ import com.planazo.plan.Plan;
 import com.planazo.plan.PlanRepository;
 import com.planazo.plan.PlanSubscriber;
 import com.planazo.plan.PlanSubscriberRepository;
-import com.planazo.turistic_place.TuristicPlaceRepository;
+import com.planazo.tourist_place.TouristPlaceRepository;
 import com.planazo.user.dto.*;
 import com.planazo.user.refresh_token.RefreshToken;
 import com.planazo.user.refresh_token.RefreshTokenService;
@@ -49,7 +49,7 @@ public class UserService implements UserDetailsService {
     private final EmailService emailService;
     private final PlanSubscriberRepository planSubscriberRepository;
     private final PlanRepository planRepository;
-    private final TuristicPlaceRepository turisticPlaceRepository;
+    private final TouristPlaceRepository touristPlaceRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final ChangePasswordTokenRepository changePasswordTokenRepository;
     private final ReportRepository reportRepository;
@@ -66,7 +66,7 @@ public class UserService implements UserDetailsService {
             EmailService emailService,
             PlanSubscriberRepository planSubscriberRepository,
             PlanRepository planRepository,
-            TuristicPlaceRepository turisticPlaceRepository,
+            TouristPlaceRepository touristPlaceRepository,
             VerificationTokenRepository verificationTokenRepository,
             ChangePasswordTokenRepository changePasswordTokenRepository,
             ReportRepository reportRepository,
@@ -80,7 +80,7 @@ public class UserService implements UserDetailsService {
         this.emailService = emailService;
         this.planSubscriberRepository = planSubscriberRepository;
         this.planRepository = planRepository;
-        this.turisticPlaceRepository = turisticPlaceRepository;
+        this.touristPlaceRepository = touristPlaceRepository;
         this.verificationTokenRepository = verificationTokenRepository;
         this.changePasswordTokenRepository = changePasswordTokenRepository;
         this.reportRepository = reportRepository;
@@ -194,7 +194,7 @@ public class UserService implements UserDetailsService {
                 reportRepository.deleteByPlanId(plan.getId());
             }
 
-            turisticPlaceRepository.deleteByCreatorId(id);
+            touristPlaceRepository.deleteByCreatorId(id);
 
             List<PlanSubscriber> subscriptions = planSubscriberRepository.findByUserIdWithPlan(id);
             for (PlanSubscriber sub : subscriptions) {

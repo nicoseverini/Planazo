@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { usePlans, PlanSummary } from '@/services/plan';
-import { useTuristicPlaces, TuristicPlaceSummary } from '@/services/turistic-place';
+import { useTouristPlaces, TouristPlaceSummary } from '@/services/tourist-place';
 import * as Location from 'expo-location';
 import { matchesCategories } from '@/utils/category-filter';
 import { haversineKm } from '@/utils/distance';
@@ -40,19 +40,19 @@ const isAndroid = Platform.OS === 'android';
 
 type SelectedMapItem =
     | { type: 'plan'; item: PlanSummary }
-    | { type: 'place'; item: TuristicPlaceSummary };
+    | { type: 'place'; item: TouristPlaceSummary };
 
 export default function MapScreen() {
     const { t } = useTranslation();
     const router = useRouter();
     const { fetchPublicPlans, loading } = usePlans();
-    const { fetchAll: fetchTouristicPlaces } = useTuristicPlaces();
+    const { fetchAll: fetchTouristicPlaces } = useTouristPlaces();
     const mapRef = useRef<MapView>(null);
 
     const { tint, tintText, surface, border, text } = useAppTheme();
 
     const [plans, setPlans] = useState<PlanSummary[]>([]);
-    const [places, setPlaces] = useState<TuristicPlaceSummary[]>([]);
+    const [places, setPlaces] = useState<TouristPlaceSummary[]>([]);
     const [filters, setFilters] = useState<MapFilters>(DEFAULT_MAP_FILTERS);
     const [showFilters, setShowFilters] = useState(false);
     const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -174,7 +174,7 @@ export default function MapScreen() {
         );
     }, []);
 
-    const selectPlace = useCallback((place: TuristicPlaceSummary) => {
+    const selectPlace = useCallback((place: TouristPlaceSummary) => {
         if (!isAndroid) return;
 
         setSelectedMapItem({ type: 'place', item: place });
@@ -197,7 +197,7 @@ export default function MapScreen() {
             return;
         }
 
-        router.push(`/turistic-place/${selectedMapItem.item.id}`);
+        router.push(`/tourist-place/${selectedMapItem.item.id}`);
     }, [router, selectedMapItem]);
 
     const selectedPreview = selectedMapItem
@@ -263,7 +263,7 @@ export default function MapScreen() {
                             {!isAndroid && (
                                 <Callout
                                     tooltip
-                                    onPress={() => router.push(`/turistic-place/${place.id}`)}
+                                    onPress={() => router.push(`/tourist-place/${place.id}`)}
                                 >
                                 <View style={[styles.calloutContainer, { backgroundColor: surface, borderColor: border }]}>
                                     <ThemedText type="subtitle" style={{ fontSize: 14 }} numberOfLines={1}>
