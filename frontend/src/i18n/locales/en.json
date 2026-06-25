@@ -389,5 +389,6 @@
   "done": "Done",
   "error_email_already_registered": "This email is already registered. Try logging in.",
   "error_could_not_create_account": "Could not create account. Please try again later.",
-  "error_invalid_signup_info": "Please check your information and try again."
+  "error_invalid_signup_info": "Please check your information and try again.",
+  "no_members_yet": "No members yet."
 }

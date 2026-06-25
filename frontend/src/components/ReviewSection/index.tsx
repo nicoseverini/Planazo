@@ -166,11 +166,11 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
                                     onPress={handleDeleteReview}
                                     style={({ pressed }) => [
                                         styles.actionButton,
-                                        { borderColor: '#ef4444', backgroundColor: surface, flex: 1 },
+                                        { backgroundColor: '#ef4444', borderColor: '#ef4444', flex: 1 },
                                         pressed && styles.disabled,
                                     ]}
                                 >
-                                    <ThemedText type="body" style={[styles.actionButtonText, { color: '#ef4444' }]}>
+                                    <ThemedText type="body" style={[styles.actionButtonText, { color: '#ffffff' }]}>
                                         {t('delete_review')}
                                     </ThemedText>
                                 </Pressable>

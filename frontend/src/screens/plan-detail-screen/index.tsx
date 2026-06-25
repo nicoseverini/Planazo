@@ -51,7 +51,7 @@ const formatDateTime = (value: string, timezone: string | undefined | null) =>
 export default function PlanDetailScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
-    const { fetchPlanDetail, fetchMyJoinedPlans, fetchPendingSubscribers, fetchPlanMembers, join, leave, remove, accept, reject, removeMember} = usePlans();
+    const { fetchPlanDetail, fetchMyJoinedPlans, fetchPendingSubscribers, fetchPlanMembers, join, leave, remove, accept, reject, removeMember } = usePlans();
     const { getAccessToken } = useToken();
 
     const { tint, tintText, surface, border, mutedText, text } = useAppTheme();
@@ -682,7 +682,7 @@ export default function PlanDetailScreen() {
                             </Pressable>
                         </View>
                     ) : (
-                        <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Members</ThemedText>
+                        <ThemedText type="subtitle" style={{ marginBottom: 12 }}>{t('membership')}</ThemedText>
                     )}
 
                     {(!isCreator || !isPrivatePlan || membersSubTab === 'members') && (
@@ -717,7 +717,7 @@ export default function PlanDetailScreen() {
                             </View>
                         ) : (
                             <ThemedText type="body" style={{ color: mutedText }}>
-                                No members yet.
+                                {t('no_members_yet')}.
                             </ThemedText>
                         )
                     )}

@@ -65,8 +65,9 @@ function MultiSelectField({
   onChange: (values: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [tempSelected, setTempSelected] = useState<string[]>(values);
   const { t } = useTranslation();
-  const { surface, border, text: textColor, tint } = useAppTheme();
+  const { surface, border, text: textColor, tint, tintText } = useAppTheme();
 
   const selectedOptions = options.filter((opt) => values.includes(opt.value));
   const displayLabel = selectedOptions.length > 0
@@ -74,11 +75,16 @@ function MultiSelectField({
     : placeholder;
 
   const toggleOption = (optValue: string) => {
-    if (values.includes(optValue)) {
-      onChange(values.filter((v) => v !== optValue));
+    if (tempSelected.includes(optValue)) {
+      setTempSelected(tempSelected.filter((v) => v !== optValue));
     } else {
-      onChange([...values, optValue]);
+      setTempSelected([...tempSelected, optValue]);
     }
+  };
+
+  const openModal = () => {
+    setTempSelected(values);
+    setOpen(true);
   };
 
   return (
@@ -87,7 +93,7 @@ function MultiSelectField({
         {label}
       </ThemedText>
       <Pressable
-        onPress={() => setOpen(true)}
+        onPress={openModal}
         style={({ pressed }) => [
           styles.pickerTrigger,
           { backgroundColor: surface, borderColor: border },
@@ -108,7 +114,7 @@ function MultiSelectField({
           </ThemedText>
 
           {options.map((option) => {
-            const selected = values.includes(option.value);
+            const selected = tempSelected.includes(option.value);
 
             return (
               <Pressable
@@ -127,9 +133,48 @@ function MultiSelectField({
             );
           })}
 
-          <Pressable onPress={() => setOpen(false)} style={styles.modalCancelButton}>
-            <ThemedText style={[styles.modalCancelText, { color: textColor }]}>{t('done')}</ThemedText>
-          </Pressable>
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+            <Pressable
+              onPress={() => setOpen(false)}
+              style={({ pressed }) => [
+                {
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: border,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: pressed ? 0.7 : 1,
+                }
+              ]}
+            >
+              <ThemedText type="buttonMedium" style={{ color: textColor }}>
+                {t('cancel')}
+              </ThemedText>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                onChange(tempSelected);
+                setOpen(false);
+              }}
+              style={({ pressed }) => [
+                {
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  backgroundColor: tint,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: pressed ? 0.7 : 1,
+                }
+              ]}
+            >
+              <ThemedText type="buttonMedium" style={{ color: tintText }}>
+                {t('done')}
+              </ThemedText>
+            </Pressable>
+          </View>
         </View>
       </Modal>
     </View>
