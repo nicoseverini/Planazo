@@ -156,13 +156,17 @@ export function ReportsPage() {
 								<div className="report-details">
 									<div className="report-field">
 										<span className="field-label">Reporter:</span>
-										<span>{report.reporterName || `User #${report.reporterId}`}</span>
+										<a href={`/users/${report.reporterId}`} className="link">
+											{report.reporterName || `User #${report.reporterId}`}
+										</a>
 									</div>
 
 									{report.reportedUserId && (
 										<div className="report-field">
 											<span className="field-label">Reported User:</span>
-											<span>{report.reportedUserName || `User #${report.reportedUserId}`}</span>
+											<a href={`/users/${report.reportedUserId}`} className="link">
+												{report.reportedUserName || `User #${report.reportedUserId}`}
+											</a>
 										</div>
 									)}
 

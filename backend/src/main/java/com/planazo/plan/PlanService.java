@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.planazo.common.constants.Interest;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -135,6 +136,15 @@ public class PlanService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         return planRepository.findByCreatorIdAndActiveTrue(user.getId())
+                .stream()
+                .map(this::toSummaryDTO)
+                .toList();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional(readOnly = true)
+    public List<PlanSummaryDTO> getPlansByUserId(Long userId) {
+        return planRepository.findAllByCreatorId(userId)
                 .stream()
                 .map(this::toSummaryDTO)
                 .toList();

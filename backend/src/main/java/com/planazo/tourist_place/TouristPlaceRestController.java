@@ -63,6 +63,15 @@ class TouristPlaceRestController {
         return touristPlaceService.getMyTouristPlaces(email);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(value = "/user/{userId}", produces = "application/json")
+    @Operation(summary = "List tourist places created by a user (admin only)")
+    List<TouristPlaceSummaryDTO> getUserTouristPlaces(
+            @PathVariable Long userId
+    ) {
+        return touristPlaceService.getTouristPlacesByUserId(userId);
+    }
+
     @PreAuthorize("isAuthenticated()")
     @PostMapping(produces = "application/json")
     @Operation(summary = "Create a new tourist place")

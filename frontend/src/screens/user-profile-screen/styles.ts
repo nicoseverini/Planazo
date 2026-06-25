@@ -24,6 +24,28 @@ export const styles = StyleSheet.create({
         justifyContent: 'center',
         borderWidth: 1,
     },
+    dropdownMenu: {
+        position: 'absolute',
+        right: 0,
+        top: 50,
+        minWidth: 150,
+        borderRadius: 8,
+        borderWidth: 1,
+        padding: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 5,
+        zIndex: 100,
+    },
+    dropdownItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        borderRadius: 4,
+    },
     // Profile header (avatar + name + email)
     header: {
         alignItems: 'center',

@@ -63,6 +63,7 @@ export function ReportModal({
         touristPlaceId,
         reportedUserId,
       }, token);
+      Alert.alert('Success', 'Report submitted successfully.');
       onClose();
       setSelectedReason(null);
       setDescription('');

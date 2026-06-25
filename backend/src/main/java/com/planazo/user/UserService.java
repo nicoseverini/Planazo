@@ -17,6 +17,8 @@ import com.planazo.user.change_password.ChangePasswordTokenService;
 import com.planazo.user.change_password.ChangePasswordTokenRepository;
 import com.planazo.user.change_password.ChangePasswordToken;
 import com.planazo.user.email_service.EmailService;
+import com.planazo.report.ReportRepository;
+import com.planazo.review.ReviewRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,21 +52,25 @@ public class UserService implements UserDetailsService {
     private final TouristPlaceRepository touristPlaceRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final ChangePasswordTokenRepository changePasswordTokenRepository;
+    private final ReportRepository reportRepository;
+    private final ReviewRepository reviewRepository;
 
     @Autowired
     UserService(
             JwtService jwtService,
             PasswordEncoder passwordEncoder,
             UserRepository userRepository,
-            RefreshTokenService refreshTokenService, 
-            VerificationTokenService verificationTokenService, 
+            RefreshTokenService refreshTokenService,
+            VerificationTokenService verificationTokenService,
             ChangePasswordTokenService changePasswordTokenService,
             EmailService emailService,
             PlanSubscriberRepository planSubscriberRepository,
             PlanRepository planRepository,
             TouristPlaceRepository touristPlaceRepository,
             VerificationTokenRepository verificationTokenRepository,
-            ChangePasswordTokenRepository changePasswordTokenRepository) {
+            ChangePasswordTokenRepository changePasswordTokenRepository,
+            ReportRepository reportRepository,
+            ReviewRepository reviewRepository) {
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
@@ -77,6 +83,8 @@ public class UserService implements UserDetailsService {
         this.touristPlaceRepository = touristPlaceRepository;
         this.verificationTokenRepository = verificationTokenRepository;
         this.changePasswordTokenRepository = changePasswordTokenRepository;
+        this.reportRepository = reportRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     @Override
@@ -169,16 +177,25 @@ public class UserService implements UserDetailsService {
                         user.getPreferredLanguage()));
     }
 
-    Optional<User> deleteUser(Long id) {
+    Optional<User> deleteUser(Long id, String reason) {
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
             User managedUser = user.get();
+            String userEmail = managedUser.getEmail();
+            String userName = managedUser.getName();
 
-            // 1. Hard-delete all tourist places created by this user (cascades to images)
+            reportRepository.deleteByReporterId(id);
+            reportRepository.deleteByReportedUserId(id);
+
+            reviewRepository.deleteByUserId(id);
+
+            List<Plan> createdPlans = planRepository.findByCreatorId(id);
+            for (Plan plan : createdPlans) {
+                reportRepository.deleteByPlanId(plan.getId());
+            }
+
             touristPlaceRepository.deleteByCreatorId(id);
 
-            // 2. Decrement subscriberCount on plans where the user was a counted subscriber
-            // (but not the creator — creator's plans are deleted entirely in the next step)
             List<PlanSubscriber> subscriptions = planSubscriberRepository.findByUserIdWithPlan(id);
             for (PlanSubscriber sub : subscriptions) {
                 Plan plan = sub.getPlan();
@@ -188,19 +205,18 @@ public class UserService implements UserDetailsService {
             }
             planRepository.flush();
 
-            // 3. Hard-delete all plans created by this user (cascades to subscribers, images, interests)
-            List<Plan> createdPlans = planRepository.findByCreatorId(id);
             planRepository.deleteAll(createdPlans);
 
-            // 4. Delete plan subscriptions where user is a subscriber in other users' plans
             planSubscriberRepository.deleteByUserId(id);
 
-            // 5. Delete all auth tokens for this user
             refreshTokenService.deleteByUser(managedUser);
             verificationTokenRepository.deleteByUser(managedUser);
             changePasswordTokenRepository.deleteByUser(managedUser);
 
-            // 6. Finally delete the user by ID (avoids detached entity issues)
+            if (reason != null && !reason.isEmpty()) {
+                emailService.sendUserDeletedEmail(userEmail, userName, reason);
+            }
+
             userRepository.deleteById(managedUser.getId());
         }
         return user;

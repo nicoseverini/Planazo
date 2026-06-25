@@ -13,6 +13,7 @@ import { CreateTouristPlacePage } from './create-tourist-place'
 import { TouristPlaceDetailPage } from './tourist-place-detail'
 import { EditTouristPlacePage } from './edit-tourist-place'
 import { ReportsPage } from './reports'
+import { UserProfilePage } from './user-profile'
 
 function isAuthenticated(): boolean {
   return !!sessionStorage.getItem('accessToken')
@@ -107,6 +108,15 @@ function resolveRoute(pathname: string) {
       return null
     }
     return <ReportsPage />
+  }
+
+  const userMatch = normalizedPath.match(/^\/users\/(\d+)$/)
+  if (userMatch) {
+    if (!isAuthenticated()) {
+      window.location.href = '/login'
+      return null
+    }
+    return <UserProfilePage userId={Number(userMatch[1])} />
   }
 
   return (
