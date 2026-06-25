@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -459,6 +459,7 @@ export default function UserProfileScreen() {
                             {isOwnProfile && (
                                 <AccountActions
                                     onEditProfile={() => setEditing(true)}
+                                    onSettings={() => router.push('/configurations')}
                                     onLogout={handleLogout}
                                     onDeleteAccount={handleDeleteAccount}
                                 />

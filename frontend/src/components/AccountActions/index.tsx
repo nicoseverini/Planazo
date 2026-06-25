@@ -1,5 +1,7 @@
+import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/ThemedText';
 import { useAppTheme } from '@/hooks/use-app-theme';
@@ -36,28 +38,31 @@ function MenuItem({ icon, label, onPress, danger = false }: MenuItemProps) {
 
 type AccountActionsProps = {
     onEditProfile: () => void;
+    onSettings: () => void;
     onLogout: () => void;
     onDeleteAccount: () => void;
 };
 
-/** Account section (own profile only): edit profile, log out, delete account. */
-export function AccountActions({ onEditProfile, onLogout, onDeleteAccount }: AccountActionsProps) {
+/** Account section (own profile only): edit profile, settings, log out, delete account. */
+export function AccountActions({ onEditProfile, onSettings, onLogout, onDeleteAccount }: AccountActionsProps) {
     const { mutedText } = useAppTheme();
+    const { t } = useTranslation();
     return (
         <>
             <View style={styles.menuSection}>
                 <ThemedText type="label" style={[styles.sectionTitle, { color: mutedText }]}>
-                    Account
+                    {t('account')}
                 </ThemedText>
                 <View style={styles.menuGroup}>
-                    <MenuItem icon="person-outline" label="Edit profile" onPress={onEditProfile} />
+                    <MenuItem icon="person-outline" label={t('edit_profile')} onPress={onEditProfile} />
+                    <MenuItem icon="settings-outline" label={t('configurations')} onPress={onSettings} />
                 </View>
             </View>
 
             <View style={styles.menuSection}>
                 <View style={styles.menuGroup}>
-                    <MenuItem icon="log-out-outline" label="Log out" onPress={onLogout} danger />
-                    <MenuItem icon="trash-outline" label="Delete account" onPress={onDeleteAccount} danger />
+                    <MenuItem icon="log-out-outline" label={t('logout')} onPress={onLogout} danger />
+                    <MenuItem icon="trash-outline" label={t('delete_account')} onPress={onDeleteAccount} danger />
                 </View>
             </View>
         </>
