@@ -1,28 +1,12 @@
+import { Avatar } from '@/components/Avatar';
 import { StarRating } from '@/components/StarRating';
 import { ThemedText } from '@/components/ThemedText';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { ReviewResponse } from '@/services/review';
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 export interface ReviewCardProps {
     review: ReviewResponse;
-}
-
-function normalizePhotoValue(value?: string | null) {
-    const trimmed = value?.trim();
-    if (!trimmed || trimmed === 'null' || trimmed === 'undefined') {
-        return null;
-    }
-    const lower = trimmed.toLowerCase();
-    const isDataUri = lower.startsWith('data:image/');
-    const isHttp = lower.startsWith('http://') || lower.startsWith('https://');
-    const isFile = lower.startsWith('file://');
-    return isDataUri || isHttp || isFile ? trimmed : null;
-}
-
-function resolveInitial(name?: string) {
-    const trimmed = name?.trim();
-    return trimmed ? trimmed.charAt(0).toUpperCase() : '?';
 }
 
 function formatTimeAgo(createdAt: any): string {
@@ -80,25 +64,15 @@ function formatTimeAgo(createdAt: any): string {
 }
 
 export function ReviewCard({ review }: ReviewCardProps) {
-    const { surface, border, mutedText, text, tint, tintText } = useAppTheme();
-    const photoUrl = normalizePhotoValue(review.author.photo);
+    const { surface, border, mutedText, text } = useAppTheme();
     const fullName = `${review.author.name || 'Anonymous'} ${review.author.lastname || ''}`.trim();
-    const initial = resolveInitial(review.author.name);
 
     const formattedDate = formatTimeAgo(review.createdAt);
 
     return (
         <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}>
             <View style={styles.header}>
-                {photoUrl ? (
-                    <Image source={{ uri: photoUrl }} style={styles.avatar} />
-                ) : (
-                    <View style={[styles.avatarPlaceholder, { backgroundColor: tint }]}>
-                        <ThemedText style={[styles.avatarInitial, { color: tintText }]}>
-                            {initial}
-                        </ThemedText>
-                    </View>
-                )}
+                <Avatar name={review.author.name} photo={review.author.photo} size={36} />
                 <View style={styles.meta}>
                     <ThemedText type="body" style={[styles.authorName, { color: text }]}>
                         {fullName}
@@ -134,22 +108,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 10,
-    },
-    avatar: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-    },
-    avatarPlaceholder: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    avatarInitial: {
-        fontWeight: 'bold',
-        fontSize: 14,
     },
     meta: {
         marginLeft: 12,

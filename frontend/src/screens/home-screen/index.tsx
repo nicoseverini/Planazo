@@ -438,22 +438,6 @@ export default function HomeScreen() {
     }
   };
 
-  const renderAvatar = () => {
-    const name = profile.name || 'User';
-    const initial = name.charAt(0).toUpperCase();
-
-    if (profile.photo) {
-      return <Image source={{ uri: profile.photo }} style={styles.avatar} />;
-    }
-    return (
-      <View style={[styles.avatarPlaceholder, { backgroundColor: tint }]}>
-        <ThemedText type="subtitle" style={[styles.avatarText, { color: tintText }]}>
-          {initial}
-        </ThemedText>
-      </View>
-    );
-  };
-
   if (loading) {
     return (
       <AppScreen centered>
