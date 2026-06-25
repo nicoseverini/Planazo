@@ -31,8 +31,12 @@ public record PlanCreateDTO(
         @Min(value = 1, message = "Max participants must be between 1 and 99,999.")
         @Max(value = 99999, message = "Max participants must be between 1 and 99,999.")
         Integer maxSubscribers,
-        @Min(0) @Max(120) Integer minAge,
-        @Min(0) @Max(120) Integer maxAge,
+        @Min(value = 0, message = "Minimum age must be between 0 and 120.")
+        @Max(value = 120, message = "Minimum age must be between 0 and 120.")
+        Integer minAge,
+        @Min(value = 0, message = "Maximum age must be between 0 and 120.")
+        @Max(value = 120, message = "Maximum age must be between 0 and 120.")
+        Integer maxAge,
         @NotEmpty(message = "At least one interest must be selected") List<Interest> interests,
         @NotBlank(message = "Country is required.")
         @Size(max = 100, message = "Country must be 100 characters or less.")
