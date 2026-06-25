@@ -16,5 +16,6 @@ public record UserProfileDTO(
         LocalDate birthDate,
         List<Interest> interests,
         TravelType travelType,
-        List<String> languages
+        List<String> languages,
+        String preferredLanguage
 ) {}

@@ -1,7 +1,8 @@
 import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { ThemedText } from '@/components/ThemedText';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { INTEREST_OPTIONS } from '@/utils/interests';
+import { INTEREST_OPTIONS, formatInterest } from '@/utils/interests';
 
 type Props = {
     /** Currently selected category values. Empty array means "Any" (no filter). */
@@ -21,6 +22,7 @@ type Props = {
  */
 export function CategoryFilterSelector({ selected, onChange }: Props) {
     const { border, tint, text, tintText } = useAppTheme();
+    const { t } = useTranslation();
 
     const chipStyle = (active: boolean) => ({
         paddingHorizontal: 14 as const,
@@ -48,15 +50,15 @@ export function CategoryFilterSelector({ selected, onChange }: Props) {
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             <Pressable onPress={() => handlePress(null)} style={chipStyle(isAny)}>
                 <ThemedText type="label" style={{ color: isAny ? tintText : text }}>
-                    Any
+                    {t('any')}
                 </ThemedText>
             </Pressable>
-            {INTEREST_OPTIONS.map(({ value, label }) => {
+            {INTEREST_OPTIONS.map(({ value }) => {
                 const active = selected.includes(value);
                 return (
                     <Pressable key={value} onPress={() => handlePress(value)} style={chipStyle(active)}>
                         <ThemedText type="label" style={{ color: active ? tintText : text }}>
-                            {label}
+                            {t(`interest_${value.toLowerCase()}`, { defaultValue: formatInterest(value) })}
                         </ThemedText>
                     </Pressable>
                 );

@@ -1,6 +1,8 @@
+import React from 'react';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert } from 'react-native';
 
 import { PlanForm } from '@/components/PlanForm';
@@ -13,6 +15,7 @@ import { parseAge } from '@/utils/age-restriction';
 import { buildDateTimeWithTimezone, getLocalPartsInTimezone } from '@/utils/date';
 
 export default function EditPlanScreen() {
+    const { t } = useTranslation();
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const { fetchPlanDetail, update } = usePlans();
@@ -71,14 +74,14 @@ export default function EditPlanScreen() {
                     form.setInternalEndDate(endDate);
                 }
             } catch {
-                Alert.alert('Error', 'Could not load plan information.');
+                Alert.alert(t('error'), t('error_load_plan'));
                 router.back();
             } finally {
                 setLoadingData(false);
             }
         };
         loadPlan();
-    }, [id]);
+    }, [id, t]);
 
     const handleUpdate = async () => {
         if (!form.validateForm()) return;
@@ -86,8 +89,8 @@ export default function EditPlanScreen() {
         const startDateTime = buildDateTimeWithTimezone(form.startDate, form.startTime, planTimezone);
         const endDateTime = buildDateTimeWithTimezone(form.endDate, form.endTime, planTimezone);
 
-        if (!startDateTime) { form.setError('Start date or time has an invalid format.'); return; }
-        if (!endDateTime) { form.setError('End date or time has an invalid format.'); return; }
+        if (!startDateTime) { form.setError(t('error_start_datetime_format')); return; }
+        if (!endDateTime) { form.setError(t('error_end_datetime_format')); return; }
 
         const parsedMaxSubscribers = Number.parseInt(form.maxParticipants, 10);
 
@@ -102,7 +105,7 @@ export default function EditPlanScreen() {
                 const query = [form.address.trim(), form.city.trim(), form.country.trim()].filter(Boolean).join(', ');
                 const geocodedLocation = await Location.geocodeAsync(query);
                 if (!geocodedLocation || geocodedLocation.length === 0) {
-                    form.setError('We could not find the location on the map. Try being more specific (e.g., add city and country).');
+                    form.setError(t('error_location_geocoding'));
                     form.setSaving(false);
                     return;
                 }
@@ -134,12 +137,12 @@ export default function EditPlanScreen() {
             };
 
             await update(Number(id), payload);
-            Alert.alert('Success', 'Plan updated successfully', [
+            Alert.alert(t('success'), t('plan_updated_success'), [
                 { text: 'OK', onPress: () => router.back() },
             ]);
         } catch (err) {
             console.error('[EditPlanScreen] Error updating plan:', err);
-            form.setError(err instanceof Error ? err.message : 'Could not update the plan. Please try again.');
+            form.setError(err instanceof Error ? err.message : t('error_update_plan'));
         } finally {
             form.setSaving(false);
         }
@@ -156,10 +159,10 @@ export default function EditPlanScreen() {
     return (
         <PlanForm
             {...form}
-            screenTitle="Edit Plan"
-            submitLabel="SAVE CHANGES"
+            screenTitle={t('edit_plan')}
+            submitLabel={t('save_changes').toUpperCase()}
             onSubmit={handleUpdate}
-            descriptionPlaceholder="Describe your plan, add details or special instructions for members."
+            descriptionPlaceholder={t('describe_plan_placeholder')}
         />
     );
 }

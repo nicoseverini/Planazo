@@ -106,6 +106,20 @@ class UserRestController {
                 return userService.updateUser(userDTO, currentUser.getId());
         }
 
+        @PreAuthorize("isAuthenticated()")
+        @PatchMapping(value = "/me/language", produces = "application/json")
+        @Operation(summary = "Update your preferred language")
+        @ResponseStatus(HttpStatus.OK)
+        @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+        @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
+        Optional<ResponseEntity<StatusResponseDTO>> updateUserLanguage(
+                        @RequestBody UserLanguageUpdateDTO languageDTO,
+                        @AuthenticationPrincipal(expression = "username") String email) {
+                var currentUser = userService.getUserByEmail(email);
+                return userService.updateUserLanguage(languageDTO, currentUser.getId());
+        }
+
+
         @PreAuthorize("hasRole('ADMIN')")
         @DeleteMapping(value = "/admin/delete/{id}", produces = "application/json")
         @Operation(summary = "Delete a user or admin (admin only)")

@@ -1,5 +1,7 @@
+import React from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, View } from 'react-native';
 
 import { AppScreen } from '@/components/ui';
@@ -25,6 +27,7 @@ function toFormValues(place: TuristicPlaceDetail): TuristicPlaceFormValues {
 }
 
 export default function EditTuristicPlaceScreen() {
+    const { t } = useTranslation();
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
     const { fetchById, update } = useTuristicPlaces();
@@ -38,10 +41,10 @@ export default function EditTuristicPlaceScreen() {
         fetchById(placeId)
             .then((place) => setInitialValues(toFormValues(place)))
             .catch(() => {
-                Alert.alert('Error', 'Could not load the place.');
+                Alert.alert(t('error'), t('error_load_place'));
                 router.back();
             });
-    }, [id]);
+    }, [id, t]);
 
     if (!initialValues) {
         return (
@@ -57,13 +60,13 @@ export default function EditTuristicPlaceScreen() {
 
     return (
         <TuristicPlaceFormScreen
-            screenTitle="Edit Place"
-            submitLabel="SAVE CHANGES"
+            screenTitle={t('edit_place')}
+            submitLabel={t('save_changes').toUpperCase()}
             initialValues={initialValues}
             onBack={() => router.back()}
             onSubmit={async (data) => {
                 await update(placeId, data);
-                Alert.alert('Success', 'Place updated!', [
+                Alert.alert(t('success'), t('place_updated_success'), [
                     { text: 'OK', onPress: () => router.back() },
                 ]);
             }}

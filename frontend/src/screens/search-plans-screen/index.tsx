@@ -6,6 +6,7 @@ import {
     Pressable, RefreshControl, ScrollView, TextInput, View,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 
 import { CategoryFilterSelector } from '@/components/CategoryFilterSelector';
 import { DistanceSlider } from '@/components/DistanceSlider';
@@ -21,10 +22,10 @@ import { normalizeSearch } from '@/utils/search';
 import { formatInterest } from '@/utils/interests';
 import { styles } from './styles';
 
-const VISIBILITY_OPTIONS: { label: string; value: PlanVisibility | null }[] = [
-    { label: 'Both', value: null },
-    { label: 'Public', value: 'PUBLIC' },
-    { label: 'Private', value: 'PRIVATE' },
+const VISIBILITY_OPTIONS: { labelKey: string; value: PlanVisibility | null }[] = [
+    { labelKey: 'both', value: null },
+    { labelKey: 'public', value: 'PUBLIC' },
+    { labelKey: 'private', value: 'PRIVATE' },
 ];
 
 const fmt = (d: Date) =>
@@ -32,6 +33,7 @@ const fmt = (d: Date) =>
 
 export function SearchPlansScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const { fetchPublicPlans, fetchMyJoinedPlans, fetchFilteredPlans, loading } = usePlans();
 
     const [plans, setPlans] = useState<PlanSummary[]>([]);
@@ -107,13 +109,13 @@ export function SearchPlansScreen() {
             setFilteredPlans(visiblePlans);
         } catch {
             Alert.alert(
-                'Error',
+                t('error'),
                 hasActiveFilters
-                    ? 'Unable to apply filters. Please try again.'
-                    : 'Unable to load plans. Please try again.',
+                    ? t('unable_apply_filters')
+                    : t('unable_load_plans_try'),
             );
         }
-    }, [fetchPublicPlans, fetchFilteredPlans, fetchMyJoinedPlans, hasActiveFilters, buildFilters, tokenData.state]);
+    }, [fetchPublicPlans, fetchFilteredPlans, fetchMyJoinedPlans, hasActiveFilters, buildFilters, tokenData.state, t]);
 
     const { refreshing, onRefresh } = useRefreshControl(loadPlans);
 
@@ -138,14 +140,12 @@ export function SearchPlansScreen() {
         clearRadius();
     };
 
-    const activeChipStyle = { backgroundColor: tint, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 };
-
     return (
         <AppScreen contentStyle={styles.appScreenContent}>
             {/* Header */}
-            <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-                <ThemedText type="title">Plans</ThemedText>
-                <Pressable onPress={() => setShowFilters(true)} style={{ padding: 4 }}>
+            <View style={styles.header}>
+                <ThemedText type="title">{t('plans')}</ThemedText>
+                <Pressable onPress={() => setShowFilters(true)} style={styles.filterButton}>
                     <Ionicons
                         name={hasActiveFilters ? 'filter' : 'filter-outline'}
                         size={24}
@@ -156,41 +156,41 @@ export function SearchPlansScreen() {
 
             {/* Active filter chips */}
             {hasActiveFilters && (
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginHorizontal: 20, marginBottom: 8 }}>
+                <View style={styles.activeChipsContainer}>
                     {selectedCategories.map((cat) => (
-                        <View key={cat} style={activeChipStyle}>
+                        <View key={cat} style={[styles.activeChip, { backgroundColor: tint }]}>
                             <ThemedText type="label" style={{ color: tintText }}>{formatInterest(cat)}</ThemedText>
                         </View>
                     ))}
                     {locationFilter && (
-                        <View style={activeChipStyle}>
+                        <View style={[styles.activeChip, { backgroundColor: tint }]}>
                             <ThemedText type="label" style={{ color: tintText }}>📍 {locationFilter}</ThemedText>
                         </View>
                     )}
                     {dateFrom && (
-                        <View style={activeChipStyle}>
-                            <ThemedText type="label" style={{ color: tintText }}>From {fmt(dateFrom)}</ThemedText>
+                        <View style={[styles.activeChip, { backgroundColor: tint }]}>
+                            <ThemedText type="label" style={{ color: tintText }}>{t('from_date', { date: fmt(dateFrom) })}</ThemedText>
                         </View>
                     )}
                     {dateTo && (
-                        <View style={activeChipStyle}>
-                            <ThemedText type="label" style={{ color: tintText }}>Until {fmt(dateTo)}</ThemedText>
+                        <View style={[styles.activeChip, { backgroundColor: tint }]}>
+                            <ThemedText type="label" style={{ color: tintText }}>{t('until_date', { date: fmt(dateTo) })}</ThemedText>
                         </View>
                     )}
                     {radius && (
-                        <View style={activeChipStyle}>
-                            <ThemedText type="label" style={{ color: tintText }}>Dist: {radius}km</ThemedText>
+                        <View style={[styles.activeChip, { backgroundColor: tint }]}>
+                            <ThemedText type="label" style={{ color: tintText }}>{t('distance_km', { radius })}</ThemedText>
                         </View>
                     )}
                     {visibility && (
-                        <View style={activeChipStyle}>
+                        <View style={[styles.activeChip, { backgroundColor: tint }]}>
                             <ThemedText type="label" style={{ color: tintText }}>
-                                {visibility === 'PUBLIC' ? '🌐 Public' : '🔒 Private'}
+                                {visibility === 'PUBLIC' ? `🌐 ${t('public')}` : `🔒 ${t('private')}`}
                             </ThemedText>
                         </View>
                     )}
-                    <Pressable onPress={clearFilters} style={{ justifyContent: 'center' }}>
-                        <ThemedText type="label" style={{ color: mutedText }}>✕ Clear</ThemedText>
+                    <Pressable onPress={clearFilters} style={styles.clearAllButton}>
+                        <ThemedText type="label" style={{ color: mutedText }}>✕ {t('clear_all')}</ThemedText>
                     </Pressable>
                 </View>
             )}
@@ -200,7 +200,7 @@ export function SearchPlansScreen() {
                 <Ionicons name="search-outline" size={20} color={mutedText} />
                 <TextInput
                     style={[styles.searchInput, { color: textColor }]}
-                    placeholder="Search by name"
+                    placeholder={t('search_by_name')}
                     placeholderTextColor={mutedText}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
@@ -233,7 +233,7 @@ export function SearchPlansScreen() {
                         <View style={styles.emptyContainer}>
                             <Ionicons name="calendar-outline" size={48} color={mutedText} />
                             <ThemedText type="body" style={[styles.emptyText, { color: mutedText }]}>
-                                There are no plans for these filters
+                                {t('no_plans_for_filters')}
                             </ThemedText>
                         </View>
                     }
@@ -252,20 +252,20 @@ export function SearchPlansScreen() {
             {/* Filter modal */}
             <Modal visible={showFilters} animationType="slide" presentationStyle="pageSheet">
                 <ScrollView
-                    style={{ flex: 1, backgroundColor: surface }}
-                    contentContainerStyle={{ padding: 24, paddingBottom: 60 }}
+                    style={[styles.modalScrollView, { backgroundColor: surface }]}
+                    contentContainerStyle={styles.modalContent}
                     keyboardShouldPersistTaps="handled"
                 >
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                        <ThemedText type="heading">Filters</ThemedText>
+                    <View style={styles.modalHeader}>
+                        <ThemedText type="heading">{t('filters')}</ThemedText>
                         <Pressable onPress={() => setShowFilters(false)}>
                             <Ionicons name="close" size={24} color={textColor} />
                         </Pressable>
                     </View>
 
                     {/* Category */}
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Category</ThemedText>
-                    <View style={{ marginBottom: 24 }}>
+                    <ThemedText type="subtitle" style={styles.modalSectionTitle}>{t('category')}</ThemedText>
+                    <View style={styles.modalSection}>
                         <CategoryFilterSelector
                             selected={selectedCategories}
                             onChange={setSelectedCategories}
@@ -273,22 +273,24 @@ export function SearchPlansScreen() {
                     </View>
 
                     {/* Visibility */}
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Visibility</ThemedText>
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                    <ThemedText type="subtitle" style={styles.modalSectionTitle}>{t('visibility')}</ThemedText>
+                    <View style={styles.visibilityContainer}>
                         {VISIBILITY_OPTIONS.map((opt) => {
                             const active = visibility === opt.value;
                             return (
                                 <Pressable
-                                    key={opt.label}
+                                    key={opt.labelKey}
                                     onPress={() => setVisibility(opt.value)}
-                                    style={{
-                                        paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-                                        backgroundColor: active ? tint : 'transparent',
-                                        borderWidth: 1, borderColor: active ? tint : border,
-                                    }}
+                                    style={[
+                                        styles.visibilityOption,
+                                        {
+                                            backgroundColor: active ? tint : 'transparent',
+                                            borderColor: active ? tint : border,
+                                        },
+                                    ]}
                                 >
                                     <ThemedText type="label" style={{ color: active ? tintText : textColor }}>
-                                        {opt.label}
+                                        {t(opt.labelKey)}
                                     </ThemedText>
                                 </Pressable>
                             );
@@ -296,12 +298,12 @@ export function SearchPlansScreen() {
                     </View>
 
                     {/* Location */}
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Location</ThemedText>
-                    <View style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24 }]}>
+                    <ThemedText type="subtitle" style={styles.modalSectionTitle}>{t('location')}</ThemedText>
+                    <View style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24, marginHorizontal: 0 }]}>
                         <Ionicons name="location-outline" size={18} color={mutedText} />
                         <TextInput
                             style={[styles.searchInput, { color: textColor }]}
-                            placeholder="E.g.: Buenos Aires, Obelisco..."
+                            placeholder={t('location_placeholder_plans')}
                             placeholderTextColor={mutedText}
                             value={locationFilter}
                             onChangeText={setLocationFilter}
@@ -314,14 +316,18 @@ export function SearchPlansScreen() {
                     </View>
 
                     {/* Start date */}
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Start Date</ThemedText>
+                    <ThemedText type="subtitle" style={styles.modalSectionTitle}>{t('start_date')}</ThemedText>
                     <Pressable
-                        onPress={() => setShowDateFrom(true)}
-                        style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24 }]}
+                        onPress={() => {
+                            const next = !showDateFrom;
+                            setShowDateFrom(next);
+                            if (next) setShowDateTo(false);
+                        }}
+                        style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24, marginHorizontal: 0 }]}
                     >
                         <Ionicons name="calendar-outline" size={18} color={mutedText} />
-                        <ThemedText type="body" style={{ flex: 1, color: dateFrom ? textColor : mutedText }}>
-                            {dateFrom ? fmt(dateFrom) : 'Select date'}
+                        <ThemedText type="body" style={[styles.flexText, { color: dateFrom ? textColor : mutedText }]}>
+                            {dateFrom ? fmt(dateFrom) : t('select_date')}
                         </ThemedText>
                         {dateFrom && (
                             <Pressable onPress={() => setDateFrom(null)}>
@@ -330,26 +336,32 @@ export function SearchPlansScreen() {
                         )}
                     </Pressable>
                     {showDateFrom && (
-                        <DateTimePicker
-                            value={dateFrom ?? new Date()}
-                            mode="date"
-                            display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                            onChange={(_, date) => {
-                                setShowDateFrom(Platform.OS === 'ios');
-                                if (date) setDateFrom(date);
-                            }}
-                        />
+                        <View style={[styles.inlinePicker, { borderColor: border, marginBottom: 24 }]}>
+                            <DateTimePicker
+                                value={dateFrom ?? new Date()}
+                                mode="date"
+                                display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                                onChange={(_, date) => {
+                                    setShowDateFrom(Platform.OS === 'ios');
+                                    if (date) setDateFrom(date);
+                                }}
+                            />
+                        </View>
                     )}
 
                     {/* End date */}
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>End Date</ThemedText>
+                    <ThemedText type="subtitle" style={styles.modalSectionTitle}>{t('end_date')}</ThemedText>
                     <Pressable
-                        onPress={() => setShowDateTo(true)}
-                        style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24 }]}
+                        onPress={() => {
+                            const next = !showDateTo;
+                            setShowDateTo(next);
+                            if (next) setShowDateFrom(false);
+                        }}
+                        style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24, marginHorizontal: 0 }]}
                     >
                         <Ionicons name="calendar-outline" size={18} color={mutedText} />
-                        <ThemedText type="body" style={{ flex: 1, color: dateTo ? textColor : mutedText }}>
-                            {dateTo ? fmt(dateTo) : 'Select date'}
+                        <ThemedText type="body" style={[styles.flexText, { color: dateTo ? textColor : mutedText }]}>
+                            {dateTo ? fmt(dateTo) : t('select_date')}
                         </ThemedText>
                         {dateTo && (
                             <Pressable onPress={() => setDateTo(null)}>
@@ -358,37 +370,39 @@ export function SearchPlansScreen() {
                         )}
                     </Pressable>
                     {showDateTo && (
-                        <DateTimePicker
-                            value={dateTo ?? new Date()}
-                            mode="date"
-                            minimumDate={dateFrom ?? undefined}
-                            display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                            onChange={(_, date) => {
-                                setShowDateTo(Platform.OS === 'ios');
-                                if (date) setDateTo(date);
-                            }}
-                        />
+                        <View style={[styles.inlinePicker, { borderColor: border, marginBottom: 24 }]}>
+                            <DateTimePicker
+                                value={dateTo ?? new Date()}
+                                mode="date"
+                                minimumDate={dateFrom ?? undefined}
+                                display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                                onChange={(_, date) => {
+                                    setShowDateTo(Platform.OS === 'ios');
+                                    if (date) setDateTo(date);
+                                }}
+                            />
+                        </View>
                     )}
 
                     {/* Proximity */}
-                    <ThemedText type="subtitle" style={{ marginTop: 24, marginBottom: 12 }}>Proximity (Distance)</ThemedText>
-                    <View style={{ marginBottom: 24 }}>
+                    <ThemedText type="subtitle" style={styles.modalSectionTitleWithMargin}>{t('proximity_distance')}</ThemedText>
+                    <View style={styles.modalSection}>
                         <DistanceSlider radius={radius} onChange={handleRadiusChange} />
                     </View>
 
                     {/* Actions */}
-                    <View style={{ gap: 12 }}>
+                    <View style={styles.actionButtonsContainer}>
                         <Pressable
                             onPress={() => { setShowFilters(false); loadPlans(); }}
-                            style={{ backgroundColor: tint, borderRadius: 12, padding: 16, alignItems: 'center' }}
+                            style={[styles.applyButton, { backgroundColor: tint }]}
                         >
-                            <ThemedText type="subtitle" style={{ color: tintText }}>Apply filters</ThemedText>
+                            <ThemedText type="subtitle" style={{ color: tintText }}>{t('apply_filters')}</ThemedText>
                         </Pressable>
                         <Pressable
                             onPress={() => { clearFilters(); setShowFilters(false); }}
-                            style={{ borderWidth: 1, borderColor: border, borderRadius: 12, padding: 16, alignItems: 'center' }}
+                            style={[styles.clearButton, { borderColor: border }]}
                         >
-                            <ThemedText type="subtitle">Clear all</ThemedText>
+                            <ThemedText type="subtitle">{t('clear_all')}</ThemedText>
                         </Pressable>
                     </View>
                 </ScrollView>
