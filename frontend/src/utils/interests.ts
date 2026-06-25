@@ -1,3 +1,5 @@
+import i18n from '@/config/i18n';
+
 export type Interest =
     | 'FOOD' | 'CULTURE' | 'NATURE' | 'BEACH' | 'ADVENTURE'
     | 'NIGHTLIFE' | 'SPORTS' | 'SHOPPING' | 'HISTORY' | 'MOUNTAINS' | 'OTHER';
@@ -25,6 +27,10 @@ export const INTEREST_LABEL: Record<Interest, string> = Object.fromEntries(
  * Falls back to title-casing for unknown values (e.g. BOARD_GAMES → "Board Games").
  */
 export function formatInterest(interest: string): string {
+    const key = `interest_${interest.toLowerCase()}`;
+    if (i18n.exists(key)) {
+        return i18n.t(key);
+    }
     const known = INTEREST_LABEL[interest as Interest];
     if (known) return known;
     return interest

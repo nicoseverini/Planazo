@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import React, { useCallback, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Alert,
@@ -20,11 +21,13 @@ import { StarRating } from '@/components/StarRating';
 import { ReviewSection } from '@/components/ReviewSection';
 import { useToken, decodeJwt } from '@/context/token-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useReviews } from '@/services/review';
 import { TuristicPlaceDetail, useTuristicPlaces } from '@/services/turistic-place';
 import { formatAgeRestriction } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
 import { openInMaps } from '@/utils/navigation';
 import { ReportModal } from '@/components/ReportModal';
+import { TranslationButton } from '@/components/TranslationButton';
 
 import { styles } from './styles';
 
@@ -40,10 +43,12 @@ const parsePlaceId = (value?: string | string[]): number | null => {
 };
 
 export default function TuristicPlaceDetailScreen() {
+    const { t } = useTranslation();
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
     const { getAccessToken } = useToken();
     const { fetchById, remove } = useTuristicPlaces();
+    const { fetchStats } = useReviews();
 
     const { tint, tintText, surface, border, mutedText, text } = useAppTheme();
 
@@ -57,6 +62,7 @@ export default function TuristicPlaceDetailScreen() {
     const [reviewCount, setReviewCount] = useState(0);
     const [isReportModalVisible, setIsReportModalVisible] = useState(false);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
+    const [translatedDescription, setTranslatedDescription] = useState<string | null>(null);
 
     const handleStatsUpdated = useCallback((avg: number, count: number) => {
         setAverageRating(avg);
@@ -66,23 +72,39 @@ export default function TuristicPlaceDetailScreen() {
     const loadPlace = useCallback(async () => {
         const placeId = parsePlaceId(id);
         if (!placeId) {
-            Alert.alert('Error', 'The place identifier is not valid.');
+            Alert.alert(t('error'), t('place_invalid_id'));
             setLoading(false);
             return;
         }
-        try {
-            const data = await fetchById(placeId);
-            setPlace(data);
-        } catch (err) {
+        // Load the place and its review summary in parallel so the rating and review
+        // count at the top of the screen are correct immediately, without needing to
+        // open the Reviews tab. Stats are independent: a stats failure must not block
+        // the place from rendering.
+        const [placeResult, statsResult] = await Promise.allSettled([
+            fetchById(placeId),
+            fetchStats('VENUE', placeId),
+        ]);
+
+        if (placeResult.status === 'fulfilled') {
+            setPlace(placeResult.value);
+        } else {
             // 404 → place stays null → empty state renders "not found", no redundant Alert needed
+            const err = placeResult.reason;
             const isNotFound = (err as any)?.status === 404;
             if (!isNotFound) {
-                Alert.alert('Error', err instanceof Error ? err.message : 'Unable to load tourist place information.');
+                Alert.alert(t('error'), err instanceof Error ? err.message : t('unable_load_place'));
             }
-        } finally {
-            setLoading(false);
         }
-    }, [id, fetchById]);
+
+        if (statsResult.status === 'fulfilled') {
+            handleStatsUpdated(statsResult.value.averageRating, statsResult.value.reviewCount);
+        } else {
+            // Non-blocking: keep the place visible and the last known summary.
+            console.warn('[TuristicPlaceDetail] Unable to load rating information:', statsResult.reason);
+        }
+
+        setLoading(false);
+    }, [id, fetchById, fetchStats, handleStatsUpdated]);
 
     const handleRefresh = useCallback(async () => {
         if (refreshingRef.current) return;
@@ -95,15 +117,24 @@ export default function TuristicPlaceDetailScreen() {
             return;
         }
         try {
-            const data = await fetchById(placeId);
-            setPlace(data);
-        } catch (err) {
-            Alert.alert('Error', 'Unable to refresh. Please try again.');
+            const [placeResult, statsResult] = await Promise.allSettled([
+                fetchById(placeId),
+                fetchStats('VENUE', placeId),
+            ]);
+            if (placeResult.status === 'fulfilled') {
+                setPlace(placeResult.value);
+                setTranslatedDescription(null);
+            } else {
+                Alert.alert(t('error'), t('unable_refresh_try'));
+            }
+            if (statsResult.status === 'fulfilled') {
+                handleStatsUpdated(statsResult.value.averageRating, statsResult.value.reviewCount);
+            }
         } finally {
             setRefreshing(false);
             refreshingRef.current = false;
         }
-    }, [id, fetchById]);
+    }, [id, fetchById, fetchStats, handleStatsUpdated, t]);
 
     useFocusEffect(
         useCallback(() => {
@@ -127,13 +158,13 @@ export default function TuristicPlaceDetailScreen() {
                 <View style={styles.loadingContainer}>
                     <Ionicons name="alert-circle-outline" size={48} color={mutedText} />
                     <ThemedText type="body" style={{ color: mutedText, marginTop: 12 }}>
-                        Tourist place not found.
+                        {t('tourist_place_not_found')}
                     </ThemedText>
                     <Pressable
                         onPress={() => router.back()}
                         style={[styles.backButton, { backgroundColor: tint, marginTop: 24 }]}
                     >
-                        <ThemedText type="body" style={{ color: tintText }}>Back</ThemedText>
+                        <ThemedText type="body" style={{ color: tintText }}>{t('back')}</ThemedText>
                     </Pressable>
                 </View>
             </AppScreen>
@@ -149,22 +180,22 @@ export default function TuristicPlaceDetailScreen() {
 
     const handleDelete = () => {
         Alert.alert(
-            'Delete Place',
-            'Are you sure you want to delete this place? This action cannot be undone.',
+            t('delete_place'),
+            t('delete_place_confirm'),
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('cancel'), style: 'cancel' },
                 {
-                    text: 'Delete',
+                    text: t('delete'),
                     style: 'destructive',
                     onPress: async () => {
                         try {
                             setLoading(true);
                             await remove(place.id);
-                            Alert.alert('Success', 'Place deleted.', [
+                            Alert.alert(t('success'), t('place_deleted'), [
                                 { text: 'OK', onPress: () => router.back() },
                             ]);
                         } catch {
-                            Alert.alert('Error', 'Could not delete the place. Check your connection.');
+                            Alert.alert(t('error'), t('could_not_delete_place'));
                             setLoading(false);
                         }
                     },
@@ -176,7 +207,7 @@ export default function TuristicPlaceDetailScreen() {
     const images = place.images ?? [];
     const interests = place.interests ?? [];
     const locationLine = [place.address, place.city, place.country].filter(Boolean).join(', ') || place.location;
-    const costLabel = place.cost == null ? null : place.cost === 0 ? 'Free' : `$${place.cost.toLocaleString()}`;
+    const costLabel = place.cost == null ? null : place.cost === 0 ? t('free') : `$${place.cost.toLocaleString()}`;
     const interestLabel = interests.map(formatInterest).join(' · ');
     const lat = place.latitude;
     const lng = place.longitude;
@@ -246,11 +277,11 @@ export default function TuristicPlaceDetailScreen() {
                 <ThemedText type="body" style={{ fontWeight: '600' }}>{averageRating.toFixed(1)}</ThemedText>
                 <StarRating rating={averageRating} />
                 <ThemedText type="body" style={{ color: mutedText }}>
-                    ({reviewCount} reviews)
+                    {t('reviews_count', { count: reviewCount })}
                 </ThemedText>
                 <Pressable onPress={() => setActiveTab('reviews')}>
                     <ThemedText type="body" style={{ color: tint, marginLeft: 8 }}>
-                        View reviews
+                        {t('view_reviews')}
                     </ThemedText>
                 </Pressable>
             </View>
@@ -314,7 +345,7 @@ export default function TuristicPlaceDetailScreen() {
                                 >
                                     <Ionicons name="map-outline" size={14} color={tintText} />
                                     <ThemedText type="label" style={{ color: tintText, fontWeight: '700', fontSize: 11 }}>
-                                        Directions
+                                        {t('directions')}
                                     </ThemedText>
                                 </Pressable>
                             ) : null}
@@ -399,7 +430,7 @@ export default function TuristicPlaceDetailScreen() {
                         type="body"
                         style={[styles.tabText, { color: activeTab === 'description' ? tint : mutedText }]}
                     >
-                        DESCRIPTION
+                        {t('tab_description').toUpperCase()}
                     </ThemedText>
                 </Pressable>
                 <Pressable
@@ -413,7 +444,7 @@ export default function TuristicPlaceDetailScreen() {
                         type="body"
                         style={[styles.tabText, { color: activeTab === 'hours' ? tint : mutedText }]}
                     >
-                        HOURS
+                        {t('tab_hours').toUpperCase()}
                     </ThemedText>
                 </Pressable>
                 <Pressable
@@ -427,7 +458,7 @@ export default function TuristicPlaceDetailScreen() {
                         type="body"
                         style={[styles.tabText, { color: activeTab === 'reviews' ? tint : mutedText }]}
                     >
-                        REVIEWS
+                        {t('tab_reviews').toUpperCase()}
                     </ThemedText>
                 </Pressable>
             </View>
@@ -435,18 +466,24 @@ export default function TuristicPlaceDetailScreen() {
             {/* Tab content */}
             {activeTab === 'description' && (
                 <View style={styles.tabContent}>
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Description</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>{t('tab_description')}</ThemedText>
                     <ThemedText type="body" style={{ color: mutedText, lineHeight: 22 }}>
-                        {place.description || 'No description available.'}
+                        {translatedDescription || (place.description || t('no_description_available'))}
                     </ThemedText>
+                    {place.description && (
+                        <TranslationButton
+                            originalText={place.description}
+                            onTranslationRowReceived={setTranslatedDescription}
+                        />
+                    )}
                 </View>
             )}
 
             {activeTab === 'hours' && (
                 <View style={styles.tabContent}>
-                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>Opening Hours</ThemedText>
+                    <ThemedText type="subtitle" style={{ marginBottom: 12 }}>{t('opening_hours')}</ThemedText>
                     <ThemedText type="body" style={{ color: mutedText }}>
-                        Opening hours coming soon.
+                        {t('hours_coming_soon')}
                     </ThemedText>
                 </View>
             )}
@@ -472,7 +509,7 @@ export default function TuristicPlaceDetailScreen() {
                             pressed && styles.pressed,
                         ]}
                     >
-                        <ThemedText type="body" style={{ color: tint, fontWeight: '600' }}>EDIT</ThemedText>
+                        <ThemedText type="body" style={{ color: tint, fontWeight: '600' }}>{t('edit').toUpperCase()}</ThemedText>
                     </Pressable>
                     <Pressable
                         onPress={handleDelete}
@@ -482,7 +519,7 @@ export default function TuristicPlaceDetailScreen() {
                             pressed && styles.pressed,
                         ]}
                     >
-                        <ThemedText type="body" style={{ color: '#ffffff', fontWeight: '600' }}>DELETE</ThemedText>
+                        <ThemedText type="body" style={{ color: '#ffffff', fontWeight: '600' }}>{t('delete').toUpperCase()}</ThemedText>
                     </Pressable>
                 </View>
             )}

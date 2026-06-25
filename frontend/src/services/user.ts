@@ -13,12 +13,12 @@ export type UserProfile = {
   age?: string;
   gender?: string;
   zone?: string;
-  role?: string;
   photo?: string;
   travelType?: string;
   languages?: string[];
   interests?: string[];
   birthDate?: string;
+  preferredLanguage?: string;
 };
 
 export type UpdateProfileRequest = {
@@ -52,6 +52,27 @@ export async function getMyProfile(accessToken: string): Promise<UserProfile> {
   if (!response.ok) {
     const message = await response.text();
     throw new Error(message || `Failed to fetch profile: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function getProfileById(accessToken: string, id: string | number): Promise<UserProfile> {
+  const url = `${getBackendUrl()}/api/v1/users/profile/${id}`;
+  console.log('[UserService] Fetching profile by id:', url);
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) throw new Error('User not found.');
+    throw new Error('Unable to load this profile.');
   }
 
   return response.json();
@@ -158,6 +179,29 @@ export async function deleteMyAccount(accessToken: string): Promise<void> {
   }
 }
 
+export async function updatePreferredLanguage(
+    accessToken: string,
+    preferredLanguage: string
+): Promise<void> {
+  const url = `${getBackendUrl()}/api/v1/users/me/language`;
+  console.log('[UserService] Updating preferred language:', url);
+
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ preferredLanguage }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to update language: ${errorText}`);
+  }
+}
+
 // ============================================
 // Hooks (usando el TokenContext)
 // ============================================
@@ -169,6 +213,12 @@ export function useProfile() {
     const token = getAccessToken();
     if (!token) throw new Error('No access token');
     return getMyProfile(token);
+  };
+
+  const fetchProfileById = async (id: string | number) => {
+    const token = getAccessToken();
+    if (!token) throw new Error('No access token');
+    return getProfileById(token, id);
   };
 
   const fetchPicture = async () => {
@@ -195,5 +245,11 @@ export function useProfile() {
     return deleteMyAccount(token);
   };
 
-  return { fetchProfile, fetchPicture, updateProfile, updatePicture, deleteAccount };
+  const updateLanguage = async (preferredLanguage: string) => {
+    const token = getAccessToken();
+    if (!token) throw new Error('No access token');
+    return updatePreferredLanguage(token, preferredLanguage);
+  };
+
+  return { fetchProfile,  fetchProfileById, fetchPicture, updateProfile, updatePicture, deleteAccount, updateLanguage };
 }

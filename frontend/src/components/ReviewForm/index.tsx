@@ -9,6 +9,7 @@ import {
     TextInput,
     View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 export interface ReviewFormProps {
     onSubmit: (rating: number, comment: string) => Promise<void>;
@@ -26,6 +27,7 @@ export function ReviewForm({
     onCancel,
 }: ReviewFormProps) {
     const { surface, border, mutedText, text, tint, tintText } = useAppTheme();
+    const { t } = useTranslation();
     const [rating, setRating] = useState<number>(initialRating ?? 0);
     const [comment, setComment] = useState<string>(initialComment ?? '');
     const [validationError, setValidationError] = useState<string | null>(null);
@@ -34,11 +36,11 @@ export function ReviewForm({
 
     const handleSubmit = async () => {
         if (rating === 0) {
-            setValidationError('Please select a star rating.');
+            setValidationError(t('select_star_rating'));
             return;
         }
         if (!comment.trim()) {
-            setValidationError('Please write a comment.');
+            setValidationError(t('write_comment'));
             return;
         }
         setValidationError(null);
@@ -49,19 +51,19 @@ export function ReviewForm({
                 setComment('');
             }
         } catch (err) {
-            setValidationError(err instanceof Error ? err.message : 'Failed to submit review.');
+            setValidationError(err instanceof Error ? err.message : t('submit_review_failed'));
         }
     };
 
     return (
         <View style={[styles.container, { backgroundColor: surface, borderColor: border }]}>
             <ThemedText type="subtitle" style={styles.title}>
-                {isEditing ? 'Edit Your Review' : 'Leave a Review'}
+                {isEditing ? t('edit_your_review') : t('leave_review')}
             </ThemedText>
 
             <View style={styles.ratingRow}>
                 <ThemedText type="body" style={{ color: text, marginRight: 12 }}>
-                    Your Rating:
+                    {t('your_rating')}
                 </ThemedText>
                 <StarRating rating={rating} onChange={setRating} size={28} />
             </View>
@@ -80,7 +82,7 @@ export function ReviewForm({
                     setComment(val);
                     if (validationError) setValidationError(null);
                 }}
-                placeholder="Share your experience..."
+                placeholder={t('share_experience')}
                 placeholderTextColor={mutedText}
                 multiline
                 numberOfLines={4}
@@ -108,7 +110,7 @@ export function ReviewForm({
                         <ActivityIndicator size="small" color={tintText} />
                     ) : (
                         <ThemedText type="body" style={[styles.submitButtonText, { color: tintText }]}>
-                            {isEditing ? 'Update Review' : 'Submit Review'}
+                            {isEditing ? t('update_review') : t('submit_review')}
                         </ThemedText>
                     )}
                 </Pressable>
@@ -124,7 +126,7 @@ export function ReviewForm({
                         ]}
                     >
                         <ThemedText type="body" style={[styles.cancelButtonText, { color: text }]}>
-                            Cancel
+                            {t('cancel')}
                         </ThemedText>
                     </Pressable>
                 )}

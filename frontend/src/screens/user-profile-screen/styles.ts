@@ -8,59 +8,56 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: 48,
+        gap: 12,
     },
-    header: {
+    headerBar: {
+        flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 24,
-        gap: 8,
-    },
-    avatarContainer: {
-        position: 'relative',
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        borderWidth: 3,
-        overflow: 'visible',
+        gap: 12,
         marginBottom: 8,
     },
-    avatar: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 50,
-    },
-    avatarPlaceholder: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 50,
+    headerButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
+        borderWidth: 1,
     },
-    avatarInitial: {
-        fontSize: 36,
-        fontWeight: '600',
-    },
-    cameraIcon: {
-        position: 'absolute',
-        bottom: 0,
-        right: 0,
-        width: 32,
-        height: 32,
-        borderRadius: 16,
+    // Profile header (avatar + name + email)
+    header: {
         alignItems: 'center',
-        justifyContent: 'center',
+        paddingVertical: 16,
+        gap: 6,
     },
     userName: {
         marginTop: 4,
     },
-    roleBadge: {
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 12,
-        marginTop: 4,
+    // Tabs
+    tabContainer: {
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        marginTop: Layout.sectionGap,
+        marginBottom: 16,
     },
+    tab: {
+        flex: 1,
+        paddingVertical: 12,
+        alignItems: 'center',
+    },
+    tabText: {
+        fontWeight: '600',
+        fontSize: 12,
+    },
+    ratingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 12,
+    },
+    // Info cards
     infoGrid: {
         gap: 12,
-        marginTop: Layout.sectionGap,
     },
     infoCard: {
         flexDirection: 'row',
@@ -74,6 +71,7 @@ export const styles = StyleSheet.create({
         flex: 1,
         gap: 2,
     },
+    // Account menu
     menuSection: {
         marginTop: Layout.sectionGap,
     },
@@ -108,7 +106,7 @@ export const styles = StyleSheet.create({
     pressed: {
         opacity: 0.7,
     },
-    // Edit form styles
+    // Edit form
     editForm: {
         marginTop: Layout.sectionGap,
         gap: 16,
@@ -165,6 +163,13 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
+    },
+    backButton: {
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: Layout.buttonRadius,
+        alignItems: 'center',
+        marginTop: 24,
     },
     photoRow: {
         flexDirection: 'row',

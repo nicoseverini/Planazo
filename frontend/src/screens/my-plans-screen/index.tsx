@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
@@ -14,14 +15,15 @@ import { styles } from './styles';
 
 type TabKey = 'created' | 'joined' | 'places';
 
-const TABS: { key: TabKey; label: string }[] = [
-    { key: 'created', label: 'My Plans' },
-    { key: 'joined', label: 'Joined Plans' },
-    { key: 'places', label: 'My Places' },
+const TABS: { key: TabKey; labelKey: string }[] = [
+    { key: 'created', labelKey: 'my_plans' },
+    { key: 'joined', labelKey: 'joined_plans' },
+    { key: 'places', labelKey: 'my_places' },
 ];
 
 export function MyActivitiesScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const { fetchMyCreatedPlans, fetchMyJoinedPlansButNotMine } = usePlans();
     const { fetchMine: fetchMyPlaces } = useTuristicPlaces();
 
@@ -39,14 +41,14 @@ export function MyActivitiesScreen() {
                     <PlanListTab
                         load={fetchMyCreatedPlans}
                         showVisibilityFilter
-                        errorMessage="Unable to load your plans."
+                        errorMessage={t('unable_load_plans')}
                         empty={{
                             icon: 'create-outline',
-                            message: "You haven't created any plans yet.",
+                            message: t('no_plans_created'),
                         }}
                         action={{
                             icon: 'add',
-                            label: 'Create a plan',
+                            label: t('create_a_plan'),
                             onPress: () => router.push('/create-plan' as any),
                         }}
                         onPressPlan={goToPlan}
@@ -58,14 +60,14 @@ export function MyActivitiesScreen() {
                         load={fetchMyJoinedPlansButNotMine}
                         showStatusBadge
                         showStatusFilter
-                        errorMessage="Unable to load participating plans."
+                        errorMessage={t('unable_load_joined_plans')}
                         empty={{
                             icon: 'people-outline',
-                            message: "You're not participating in any plans yet.",
+                            message: t('no_plans_joined'),
                         }}
                         action={{
                             icon: 'search',
-                            label: 'Search plans',
+                            label: t('search'),
                             onPress: () => router.push('/search-plans' as any),
                         }}
                         onPressPlan={goToPlan}
@@ -75,14 +77,14 @@ export function MyActivitiesScreen() {
                 return (
                     <PlaceListTab
                         load={fetchMyPlaces}
-                        errorMessage="Unable to load your places."
+                        errorMessage={t('unable_load_places')}
                         empty={{
                             icon: 'location-outline',
-                            message: "You haven't created any places yet.",
+                            message: t('no_places_created'),
                         }}
                         action={{
                             icon: 'add',
-                            label: 'Create a tourist place',
+                            label: t('create_tourist_place'),
                             onPress: () => router.push('/turistic-place/create' as any),
                         }}
                         onPressPlace={goToPlace}
@@ -94,12 +96,12 @@ export function MyActivitiesScreen() {
     return (
         <AppScreen contentStyle={styles.appScreenContent}>
             <View style={styles.header}>
-                <ThemedText type="title">My Activities</ThemedText>
+                <ThemedText type="title">{t('my_activities')}</ThemedText>
             </View>
 
             {/* Tab switcher */}
             <View style={styles.tabs}>
-                {TABS.map(({ key, label }) => {
+                {TABS.map(({ key, labelKey }) => {
                     const isActive = activeTab === key;
                     return (
                         <Pressable
@@ -111,7 +113,7 @@ export function MyActivitiesScreen() {
                             ]}
                         >
                             <ThemedText type="label" style={[styles.tabText, { color: isActive ? tintText : textColor }]}>
-                                {label}
+                                {t(labelKey)}
                             </ThemedText>
                         </Pressable>
                     );

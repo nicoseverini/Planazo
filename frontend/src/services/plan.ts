@@ -59,6 +59,15 @@ export type PendingSubscriber = {
     id: number;
     name: string;
     lastname: string;
+    photo?: string | null;
+};
+
+export type PlanMember = {
+    id: number;
+    name: string;
+    lastname: string;
+    photo?: string | null;
+    accepted: boolean | null;
 };
 
 export type PlanCreateRequest = {
@@ -122,6 +131,12 @@ export async function getMyJoinedPlansButNotMine(accessToken: string): Promise<P
 export async function getPendingSubscribers(planId: number, accessToken: string): Promise<PendingSubscriber[]> {
     const url = `${getBackendUrl()}/api/v1/plans/${planId}/pending-subscribers`;
     return apiFetch<PendingSubscriber[]>(url, { headers: authHeaders(accessToken) });
+}
+
+// Get the accepted members of a plan
+export async function getPlanMembers(planId: number, accessToken: string): Promise<PlanMember[]> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/members`;
+    return apiFetch<PlanMember[]>(url, { headers: authHeaders(accessToken) });
 }
 
 // Create a new plan
@@ -208,7 +223,7 @@ export async function acceptSubscriber(planId: number, userId: number, accessTok
     if (!response.ok) {
         if (response.status === 403) throw new Error('You are not allowed to manage this request.');
         if (response.status === 404) throw new Error('This join request no longer exists.');
-        if (response.status === 409) throw new Error('This plan has already reached its participant limit.');
+        if (response.status === 409) throw new Error('This plan has already reached its member limit.');
         if (response.status === 410) {
             const errorText = await response.text();
             throw new Error(errorText || 'This plan has already ended.');
@@ -239,6 +254,26 @@ export async function rejectSubscriber(planId: number, userId: number, accessTok
         throw new Error('Something went wrong. Please try again.');
     }
 }
+// Organizer removes a member from a plan
+export async function removeMember(planId: number, userId: number, accessToken: string): Promise<void> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/members/${userId}`;
+    console.log('[PlanService] Removing member:', url);
+
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: { Accept: 'application/json', Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        if (response.status === 403) throw new Error(errorText || 'Only the organizer can remove members.');
+        if (response.status === 404) throw new Error(errorText || 'This member is no longer part of the activity.');
+        if (response.status === 409) throw new Error(errorText || 'The organizer cannot be removed from the activity.');
+        if (response.status === 410) throw new Error(errorText || 'This activity no longer exists.');
+        throw new Error(errorText || 'Unable to remove the member. Please try again.');
+    }
+}
+
 // Join a plan
 export async function joinPlan(planId: number, accessToken: string): Promise<void> {
     const url = `${getBackendUrl()}/api/v1/plans/${planId}/join`;
@@ -251,7 +286,7 @@ export async function joinPlan(planId: number, accessToken: string): Promise<voi
         const errorText = await response.text();
         if (response.status === 410) throw new Error(errorText || 'This plan has already ended.');
         if (response.status === 422) throw new Error(errorText || "You don't meet this plan's age requirements.");
-        if (response.status === 409) throw new Error(errorText || 'You have already joined this plan or it is full.');
+        if (response.status === 409) throw new Error(errorText || 'You are already a member of this plan, or it is full.');
         if (response.status === 404) throw new Error(errorText || 'Plan not found.');
         if (response.status === 403) throw new Error(errorText || 'You are not allowed to join this plan.');
         throw new Error(errorText || 'Could not process the join request. Please try again.');
@@ -269,7 +304,7 @@ export async function leavePlan(planId: number, accessToken: string): Promise<vo
     if (!response.ok) {
         const errorText = await response.text();
         if (response.status === 410) throw new Error(errorText || 'This plan has already ended.');
-        if (response.status === 409) throw new Error(errorText || 'You have not joined this plan.');
+        if (response.status === 409) throw new Error(errorText || 'You are not a member of this plan.');
         throw new Error(errorText || 'Could not leave the plan. Please try again.');
     }
 }
@@ -398,6 +433,21 @@ export function usePlans() {
         setError(null);
         try {
             return await getPendingSubscribers(planId, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unknown error');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    const fetchPlanMembers = useCallback(async (planId: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('No access token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            return await getPlanMembers(planId, token);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error');
             throw err;
@@ -538,6 +588,21 @@ export function usePlans() {
         }
     }, [getAccessToken]);
 
+    const removeMemberFromPlan = useCallback(async (planId: number, userId: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('No access token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            await removeMember(planId, userId, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unknown error');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
     return {
         loading,
         error,
@@ -547,6 +612,7 @@ export function usePlans() {
         fetchMyJoinedPlansButNotMine,
         fetchPlanDetail,
         fetchPendingSubscribers,
+        fetchPlanMembers,
         fetchNearbyPlans,
         fetchFilteredPlans,
         join,
@@ -556,5 +622,6 @@ export function usePlans() {
         remove,
         accept,
         reject,
+        removeMember: removeMemberFromPlan,
     };
 }

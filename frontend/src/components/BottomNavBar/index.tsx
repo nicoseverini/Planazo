@@ -1,6 +1,8 @@
+import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, usePathname } from 'expo-router';
 import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ACTIVITY_TYPES } from '@/config/activity-types';
@@ -11,7 +13,7 @@ import { styles } from './styles';
 type NavItem = {
     icon: keyof typeof Ionicons.glyphMap;
     iconFocused: keyof typeof Ionicons.glyphMap;
-    label: string;
+    translationKey: string;
     route: string;
 };
 
@@ -19,31 +21,31 @@ const NAV_ITEMS: NavItem[] = [
     {
         icon: 'home-outline',
         iconFocused: 'home',
-        label: 'Home',
+        translationKey: 'home',
         route: '/home',
     },
     {
         icon: 'map-outline',
         iconFocused: 'map',
-        label: 'Map',
+        translationKey: 'map',
         route: '/map',
     },
     {
         icon: 'compass-outline',
         iconFocused: 'compass',
-        label: 'Activities',
+        translationKey: 'activities',
         route: '/activities',
     },
     {
         icon: 'bookmark-outline',
         iconFocused: 'bookmark',
-        label: 'My Activities',
+        translationKey: 'my_activities',
         route: '/my-plans',
     },
     {
         icon: 'person-outline',
         iconFocused: 'person',
-        label: 'User',
+        translationKey: 'profile',
         route: '/profile',
     },
 ];
@@ -59,6 +61,9 @@ function isNavItemActive(item: NavItem, pathname: string): boolean {
             (r) => pathname === r || pathname.startsWith(r + '/')
         );
     }
+    if (item.route === '/profile') {
+        return pathname === '/configurations' || pathname.startsWith('/configurations/');
+    }
     return false;
 }
 
@@ -71,6 +76,7 @@ type NavItemButtonProps = {
 };
 
 function NavItemButton({ item, isActive, tint, mutedText, onPress }: NavItemButtonProps) {
+    const { t } = useTranslation();
     return (
         <Pressable
             onPress={onPress}
@@ -91,7 +97,7 @@ function NavItemButton({ item, isActive, tint, mutedText, onPress }: NavItemButt
                     { color: isActive ? tint : mutedText },
                 ]}
             >
-                {item.label}
+                {t(item.translationKey)}
             </ThemedText>
         </Pressable>
     );

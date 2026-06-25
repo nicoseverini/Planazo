@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
     ActivityIndicator, Alert, FlatList, Modal, Platform,
     Pressable, RefreshControl, ScrollView, TextInput, View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { CategoryFilterSelector } from '@/components/CategoryFilterSelector';
 import { DistanceSlider } from '@/components/DistanceSlider';
@@ -45,16 +46,16 @@ type Props = {
     onPressPlan: (id: number) => void;
 };
 
-const VISIBILITY_OPTIONS: { label: string; value: PlanVisibility | null }[] = [
-    { label: 'Both', value: null },
-    { label: 'Public', value: 'PUBLIC' },
-    { label: 'Private', value: 'PRIVATE' },
+const VISIBILITY_OPTIONS: { labelKey: string; value: PlanVisibility | null }[] = [
+    { labelKey: 'both', value: null },
+    { labelKey: 'public', value: 'PUBLIC' },
+    { labelKey: 'private', value: 'PRIVATE' },
 ];
 
-const STATUS_OPTIONS: { label: string; value: ParticipationStatus | null }[] = [
-    { label: 'Any', value: null },
-    { label: 'Pending', value: 'PENDING' },
-    { label: 'Accepted', value: 'ACCEPTED' },
+const STATUS_OPTIONS: { labelKey: string; value: ParticipationStatus | null }[] = [
+    { labelKey: 'any', value: null },
+    { labelKey: 'pending', value: 'PENDING' },
+    { labelKey: 'accepted', value: 'ACCEPTED' },
 ];
 
 const fmt = (d: Date) =>
@@ -63,6 +64,7 @@ const fmt = (d: Date) =>
 export function PlanListTab({
     load, showStatusBadge, showVisibilityFilter, showStatusFilter, errorMessage, empty, action, onPressPlan,
 }: Props) {
+    const { t } = useTranslation();
     const { surface, border, tint, tintText, mutedText, text: textColor } = useAppTheme();
 
     const [plans, setPlans] = useState<PlanSummary[]>([]);
@@ -84,7 +86,7 @@ export function PlanListTab({
         try {
             setPlans(await load());
         } catch {
-            Alert.alert('Error', errorMessage);
+            Alert.alert(t('error'), errorMessage);
         } finally {
             setLoading(false);
         }
@@ -124,7 +126,7 @@ export function PlanListTab({
                         size={22}
                         color={hasFilters ? tint : textColor}
                     />
-                    <ThemedText type="label" style={{ color: hasFilters ? tint : textColor }}>Filters</ThemedText>
+                    <ThemedText type="label" style={{ color: hasFilters ? tint : textColor }}>{t('filters')}</ThemedText>
                 </Pressable>
             </View>
 
@@ -139,14 +141,14 @@ export function PlanListTab({
                     {filters.visibility && (
                         <View style={activeChipStyle}>
                             <ThemedText type="label" style={{ color: tintText }}>
-                                {filters.visibility === 'PUBLIC' ? '🌐 Public' : '🔒 Private'}
+                                {filters.visibility === 'PUBLIC' ? `🌐 ${t('public')}` : `🔒 ${t('private')}`}
                             </ThemedText>
                         </View>
                     )}
                     {filters.status && (
                         <View style={activeChipStyle}>
                             <ThemedText type="label" style={{ color: tintText }}>
-                                {filters.status === 'ACCEPTED' ? 'Accepted' : 'Pending'}
+                                {filters.status === 'ACCEPTED' ? t('accepted') : t('pending')}
                             </ThemedText>
                         </View>
                     )}
@@ -157,21 +159,21 @@ export function PlanListTab({
                     )}
                     {filters.dateFrom && (
                         <View style={activeChipStyle}>
-                            <ThemedText type="label" style={{ color: tintText }}>From {fmt(filters.dateFrom)}</ThemedText>
+                            <ThemedText type="label" style={{ color: tintText }}>{t('from_date', { date: fmt(filters.dateFrom) })}</ThemedText>
                         </View>
                     )}
                     {filters.dateTo && (
                         <View style={activeChipStyle}>
-                            <ThemedText type="label" style={{ color: tintText }}>Until {fmt(filters.dateTo)}</ThemedText>
+                            <ThemedText type="label" style={{ color: tintText }}>{t('until_date', { date: fmt(filters.dateTo) })}</ThemedText>
                         </View>
                     )}
                     {radius && (
                         <View style={activeChipStyle}>
-                            <ThemedText type="label" style={{ color: tintText }}>Dist: {radius}km</ThemedText>
+                            <ThemedText type="label" style={{ color: tintText }}>{t('distance_km', { radius })}</ThemedText>
                         </View>
                     )}
                     <Pressable onPress={clearFilters} style={{ justifyContent: 'center' }}>
-                        <ThemedText type="label" style={{ color: mutedText }}>✕ Clear</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText }}>✕ {t('clear_all')}</ThemedText>
                     </Pressable>
                 </View>
             )}
@@ -192,7 +194,7 @@ export function PlanListTab({
                         <View style={styles.emptyContainer}>
                             <Ionicons name={empty.icon} size={48} color={mutedText} />
                             <ThemedText type="body" style={[styles.emptyText, { color: mutedText }]}>
-                                {hasFilters ? 'No plans match your filters.' : empty.message}
+                                {hasFilters ? t('no_plans_matching_filters') : empty.message}
                             </ThemedText>
                             {!hasFilters && (
                                 <Pressable onPress={action.onPress} style={[styles.emptyCta, { borderColor: tint }]}>
@@ -225,14 +227,14 @@ export function PlanListTab({
                     keyboardShouldPersistTaps="handled"
                 >
                     <View style={styles.modalHeader}>
-                        <ThemedText type="heading">Filters</ThemedText>
+                        <ThemedText type="heading">{t('filters')}</ThemedText>
                         <Pressable onPress={() => setShowFilters(false)}>
                             <Ionicons name="close" size={24} color={textColor} />
                         </Pressable>
                     </View>
 
                     {/* Category */}
-                    <ThemedText type="subtitle" style={styles.modalLabel}>Category</ThemedText>
+                    <ThemedText type="subtitle" style={styles.modalLabel}>{t('category')}</ThemedText>
                     <View style={{ marginBottom: 24 }}>
                         <CategoryFilterSelector
                             selected={filters.categories}
@@ -243,18 +245,18 @@ export function PlanListTab({
                     {/* Visibility */}
                     {showVisibilityFilter && (
                         <>
-                            <ThemedText type="subtitle" style={styles.modalLabel}>Visibility</ThemedText>
+                            <ThemedText type="subtitle" style={styles.modalLabel}>{t('visibility')}</ThemedText>
                             <View style={styles.chipRow}>
                                 {VISIBILITY_OPTIONS.map((opt) => {
                                     const active = filters.visibility === opt.value;
                                     return (
                                         <Pressable
-                                            key={opt.label}
+                                            key={opt.labelKey}
                                             onPress={() => setFilters((f) => ({ ...f, visibility: opt.value }))}
                                             style={[styles.choiceChip, { backgroundColor: active ? tint : 'transparent', borderColor: active ? tint : border }]}
                                         >
                                             <ThemedText type="label" style={{ color: active ? tintText : textColor }}>
-                                                {opt.label}
+                                                {t(opt.labelKey)}
                                             </ThemedText>
                                         </Pressable>
                                     );
@@ -266,18 +268,18 @@ export function PlanListTab({
                     {/* Status */}
                     {showStatusFilter && (
                         <>
-                            <ThemedText type="subtitle" style={styles.modalLabel}>Request status</ThemedText>
+                            <ThemedText type="subtitle" style={styles.modalLabel}>{t('request_status')}</ThemedText>
                             <View style={styles.chipRow}>
                                 {STATUS_OPTIONS.map((opt) => {
                                     const active = filters.status === opt.value;
                                     return (
                                         <Pressable
-                                            key={opt.label}
+                                            key={opt.labelKey}
                                             onPress={() => setFilters((f) => ({ ...f, status: opt.value }))}
                                             style={[styles.choiceChip, { backgroundColor: active ? tint : 'transparent', borderColor: active ? tint : border }]}
                                         >
                                             <ThemedText type="label" style={{ color: active ? tintText : textColor }}>
-                                                {opt.label}
+                                                {t(opt.labelKey)}
                                             </ThemedText>
                                         </Pressable>
                                     );
@@ -287,12 +289,12 @@ export function PlanListTab({
                     )}
 
                     {/* Location */}
-                    <ThemedText type="subtitle" style={styles.modalLabel}>Location</ThemedText>
+                    <ThemedText type="subtitle" style={styles.modalLabel}>{t('location')}</ThemedText>
                     <View style={[styles.modalInput, { backgroundColor: surface, borderColor: border }]}>
                         <Ionicons name="location-outline" size={18} color={mutedText} />
                         <TextInput
                             style={[styles.modalInputText, { color: textColor }]}
-                            placeholder="E.g.: Buenos Aires, Obelisco..."
+                            placeholder={t('location_placeholder_plans')}
                             placeholderTextColor={mutedText}
                             value={filters.location}
                             onChangeText={(location) => setFilters((f) => ({ ...f, location }))}
@@ -305,14 +307,14 @@ export function PlanListTab({
                     </View>
 
                     {/* Start date */}
-                    <ThemedText type="subtitle" style={styles.modalLabel}>Start Date</ThemedText>
+                    <ThemedText type="subtitle" style={styles.modalLabel}>{t('start_date')}</ThemedText>
                     <Pressable
                         onPress={() => setShowDateFrom(true)}
                         style={[styles.modalInput, { backgroundColor: surface, borderColor: border }]}
                     >
                         <Ionicons name="calendar-outline" size={18} color={mutedText} />
                         <ThemedText type="body" style={{ flex: 1, color: filters.dateFrom ? textColor : mutedText }}>
-                            {filters.dateFrom ? fmt(filters.dateFrom) : 'Select date'}
+                            {filters.dateFrom ? fmt(filters.dateFrom) : t('select_date')}
                         </ThemedText>
                         {filters.dateFrom && (
                             <Pressable onPress={() => setFilters((f) => ({ ...f, dateFrom: null }))}>
@@ -333,14 +335,14 @@ export function PlanListTab({
                     )}
 
                     {/* End date */}
-                    <ThemedText type="subtitle" style={styles.modalLabel}>End Date</ThemedText>
+                    <ThemedText type="subtitle" style={styles.modalLabel}>{t('end_date')}</ThemedText>
                     <Pressable
                         onPress={() => setShowDateTo(true)}
                         style={[styles.modalInput, { backgroundColor: surface, borderColor: border }]}
                     >
                         <Ionicons name="calendar-outline" size={18} color={mutedText} />
                         <ThemedText type="body" style={{ flex: 1, color: filters.dateTo ? textColor : mutedText }}>
-                            {filters.dateTo ? fmt(filters.dateTo) : 'Select date'}
+                            {filters.dateTo ? fmt(filters.dateTo) : t('select_date')}
                         </ThemedText>
                         {filters.dateTo && (
                             <Pressable onPress={() => setFilters((f) => ({ ...f, dateTo: null }))}>
@@ -362,7 +364,7 @@ export function PlanListTab({
                     )}
 
                     {/* Proximity */}
-                    <ThemedText type="subtitle" style={[styles.modalLabel, { marginTop: 8 }]}>Proximity (Distance)</ThemedText>
+                    <ThemedText type="subtitle" style={[styles.modalLabel, { marginTop: 8 }]}>{t('proximity_distance')}</ThemedText>
                     <View style={{ marginBottom: 24 }}>
                         <DistanceSlider radius={radius} onChange={handleRadiusChange} />
                     </View>
@@ -373,13 +375,13 @@ export function PlanListTab({
                             onPress={() => setShowFilters(false)}
                             style={{ backgroundColor: tint, borderRadius: 12, padding: 16, alignItems: 'center' }}
                         >
-                            <ThemedText type="subtitle" style={{ color: tintText }}>Apply filters</ThemedText>
+                            <ThemedText type="subtitle" style={{ color: tintText }}>{t('apply_filters')}</ThemedText>
                         </Pressable>
                         <Pressable
                             onPress={() => { clearFilters(); setShowFilters(false); }}
                             style={{ borderWidth: 1, borderColor: border, borderRadius: 12, padding: 16, alignItems: 'center' }}
                         >
-                            <ThemedText type="subtitle">Clear all</ThemedText>
+                            <ThemedText type="subtitle">{t('clear_all')}</ThemedText>
                         </Pressable>
                     </View>
                 </ScrollView>

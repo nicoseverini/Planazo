@@ -9,6 +9,7 @@ import com.planazo.common.exception.PlanExpiredException;
 import com.planazo.plan.dto.PlanCreateDTO;
 import com.planazo.plan.dto.PlanDetailDTO;
 import com.planazo.plan.dto.PendingSubscriberDTO;
+import com.planazo.plan.dto.PlanSubscriberDTO;
 import com.planazo.plan.dto.PlanSummaryDTO;
 import com.planazo.plan.dto.PlanUpdateDTO;
 import com.planazo.user.User;
@@ -172,7 +173,24 @@ public class PlanService {
             .map(subscription -> new PendingSubscriberDTO(
                 subscription.getUser().getId(),
                 subscription.getUser().getName(),
-                subscription.getUser().getLastname()
+                subscription.getUser().getLastname(),
+                subscription.getUser().getPhoto()
+            ))
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PlanSubscriberDTO> getPlanMembers(Long planId) {
+        Plan plan = requireActivePlan(planId);
+
+        return plan.getSubscribers().stream()
+            .filter(PlanSubscriber::countsAsSubscriber)
+            .map(subscription -> new PlanSubscriberDTO(
+                subscription.getUser().getId(),
+                subscription.getUser().getName(),
+                subscription.getUser().getLastname(),
+                subscription.getUser().getPhoto(),
+                subscription.getAccepted()
             ))
             .toList();
     }
@@ -266,6 +284,35 @@ public class PlanService {
         // Pending subscriber did not count → counter unchanged
         planRepository.save(plan);
         emailService.sendRejectedFromPlanEmail(userEmail, plan.getTitle());
+    }
+
+    // ── Remove member (organizer only) ─────────────────────────────────────
+
+    public void removeMember(Long planId, Long userId, String requesterEmail) {
+        Plan plan = requireActivePlan(planId);
+
+        if (!plan.getCreator().getUsername().equals(requesterEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the organizer can remove members.");
+        }
+
+        if (plan.getCreator().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "The organizer cannot be removed from the activity.");
+        }
+
+        PlanSubscriber subscription = plan.getSubscribers().stream()
+                .filter(s -> s.matchesUserId(userId))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "This member is no longer part of the activity."));
+
+        boolean wasCounting = subscription.countsAsSubscriber();
+
+        plan.removeSubscriber(userId);
+        if (wasCounting) {
+            plan.decrementSubscriberCount();
+        }
+
+        planRepository.save(plan);
+        emailService.sendRemovedFromPlanEmail(subscription.getUser().getEmail(), plan.getTitle());
     }
 
     // ── Delete (soft) ────────────────────────────────────────────────────────

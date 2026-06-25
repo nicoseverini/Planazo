@@ -23,6 +23,7 @@ import {
   type SignupFormState,
 } from '@/models/auth';
 import { signupUser } from '@/services/auth';
+import { formatBirthDate } from '@/utils/date';
 
 import { styles } from './styles';
 
@@ -127,7 +128,7 @@ function BirthDateField({ value, onChange }: { value: string; onChange: (value: 
         style={({ pressed }) => [styles.pickerTrigger, pressed && styles.pressedField]}
       >
         <ThemedText style={[styles.pickerValue, !value && styles.placeholderValue]}>
-          {value || 'Select your birth date'}
+          {value ? formatBirthDate(value) : 'Select your birth date'}
         </ThemedText>
         <ThemedText style={styles.pickerChevron}>📅</ThemedText>
       </Pressable>

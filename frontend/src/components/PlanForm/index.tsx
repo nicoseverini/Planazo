@@ -11,12 +11,14 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MapView, { Marker } from 'react-native-maps';
+import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { CATEGORY_OPTIONS } from '@/constants/plan-form';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import type { PlanFormValues } from '@/hooks/use-plan-form';
+import { formatInterest } from '@/utils/interests';
 
 import { styles } from './styles';
 
@@ -68,6 +70,7 @@ export function PlanForm({
     handleEndTimeChange,
 }: PlanFormProps) {
     const router = useRouter();
+    const { t } = useTranslation();
     const { tint, tintText, surface, border, mutedText, text, background } = useAppTheme();
 
     return (
@@ -90,24 +93,24 @@ export function PlanForm({
             {/* Title + Visibility toggle */}
             <View style={styles.titleRow}>
                 <View style={styles.titleInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Title</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_title')}</ThemedText>
                     <TextInput
                         value={title}
                         onChangeText={setTitle}
-                        placeholder="Plan name"
+                        placeholder={t('plan_name_placeholder')}
                         placeholderTextColor={mutedText}
                         style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
                     />
                 </View>
                 <View style={styles.visibilityToggle}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Visibility</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_visibility')}</ThemedText>
                     <View style={[styles.toggleContainer, { backgroundColor: surface, borderColor: border }]}>
                         <Pressable
                             onPress={() => setIsPublic(false)}
                             style={[styles.toggleOption, !isPublic && { backgroundColor: tint }]}
                         >
                             <ThemedText type="label" style={{ color: !isPublic ? tintText : mutedText, fontSize: 11 }}>
-                                Private
+                                {t('label_private')}
                             </ThemedText>
                         </Pressable>
                         <Pressable
@@ -115,7 +118,7 @@ export function PlanForm({
                             style={[styles.toggleOption, isPublic && { backgroundColor: tint }]}
                         >
                             <ThemedText type="label" style={{ color: isPublic ? tintText : mutedText, fontSize: 11 }}>
-                                Public
+                                {t('label_public')}
                             </ThemedText>
                         </Pressable>
                     </View>
@@ -125,9 +128,17 @@ export function PlanForm({
             {/* Start date/time */}
             <View style={styles.row}>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Start Date</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_start_date')}</ThemedText>
                     <Pressable
-                        onPress={() => setShowStartDatePicker(!showStartDatePicker)}
+                        onPress={() => {
+                            const next = !showStartDatePicker;
+                            setShowStartDatePicker(next);
+                            if (next) {
+                                setShowStartTimePicker(false);
+                                setShowEndDatePicker(false);
+                                setShowEndTimePicker(false);
+                            }
+                        }}
                         style={({ pressed }) => [
                             styles.input,
                             { backgroundColor: surface, borderColor: border, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -139,22 +150,19 @@ export function PlanForm({
                         </ThemedText>
                         <Ionicons name="calendar-outline" size={20} color={tint} />
                     </Pressable>
-                    {showStartDatePicker && (
-                        <View style={[styles.inlinePicker, { borderColor: border }]}>
-                            <DateTimePicker
-                                value={internalStartDate}
-                                mode="date"
-                                display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
-                                minimumDate={new Date()}
-                                onChange={handleStartDateChange}
-                            />
-                        </View>
-                    )}
                 </View>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Start Time</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_start_time')}</ThemedText>
                     <Pressable
-                        onPress={() => setShowStartTimePicker(!showStartTimePicker)}
+                        onPress={() => {
+                            const next = !showStartTimePicker;
+                            setShowStartTimePicker(next);
+                            if (next) {
+                                setShowStartDatePicker(false);
+                                setShowEndDatePicker(false);
+                                setShowEndTimePicker(false);
+                            }
+                        }}
                         style={({ pressed }) => [
                             styles.input,
                             { backgroundColor: surface, borderColor: border, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -166,26 +174,47 @@ export function PlanForm({
                         </ThemedText>
                         <Ionicons name="time-outline" size={20} color={tint} />
                     </Pressable>
-                    {showStartTimePicker && (
-                        <View style={[styles.inlinePicker, { borderColor: border }]}>
-                            <DateTimePicker
-                                value={internalStartDate}
-                                mode="time"
-                                display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
-                                is24Hour={true}
-                                onChange={handleStartTimeChange}
-                            />
-                        </View>
-                    )}
                 </View>
             </View>
+
+            {/* Start inline pickers (Full Width) */}
+            {showStartDatePicker && (
+                <View style={[styles.inlinePicker, { borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
+                    <DateTimePicker
+                        value={internalStartDate}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
+                        minimumDate={new Date()}
+                        onChange={handleStartDateChange}
+                    />
+                </View>
+            )}
+            {showStartTimePicker && (
+                <View style={[styles.inlinePicker, { borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
+                    <DateTimePicker
+                        value={internalStartDate}
+                        mode="time"
+                        display="spinner"
+                        is24Hour={true}
+                        onChange={handleStartTimeChange}
+                    />
+                </View>
+            )}
 
             {/* End date/time */}
             <View style={styles.row}>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>End Date</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_end_date')}</ThemedText>
                     <Pressable
-                        onPress={() => setShowEndDatePicker(!showEndDatePicker)}
+                        onPress={() => {
+                            const next = !showEndDatePicker;
+                            setShowEndDatePicker(next);
+                            if (next) {
+                                setShowStartDatePicker(false);
+                                setShowStartTimePicker(false);
+                                setShowEndTimePicker(false);
+                            }
+                        }}
                         style={({ pressed }) => [
                             styles.input,
                             { backgroundColor: surface, borderColor: border, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -197,22 +226,19 @@ export function PlanForm({
                         </ThemedText>
                         <Ionicons name="calendar-outline" size={20} color={tint} />
                     </Pressable>
-                    {showEndDatePicker && (
-                        <View style={[styles.inlinePicker, { borderColor: border }]}>
-                            <DateTimePicker
-                                value={internalEndDate}
-                                mode="date"
-                                display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
-                                minimumDate={new Date()}
-                                onChange={handleEndDateChange}
-                            />
-                        </View>
-                    )}
                 </View>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>End Time</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_end_time')}</ThemedText>
                     <Pressable
-                        onPress={() => setShowEndTimePicker(!showEndTimePicker)}
+                        onPress={() => {
+                            const next = !showEndTimePicker;
+                            setShowEndTimePicker(next);
+                            if (next) {
+                                setShowStartDatePicker(false);
+                                setShowStartTimePicker(false);
+                                setShowEndDatePicker(false);
+                            }
+                        }}
                         style={({ pressed }) => [
                             styles.input,
                             { backgroundColor: surface, borderColor: border, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -224,24 +250,37 @@ export function PlanForm({
                         </ThemedText>
                         <Ionicons name="time-outline" size={20} color={tint} />
                     </Pressable>
-                    {showEndTimePicker && (
-                        <View style={[styles.inlinePicker, { borderColor: border }]}>
-                            <DateTimePicker
-                                value={internalEndDate}
-                                mode="time"
-                                display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
-                                is24Hour={true}
-                                onChange={handleEndTimeChange}
-                            />
-                        </View>
-                    )}
                 </View>
             </View>
+
+            {/* End inline pickers (Full Width) */}
+            {showEndDatePicker && (
+                <View style={[styles.inlinePicker, { borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
+                    <DateTimePicker
+                        value={internalEndDate}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
+                        minimumDate={new Date()}
+                        onChange={handleEndDateChange}
+                    />
+                </View>
+            )}
+            {showEndTimePicker && (
+                <View style={[styles.inlinePicker, { borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
+                    <DateTimePicker
+                        value={internalEndDate}
+                        mode="time"
+                        display="spinner"
+                        is24Hour={true}
+                        onChange={handleEndTimeChange}
+                    />
+                </View>
+            )}
 
             {/* Age restrictions */}
             <View style={styles.row}>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Min Age</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_min_age')}</ThemedText>
                     <TextInput
                         value={minAge}
                         onChangeText={setMinAge}
@@ -252,11 +291,11 @@ export function PlanForm({
                     />
                 </View>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Max Age</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_max_age')}</ThemedText>
                     <TextInput
                         value={maxAge}
                         onChangeText={setMaxAge}
-                        placeholder="0 = no limit"
+                        placeholder={t('zero_no_limit')}
                         placeholderTextColor={mutedText}
                         keyboardType="numeric"
                         style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
@@ -266,7 +305,7 @@ export function PlanForm({
 
             {/* Location: Country / City / Address + Map */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Country</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_country')}</ThemedText>
                 <TextInput
                     value={country}
                     onChangeText={setCountry}
@@ -274,7 +313,7 @@ export function PlanForm({
                     placeholderTextColor={mutedText}
                     style={[styles.input, { marginTop: 0, marginBottom: 12, backgroundColor: surface, borderColor: border, color: text }]}
                 />
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>City</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_city')}</ThemedText>
                 <TextInput
                     value={city}
                     onChangeText={setCity}
@@ -282,7 +321,7 @@ export function PlanForm({
                     placeholderTextColor={mutedText}
                     style={[styles.input, { marginTop: 0, marginBottom: 12, backgroundColor: surface, borderColor: border, color: text }]}
                 />
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Address</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_address')}</ThemedText>
                 <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                     <TextInput
                         value={address}
@@ -310,7 +349,7 @@ export function PlanForm({
                     </Pressable>
                 </View>
                 <ThemedText type="label" style={{ color: mutedText, marginBottom: 8, fontSize: 12 }}>
-                    Tap the map or drag the pin to auto-fill location fields.
+                    {t('map_instruction')}
                 </ThemedText>
                 <View style={{ height: 200, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: border }}>
                     <MapView
@@ -338,7 +377,7 @@ export function PlanForm({
 
             {/* Images */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Images</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_images')}</ThemedText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.imagesRow}>
                         {images.map((img, index) => (
@@ -364,7 +403,7 @@ export function PlanForm({
 
             {/* Description */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Description</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_description')}</ThemedText>
                 <TextInput
                     value={description}
                     onChangeText={setDescription}
@@ -380,7 +419,7 @@ export function PlanForm({
             <View style={[styles.infoSection, { backgroundColor: surface, borderColor: border }]}>
                 <ThemedText type="subtitle" style={{ marginBottom: 12 }}>INFO</ThemedText>
                 <View style={styles.infoInputGroup}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Category</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_category')}</ThemedText>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <View style={styles.categoryRow}>
                             {CATEGORY_OPTIONS.map((cat) => (
@@ -397,7 +436,7 @@ export function PlanForm({
                                         type="label"
                                         style={{ color: selectedCategories.includes(cat) ? tintText : text }}
                                     >
-                                        {cat}
+                                        {formatInterest(cat)}
                                     </ThemedText>
                                 </Pressable>
                             ))}
@@ -406,7 +445,7 @@ export function PlanForm({
                 </View>
                 <View style={styles.row}>
                     <View style={styles.halfInput}>
-                        <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Max participants</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_max_participants')}</ThemedText>
                         <TextInput
                             value={maxParticipants}
                             onChangeText={setMaxParticipants}
@@ -417,7 +456,7 @@ export function PlanForm({
                         />
                     </View>
                     <View style={styles.halfInput}>
-                        <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Budget (optional)</ThemedText>
+                        <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_budget_optional')}</ThemedText>
                         <TextInput
                             value={budget}
                             onChangeText={setBudget}

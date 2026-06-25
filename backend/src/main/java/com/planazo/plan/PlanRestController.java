@@ -5,6 +5,7 @@ import com.planazo.plan.dto.PlanAdminDeleteDTO;
 import com.planazo.plan.dto.PlanCreateDTO;
 import com.planazo.plan.dto.PlanDetailDTO;
 import com.planazo.plan.dto.PendingSubscriberDTO;
+import com.planazo.plan.dto.PlanSubscriberDTO;
 import com.planazo.plan.dto.PlanSummaryDTO;
 import com.planazo.plan.dto.PlanUpdateDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -137,6 +138,16 @@ class PlanRestController {
         return planService.getPendingSubscribers(id, email);
     }
 
+    // ── Read: plan members ─────────────────────────────────────────────────
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(value = "/{id}/members", produces = "application/json")
+    @Operation(summary = "List the accepted members of a plan")
+    @ApiResponse(responseCode = "404", description = "Plan not found", content = @Content)
+    List<PlanSubscriberDTO> getPlanMembers(@PathVariable Long id) {
+        return planService.getPlanMembers(id);
+    }
+
     // ── Update ───────────────────────────────────────────────────────────────
 
     @PreAuthorize("isAuthenticated()")
@@ -195,6 +206,21 @@ class PlanRestController {
             @AuthenticationPrincipal(expression = "username") String email
     ) {
         planService.denyPendingSubscriber(id_plan, id_user, email);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping(value = "/{id_plan}/members/{id_user}", produces = "application/json")
+    @Operation(summary = "Organizer removes a member from the plan")
+    @ApiResponse(responseCode = "403", description = "Not the organizer", content = @Content)
+    @ApiResponse(responseCode = "404", description = "Plan or member not found", content = @Content)
+    @ApiResponse(responseCode = "409", description = "Organizer cannot be removed", content = @Content)
+    ResponseEntity<Void> removeMember(
+            @PathVariable Long id_plan,
+            @PathVariable Long id_user,
+            @AuthenticationPrincipal(expression = "username") String email
+    ) {
+        planService.removeMember(id_plan, id_user, email);
         return ResponseEntity.ok().build();
     }
 

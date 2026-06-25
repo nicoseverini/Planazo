@@ -1,14 +1,17 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useRef, useState } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
 import type { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import type MapView from 'react-native-maps';
+import { useTranslation } from 'react-i18next';
 
 import { validateAgeFields } from '@/utils/age-restriction';
 import { addOneHour, buildDateTimeWithTimezone, getDeviceTimezone } from '@/utils/date';
+import { ensureMediaLibraryPermission } from '@/utils/media-permissions';
 
 export function usePlanForm() {
+    const { t } = useTranslation();
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -43,12 +46,10 @@ export function usePlanForm() {
     const [images, setImages] = useState<string[]>([]);
 
     const handleAddImage = async () => {
-        if (Platform.OS !== 'ios') {
-            const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-            if (permission.status !== 'granted') {
-                Alert.alert('Permission required', 'We need access to your gallery to choose images.');
-                return;
-            }
+        const granted = await ensureMediaLibraryPermission();
+        if (!granted) {
+            Alert.alert(t('permission_required'), t('gallery_permission_desc_images'));
+            return;
         }
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
@@ -59,7 +60,7 @@ export function usePlanForm() {
         if (result.canceled || !result.assets?.length) return;
         const asset = result.assets[0];
         if (!asset.base64) {
-            setError('Could not read selected image.');
+            setError(t('error_read_image'));
             return;
         }
         const mimeType = asset.mimeType ?? 'image/jpeg';
@@ -87,10 +88,10 @@ export function usePlanForm() {
                 setPinLocation({ latitude, longitude });
                 mapRef.current?.animateToRegion({ latitude, longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 }, 1000);
             } else {
-                Alert.alert('Not found', 'Try being more specific or check the address.');
+                Alert.alert(t('not_found'), t('specific_location_hint'));
             }
         } catch {
-            Alert.alert('Error', 'There was a problem searching the address.');
+            Alert.alert(t('error'), t('error_search_address'));
         } finally {
             setIsSearchingLoc(false);
         }
@@ -177,34 +178,34 @@ export function usePlanForm() {
     };
 
     const validateForm = ({ requireFutureStart = false } = {}): boolean => {
-        if (!title.trim()) { setError('Title is required'); return false; }
-        if (!startDate.trim() || !startTime.trim()) { setError('Start date and time are required'); return false; }
+        if (!title.trim()) { setError(t('error_title_required')); return false; }
+        if (!startDate.trim() || !startTime.trim()) { setError(t('error_start_date_time_required')); return false; }
         if (requireFutureStart) {
             const startDt = buildDateTimeWithTimezone(startDate, startTime, getDeviceTimezone());
             if (startDt && new Date(startDt) <= new Date()) {
-                setError('Start date and time must be set in the future.');
+                setError(t('error_start_future'));
                 return false;
             }
         }
-        if (!endDate.trim() || !endTime.trim()) { setError('End date and time are required'); return false; }
-        if (!country.trim()) { setError('Country is required.'); return false; }
-        if (!city.trim()) { setError('City is required.'); return false; }
-        if (!address.trim()) { setError('Address is required.'); return false; }
-        if (selectedCategories.length === 0) { setError('Select at least one category'); return false; }
+        if (!endDate.trim() || !endTime.trim()) { setError(t('error_end_date_time_required')); return false; }
+        if (!country.trim()) { setError(t('error_country_required')); return false; }
+        if (!city.trim()) { setError(t('error_city_required')); return false; }
+        if (!address.trim()) { setError(t('error_address_required')); return false; }
+        if (selectedCategories.length === 0) { setError(t('error_select_category')); return false; }
         const ageError = validateAgeFields(minAge, maxAge);
         if (ageError) { setError(ageError); return false; }
         const trimmedMax = maxParticipants.trim();
         const parsedMax = Number.parseInt(trimmedMax, 10);
         if (!trimmedMax || Number.isNaN(parsedMax) || parsedMax <= 0 || parsedMax > 99_999) {
-            setError('Max participants must be between 1 and 99,999.');
+            setError(t('error_max_participants_range'));
             return false;
         }
         const trimmedBudget = budget.trim();
         if (trimmedBudget) {
             const parsedBudget = Number(trimmedBudget);
-            if (!Number.isFinite(parsedBudget)) { setError('Budget must be a valid number.'); return false; }
-            if (parsedBudget < 0) { setError('Budget must be greater than or equal to 0.'); return false; }
-            if (parsedBudget > 9_999_999) { setError('Budget cannot exceed 9,999,999.'); return false; }
+            if (!Number.isFinite(parsedBudget)) { setError(t('error_budget_invalid')); return false; }
+            if (parsedBudget < 0) { setError(t('error_budget_negative')); return false; }
+            if (parsedBudget > 9_999_999) { setError(t('error_budget_limit')); return false; }
         }
         return true;
     };

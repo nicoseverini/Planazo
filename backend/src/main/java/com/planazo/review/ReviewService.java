@@ -44,7 +44,16 @@ public class ReviewService {
     @Transactional
     public ReviewResponseDto createReview(ReviewRequestDto dto, ReviewTarget targetType, Long targetId, String userEmail) {
         User user = userService.getUserByEmail(userEmail);
-        
+
+        if (targetType == ReviewTarget.USER) {
+            if (user.getId().equals(targetId)) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "You cannot review yourself.");
+            }
+            if (!userService.existsById(targetId)) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found.");
+            }
+        }
+
         java.util.Optional<Review> existingReviewOpt = reviewRepository.findByUserIdAndTargetTypeAndTargetId(user.getId(), targetType, targetId);
         
         Review review;

@@ -8,11 +8,11 @@ import {
     Image,
     Pressable,
     ScrollView,
-    Platform,
     TextInput,
     View,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
@@ -23,6 +23,8 @@ import {
     TuristicPlaceCreateRequest,
 } from '@/services/turistic-place';
 import { validateAgeFields, parseAge } from '@/utils/age-restriction';
+import { formatInterest } from '@/utils/interests';
+import { ensureMediaLibraryPermission } from '@/utils/media-permissions';
 
 import { styles } from './styles';
 
@@ -72,6 +74,7 @@ export default function TuristicPlaceFormScreen({
     onBack,
 }: Props) {
     const mapRef = useRef<MapView>(null);
+    const { t } = useTranslation();
 
     const tint = useThemeColor({}, 'tint');
     const tintText = useThemeColor({}, 'tintText');
@@ -109,12 +112,10 @@ export default function TuristicPlaceFormScreen({
     };
 
     const handleAddImage = async () => {
-        if (Platform.OS !== 'ios') {
-            const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-            if (permission.status !== 'granted') {
-                Alert.alert('Permission required', 'We need access to your gallery to choose images.');
-                return;
-            }
+        const granted = await ensureMediaLibraryPermission();
+        if (!granted) {
+            Alert.alert(t('permission_required'), t('gallery_permission_desc'));
+            return;
         }
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
@@ -125,7 +126,7 @@ export default function TuristicPlaceFormScreen({
         if (result.canceled || !result.assets?.length) return;
         const asset = result.assets[0];
         if (!asset.base64) {
-            setError('Could not read selected image.');
+            setError(t('error_read_image'));
             return;
         }
         const mimeType = asset.mimeType ?? 'image/jpeg';
@@ -151,10 +152,10 @@ export default function TuristicPlaceFormScreen({
                     1000
                 );
             } else {
-                Alert.alert('Not found', 'Try being more specific (e.g., add city or country).');
+                Alert.alert(t('not_found'), t('specific_location_hint'));
             }
         } catch {
-            Alert.alert('Error', 'There was a problem searching the address.');
+            Alert.alert(t('error'), t('error_search_address'));
         } finally {
             setIsSearchingLoc(false);
         }
@@ -186,30 +187,30 @@ export default function TuristicPlaceFormScreen({
 
     const validateForm = (): boolean => {
         if (!name.trim()) {
-            setError('Name is required.');
+            setError(t('error_name_required'));
             return false;
         }
         if (interests.length === 0) {
-            setError('Please select at least one category.');
+            setError(t('error_select_category'));
             return false;
         }
         if (!country.trim()) {
-            setError('Country is required.');
+            setError(t('error_country_required'));
             return false;
         }
         if (!city.trim()) {
-            setError('City is required.');
+            setError(t('error_city_required'));
             return false;
         }
         if (!address.trim()) {
-            setError('Address is required.');
+            setError(t('error_address_required'));
             return false;
         }
         const costTrimmed = cost.trim();
         if (costTrimmed) {
             const parsedCost = parseFloat(costTrimmed);
             if (isNaN(parsedCost) || parsedCost < 0) {
-                setError('Cost must be a valid number greater than or equal to 0.');
+                setError(t('error_cost_invalid'));
                 return false;
             }
         }
@@ -243,7 +244,7 @@ export default function TuristicPlaceFormScreen({
             };
             await onSubmit(payload);
         } catch {
-            setError('Could not save. Please try again.');
+            setError(t('error_update_place'));
         } finally {
             setSaving(false);
         }
@@ -275,11 +276,11 @@ export default function TuristicPlaceFormScreen({
 
             {/* Name */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Name *</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_title')} *</ThemedText>
                 <TextInput
                     value={name}
                     onChangeText={setName}
-                    placeholder="Place name"
+                    placeholder={t('place_name_placeholder')}
                     placeholderTextColor={mutedText}
                     style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
                 />
@@ -288,33 +289,33 @@ export default function TuristicPlaceFormScreen({
             {/* Cost + Age */}
             <View style={styles.row}>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Cost ($)</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_cost')}</ThemedText>
                     <TextInput
                         value={cost}
                         onChangeText={setCost}
-                        placeholder="Leave empty for free"
+                        placeholder={t('leave_empty_free')}
                         placeholderTextColor={mutedText}
                         keyboardType="decimal-pad"
                         style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
                     />
                 </View>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Min Age</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_min_age')}</ThemedText>
                     <TextInput
                         value={minAge}
                         onChangeText={setMinAge}
-                        placeholder="None"
+                        placeholder={t('label_none')}
                         placeholderTextColor={mutedText}
                         keyboardType="numeric"
                         style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
                     />
                 </View>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Max Age</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_max_age')}</ThemedText>
                     <TextInput
                         value={maxAge}
                         onChangeText={setMaxAge}
-                        placeholder="None"
+                        placeholder={t('label_none')}
                         placeholderTextColor={mutedText}
                         keyboardType="numeric"
                         style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
@@ -324,7 +325,7 @@ export default function TuristicPlaceFormScreen({
 
             {/* Categories (multi-select) */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Categories *</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_categories')} *</ThemedText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.categoryRow}>
                         {INTEREST_OPTIONS.map((opt) => {
@@ -343,7 +344,7 @@ export default function TuristicPlaceFormScreen({
                                         type="label"
                                         style={{ color: selected ? tintText : text }}
                                     >
-                                        {opt.label}
+                                        {formatInterest(opt.value)}
                                     </ThemedText>
                                 </Pressable>
                             );
@@ -354,7 +355,7 @@ export default function TuristicPlaceFormScreen({
 
             {/* Country */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Country *</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_country')} *</ThemedText>
                 <TextInput
                     value={country}
                     onChangeText={setCountry}
@@ -366,7 +367,7 @@ export default function TuristicPlaceFormScreen({
 
             {/* City */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>City *</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_city')} *</ThemedText>
                 <TextInput
                     value={city}
                     onChangeText={setCity}
@@ -378,7 +379,7 @@ export default function TuristicPlaceFormScreen({
 
             {/* Address + Map */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Address *</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_address')} *</ThemedText>
                 <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                     <TextInput
                         value={address}
@@ -409,7 +410,7 @@ export default function TuristicPlaceFormScreen({
                     </Pressable>
                 </View>
                 <ThemedText type="label" style={{ color: mutedText, marginBottom: 8, fontSize: 12 }}>
-                    Tap the map or drag the pin to set coordinates.
+                    {t('map_instruction')}
                 </ThemedText>
                 <View style={{ height: 200, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: border }}>
                     <MapView
@@ -432,11 +433,11 @@ export default function TuristicPlaceFormScreen({
 
             {/* Description */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Description</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_description')}</ThemedText>
                 <TextInput
                     value={description}
                     onChangeText={setDescription}
-                    placeholder="Describe this place..."
+                    placeholder={t('describe_place_placeholder')}
                     placeholderTextColor={mutedText}
                     multiline
                     numberOfLines={4}
@@ -446,7 +447,7 @@ export default function TuristicPlaceFormScreen({
 
             {/* Images */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>Images</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_images')}</ThemedText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.imagesRow}>
                         {images.map((img, index) => (

@@ -51,6 +51,22 @@ export function getDeviceTimezone(): string {
     }
 }
 
+/**
+ * Formats a user's birth date for display as `MM/DD/YYYY`.
+ *
+ * Input is the stored/API value: an ISO calendar date (`YYYY-MM-DD`, optionally
+ * with a time part). It is parsed as plain calendar fields to avoid timezone
+ * shifts, and the original string is returned untouched if it can't be parsed,
+ * so unexpected or legacy values are never silently hidden.
+ */
+export function formatBirthDate(value?: string | null): string {
+    if (!value) return '';
+    const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value.trim());
+    if (!match) return value;
+    const [, year, month, day] = match;
+    return `${month}/${day}/${year}`;
+}
+
 export function getTimezoneOffsetStr(ianaTimezone: string, date: Date): string {
     try {
         const parts = new Intl.DateTimeFormat('en-CA', {
