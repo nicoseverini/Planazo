@@ -14,6 +14,10 @@ import { TuristicPlaceDetailPage } from './turistic-place-detail'
 import { EditTuristicPlacePage } from './edit-turistic-place'
 import { ReportsPage } from './reports'
 
+function isAuthenticated(): boolean {
+  return !!sessionStorage.getItem('accessToken')
+}
+
 function resolveRoute(pathname: string) {
   const normalizedPath = pathname.replace(/\/+$/, '') || '/'
 
@@ -22,38 +26,70 @@ function resolveRoute(pathname: string) {
   }
 
   if (normalizedPath === '/plans') {
+    if (!isAuthenticated()) {
+      window.location.href = '/login'
+      return null
+    }
     return <PlansPage />
   }
 
   if (normalizedPath === '/turistic-places') {
+    if (!isAuthenticated()) {
+      window.location.href = '/login'
+      return null
+    }
     return <TuristicPlacesPage />
   }
 
   const planDetailMatch = normalizedPath.match(/^\/plans\/(\d+)$/)
   if (planDetailMatch) {
+    if (!isAuthenticated()) {
+      window.location.href = '/login'
+      return null
+    }
     return <PlanDetailPage planId={Number(planDetailMatch[1])} />
   }
 
   const planEditMatch = normalizedPath.match(/^\/plans\/(\d+)\/edit$/)
   if (planEditMatch) {
+    if (!isAuthenticated()) {
+      window.location.href = '/login'
+      return null
+    }
     return <EditPlanPage planId={Number(planEditMatch[1])} />
   }
 
   const placeDetailMatch = normalizedPath.match(/^\/turistic-places\/(\d+)$/)
   if (placeDetailMatch) {
+    if (!isAuthenticated()) {
+      window.location.href = '/login'
+      return null
+    }
     return <TuristicPlaceDetailPage placeId={Number(placeDetailMatch[1])} />
   }
 
   const placeEditMatch = normalizedPath.match(/^\/turistic-places\/(\d+)\/edit$/)
   if (placeEditMatch) {
+    if (!isAuthenticated()) {
+      window.location.href = '/login'
+      return null
+    }
     return <EditTuristicPlacePage placeId={Number(placeEditMatch[1])} />
   }
 
   if (normalizedPath === '/create-plan') {
+    if (!isAuthenticated()) {
+      window.location.href = '/login'
+      return null
+    }
     return <CreatePlanPage />
   }
 
   if (normalizedPath === '/create-turistic-place') {
+    if (!isAuthenticated()) {
+      window.location.href = '/login'
+      return null
+    }
     return <CreateTuristicPlacePage />
   }
 
@@ -66,6 +102,10 @@ function resolveRoute(pathname: string) {
   }
 
   if (normalizedPath === '/reports') {
+    if (!isAuthenticated()) {
+      window.location.href = '/login'
+      return null
+    }
     return <ReportsPage />
   }
 
