@@ -78,6 +78,13 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
+    public List<ReviewResponseDto> getReviewsByUser(Long userId) {
+        return reviewRepository.findByUserIdOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
+    }
+
     private ReviewResponseDto mapToResponseDto(Review review) {
         User author = review.getUser();
         ReviewAuthorDto authorDto = new ReviewAuthorDto(

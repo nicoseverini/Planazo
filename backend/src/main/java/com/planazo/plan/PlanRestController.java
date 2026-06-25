@@ -107,6 +107,15 @@ class PlanRestController {
         return planService.getMyPlans(email);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(value = "/user/{userId}/created", produces = "application/json")
+    @Operation(summary = "List plans created by a user (admin only)")
+    List<PlanSummaryDTO> getUserPlans(
+            @PathVariable Long userId
+    ) {
+        return planService.getPlansByUserId(userId);
+    }
+
     // ── Read: plans I joined ─────────────────────────────────────────────────
 
     @PreAuthorize("isAuthenticated()")

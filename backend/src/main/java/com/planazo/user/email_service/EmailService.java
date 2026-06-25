@@ -120,6 +120,14 @@ public class EmailService {
         send(to, "Your turistic place has been deleted", html);
     }
 
+    public void sendUserDeletedEmail(String to, String userName, String reason) {
+        String html = loadHtmlTemplate("classpath:templates/mail/user_deleted.html");
+        html = html.replace("${userName}", userName);
+        html = html.replace("${reason}", reason != null && !reason.isEmpty() ? reason : "No reason provided");
+
+        send(to, "Your Planazo account has been deleted", html);
+    }
+
     private String loadHtmlTemplate(String path) {
         try {
             Resource resource = resourceLoader.getResource(path);

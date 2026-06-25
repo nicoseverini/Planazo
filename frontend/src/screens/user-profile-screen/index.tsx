@@ -17,6 +17,7 @@ import { ReviewSection } from '@/components/ReviewSection';
 import { StarRating } from '@/components/StarRating';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
+import { ReportModal } from '@/components/ReportModal';
 import { decodeJwt, useToken } from '@/context/token-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { UpdateProfileRequest, UserProfile, useProfile } from '@/services/user';
@@ -51,6 +52,8 @@ export default function UserProfileScreen() {
     const [activeTab, setActiveTab] = useState<'profile' | 'reviews'>('profile');
     const [averageRating, setAverageRating] = useState(0);
     const [reviewCount, setReviewCount] = useState(0);
+    const [showReportMenu, setShowReportMenu] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
 
     // Ownership detection: compare the viewed profile id with the authenticated user id.
     const currentUserId =
@@ -352,6 +355,30 @@ export default function UserProfileScreen() {
                         <Ionicons name="arrow-back" size={24} color={mutedText} />
                     </Pressable>
                     <ThemedText type="subtitle">Profile</ThemedText>
+                    {!isOwnProfile && (
+                        <View style={{ position: 'relative', marginLeft: 'auto' }}>
+                            <Pressable
+                                onPress={() => setShowReportMenu(!showReportMenu)}
+                                style={[styles.headerButton, { backgroundColor: surface, borderColor: border }]}
+                            >
+                                <Ionicons name="ellipsis-horizontal" size={24} color={mutedText} />
+                            </Pressable>
+                            {showReportMenu && (
+                                <View style={[styles.dropdownMenu, { backgroundColor: surface, borderColor: border }]}>
+                                    <Pressable
+                                        style={styles.dropdownItem}
+                                        onPress={() => {
+                                            setShowReportMenu(false);
+                                            setShowReportModal(true);
+                                        }}
+                                    >
+                                        <Ionicons name="flag" size={18} color={mutedText} style={{ marginRight: 8 }} />
+                                        <ThemedText type="body" style={{ color: mutedText }}>Report User</ThemedText>
+                                    </Pressable>
+                                </View>
+                            )}
+                        </View>
+                    )}
                 </View>
             )}
 
@@ -467,6 +494,12 @@ export default function UserProfileScreen() {
                     )}
                 </>
             )}
+
+            <ReportModal
+                visible={showReportModal}
+                onClose={() => setShowReportModal(false)}
+                reportedUserId={targetId}
+            />
         </AppScreen>
     );
 }

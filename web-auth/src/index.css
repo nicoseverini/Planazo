@@ -1201,3 +1201,229 @@ body {
   font-size: 0.95rem;
   color: #17212b;
 }
+
+/* User Profile Styles */
+.user-profile {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.user-info {
+  padding: 1.5rem;
+  border: 1px solid #d5e0eb;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+  box-shadow: 0 8px 18px rgba(8, 42, 72, 0.06);
+}
+
+.user-header {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.user-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #eef3f7;
+  box-shadow: 0 4px 12px rgba(8, 42, 72, 0.1);
+}
+
+.user-avatar--placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5b96c8, #0f5f93);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  font-weight: 700;
+  border: 3px solid #eef3f7;
+  box-shadow: 0 4px 12px rgba(8, 42, 72, 0.1);
+}
+
+.user-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.5rem;
+  color: #17212b;
+  font-weight: 700;
+}
+
+.user-email {
+  margin: 0 0 0.75rem 0;
+  color: #556677;
+  font-size: 0.95rem;
+}
+
+.user-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.badge--info {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #7dd3fc;
+}
+
+.badge--primary {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.badge--secondary {
+  background: #f3e8ff;
+  color: #7c3aed;
+  border: 1px solid #c4b5fd;
+}
+
+.user-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8fbfe;
+  border-radius: 12px;
+  border: 1px solid #d8e4ef;
+  margin-bottom: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #6c7f91;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 0.95rem;
+  color: #17212b;
+  font-weight: 600;
+}
+
+.user-interests {
+  margin-top: 1rem;
+}
+
+.user-interests h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: #17212b;
+  font-weight: 600;
+}
+
+.interests-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.interest-tag {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: #eef3f7;
+  color: #0f5f93;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid #c2d2e1;
+}
+
+.user-plans,
+.user-places,
+.user-reviews {
+  padding: 1.25rem;
+  border: 1px solid #d5e0eb;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 18px rgba(8, 42, 72, 0.06);
+}
+
+.user-plans h2,
+.user-places h2,
+.user-reviews h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.15rem;
+  color: #17212b;
+  font-weight: 700;
+}
+
+.plans-list,
+.places-list,
+.reviews-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.plan-card,
+.place-card,
+.review-card {
+  padding: 0.75rem;
+  border: 1px solid #d8e4ef;
+  border-radius: 12px;
+  background: #f8fbff;
+  transition: background 0.2s ease;
+}
+
+.plan-card:hover,
+.place-card:hover,
+.review-card:hover {
+  background: #f0f5fa;
+}
+
+.plan-card .link,
+.place-card .link {
+  color: #0f5f93;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.plan-card .link:hover,
+.place-card .link:hover {
+  text-decoration: underline;
+}
+
+.plan-meta,
+.place-meta {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: #556677;
+}
+
+.review-rating {
+  font-weight: 600;
+  color: #0f5f93;
+  margin-bottom: 0.35rem;
+}
+
+.review-comment {
+  color: #4e6275;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+
+.review-target {
+  font-size: 0.8rem;
+  color: #8899aa;
+}

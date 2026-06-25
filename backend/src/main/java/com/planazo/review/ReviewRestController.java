@@ -75,4 +75,12 @@ public class ReviewRestController {
         reviewService.deleteReview(targetType, targetId, email);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping(value = "/user/{userId}", produces = "application/json")
+    @Operation(summary = "Get all reviews by a user")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<List<ReviewResponseDto>> getReviewsByUser(
+            @PathVariable Long userId) {
+        return ResponseEntity.ok(reviewService.getReviewsByUser(userId));
+    }
 }

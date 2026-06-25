@@ -11,3 +11,4 @@ docker-compose.override.yml
 .env
 CLAUDE.md
 tourist_places_impl.md
+.devin

@@ -45,6 +45,11 @@ public interface PlanRepository extends JpaRepository<Plan, Long>, JpaSpecificat
     @Query("SELECT p FROM plans p JOIN p.subscribers s WHERE s.user.id = :userId AND p.active = true AND p.creator.id != :userId")
     List<Plan> findBySubscriberIdAndNotCreatorId(@Param("userId") Long userId);
 
+    // All plans created by a user (for admin use, includes inactive)
+    @EntityGraph(attributePaths = "images")
+    @Query("SELECT p FROM plans p WHERE p.creator.id = :userId")
+    List<Plan> findAllByCreatorId(@Param("userId") Long userId);
+
     // Filter by interest
     @EntityGraph(attributePaths = "images")
     List<Plan> findByVisibilityAndInterestsContainingAndActiveTrue(PlanVisibility visibility, Interest interest);

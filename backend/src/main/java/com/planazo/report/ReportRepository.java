@@ -11,6 +11,9 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     List<Report> findByPlanId(Long planId);
     List<Report> findByTuristicPlaceId(Long turisticPlaceId);
     List<Report> findByReportedUserId(Long reportedUserId);
+    List<Report> findByReporterId(Long reporterId);
     void deleteByPlanId(Long planId);
     void deleteByTuristicPlaceId(Long turisticPlaceId);
+    void deleteByReporterId(Long reporterId);
+    void deleteByReportedUserId(Long reportedUserId);
 }

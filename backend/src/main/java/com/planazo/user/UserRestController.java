@@ -61,7 +61,7 @@ class UserRestController {
         ResponseEntity<StatusResponseDTO> deleteUser(
                         @AuthenticationPrincipal(expression = "username") String email) {
                 var currentUser = userService.getUserByEmail(email);
-                return userService.deleteUser(currentUser.getId())
+                return userService.deleteUser(currentUser.getId(), null)
                                 .map(user -> ResponseEntity.ok(new StatusResponseDTO("success", "User deleted")))
                                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                                                 .body(new StatusResponseDTO("error", "User not found")));
@@ -127,8 +127,9 @@ class UserRestController {
         @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
         @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
         ResponseEntity<StatusResponseDTO> deleteUser(
-                        @PathVariable Long id) {
-                return userService.deleteUser(id)
+                        @PathVariable Long id,
+                        @RequestBody(required = false) UserAdminDeleteDTO data) {
+                return userService.deleteUser(id, data != null ? data.reason() : null)
                                 .map(user -> ResponseEntity.ok(new StatusResponseDTO("success", "User deleted")))
                                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                                                 .body(new StatusResponseDTO("error", "User not found")));
