@@ -169,7 +169,8 @@ export default function HomeScreen() {
         try {
           allPublicList = await fetchPublicPlans();
         } catch (err) {
-          Alert.alert(t('error'), t('something_went_wrong'));
+          // Alert.alert(t('error'), t('something_went_wrong'));
+          console.log(t('error'), t('unable_load_places_try'));
         }
 
         // Fetch tourist places only if location is granted
@@ -189,7 +190,8 @@ export default function HomeScreen() {
             });
             setTouristPlaces(sortedByDistance.slice(0, 5));
           } catch (err) {
-            Alert.alert(t('error'), t('unable_load_places_try'));
+            // Alert.alert(t('error'), t('unable_load_places_try'));
+            console.log(t('error'), t('unable_load_places_try'));
           }
         } else {
           setTouristPlaces([]);
