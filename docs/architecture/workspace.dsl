@@ -26,7 +26,13 @@ workspace "Planazo" "Architecture documentation using the C4 model" {
         // Software Systems
         // =========================================================================
 
-        planazo = softwareSystem "Planazo" "Platform that connects tourists and locals through activities and tourist places." "Internal"
+        planazoSystem = softwareSystem "Planazo" "Platform that connects tourists and locals through activities and tourist places." "Internal" {
+            mobileApp = container "Mobile App" "" "React Native + Expo + TypeScript" "Frontend"
+            webPanelUI = container "Web Panel UI" "" "HTML + CSS + TypeScript" "Frontend"
+            backendAPI = container "Backend API" "Implements the business logic and exposes a REST API." "Java 21 + Spring Boot" "Backend"
+            db = container "Database" "" "PostgreSQL" "Database"
+            //authAPI = container // [No estoy seguro si web-auth es un contendor aparte o como debe ser considerado]
+        }
 
 
         // =========================================================================
@@ -34,13 +40,20 @@ workspace "Planazo" "Architecture documentation using the C4 model" {
         // (Las relaciones deberían expresar el propósito de la interacción, no el protocolo)
         // =========================================================================
 
-        user -> planazo "Uses"
+        # Context
+        user -> planazoSystem "Uses"
+        administrator -> planazoSystem "Manages"
+        planazoSystem -> googleMaps "Retrieves maps and geolocation data"
+        planazoSystem -> emailService "Sends verification and notification emails"
 
-        administrator -> planazo "Manages"
-
-        planazo -> googleMaps "Retrieves maps and geolocation data"
-
-        planazo -> emailService "Sends verification and notification emails"
+        # Containers
+        user -> planazoSystem.mobileApp "Uses"
+        administrator -> planazoSystem.webPanelUI "Uses"
+        planazoSystem.mobileApp -> planazoSystem.backendAPI "HTTPS"
+        planazoSystem.webPanelUI -> planazoSystem.backendAPI "HTTPS"
+        planazoSystem.backendAPI -> planazoSystem.db "Reads from and writes to [TCP]"
+        planazoSystem.backendAPI -> googleMaps "Retrieves maps and geolocation data [HTTPS]"
+        planazoSystem.backendAPI -> emailService "Sends verification and notification emails [HTTPS]"
     }
 
     views {
@@ -49,9 +62,9 @@ workspace "Planazo" "Architecture documentation using the C4 model" {
         // System Context
         // =========================================================================
 
-        systemContext planazo "systemContext" "System Context Diagram" {
+        systemContext planazoSystem "systemContext" "System Context Diagram" {
 
-            // indica que se incluyan todos los elementos relacionados con planazo
+            // indica que se incluyan todos los elementos relacionados con planazoSystem
             include *
 
             // organiza el diagrama automáticamente de izquierda a derecha
@@ -64,39 +77,66 @@ workspace "Planazo" "Architecture documentation using the C4 model" {
         // Container Views
         // =========================================================================
 
-        
+        container planazoSystem {
+            include *
+
+            //autoLayout lr
+        }
 
         // =========================================================================
         // Component Views
         // =========================================================================
-        
+
         styles {
             element "Person" {
+                shape Person
                 background #0B6EFD
                 color #FFFFFF
-                shape Person
             }
 
             element "Software System" {
                 background #1168BD
                 color #FFFFFF
                 stroke #000000
+                strokeWidth 2
             }
 
             element "External" {
                 background #999999
                 color #FFFFFF
                 stroke #000000
+                strokeWidth 2
             }
 
             element "Internal" {
                 background #2E7D32
                 color #FFFFFF
                 stroke #000000
+                strokeWidth 2
             }
 
-        }
+            element "Database" {
+                shape Cylinder
+                background #F57C00
+                color white
+                stroke #000000
+                strokeWidth 2
+            }
 
+            element "Backend" {
+                background #1565C0
+                color #FFFFFF
+                stroke #000000
+                strokeWidth 2
+            }
+
+            element "Frontend" {
+                background #2E7D32
+                color #FFFFFF
+                stroke #000000
+                strokeWidth 2
+            }
+        }
     }
 
 }
