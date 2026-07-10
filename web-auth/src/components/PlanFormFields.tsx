@@ -69,7 +69,7 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 			</label>
 
 			<label className="field">
-				Budget (optional)
+				Estimated Cost per Person (optional)
 				<input type="number" min="0" max="9999999" step="any" placeholder="0" value={form.budget} onChange={(event) => onChange('budget', event.target.value)} />
 			</label>
 
