@@ -344,7 +344,7 @@ export default function RegisterScreen() {
             }}
           >
             <Ionicons
-              name={showPassword ? 'eye-off' : 'eye'}
+              name={showPassword ? 'eye' : 'eye-off'}
               size={22}
               color="gray"
             />
