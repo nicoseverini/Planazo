@@ -1,0 +1,162 @@
+{
+  "configuration" : { },
+  "description" : "Architecture documentation using the C4 model",
+  "documentation" : { },
+  "id" : 1,
+  "lastModifiedDate" : "2026-07-10T05:36:32Z",
+  "model" : {
+    "people" : [ {
+      "description" : "Registered user who interacts with the platform through the mobile application.",
+      "id" : "1",
+      "name" : "User",
+      "properties" : {
+        "structurizr.dsl.identifier" : "user"
+      },
+      "relationships" : [ {
+        "description" : "Uses",
+        "destinationId" : "5",
+        "id" : "6",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person,User"
+    }, {
+      "description" : "Platform administrator who manages the application through the web administration panel.",
+      "id" : "2",
+      "name" : "Administrator",
+      "properties" : {
+        "structurizr.dsl.identifier" : "administrator"
+      },
+      "relationships" : [ {
+        "description" : "Manages",
+        "destinationId" : "5",
+        "id" : "7",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person,Admin"
+    } ],
+    "softwareSystems" : [ {
+      "description" : "Provides maps, geocoding and location-related services.",
+      "documentation" : { },
+      "id" : "3",
+      "name" : "Google Maps Platform",
+      "properties" : {
+        "structurizr.dsl.identifier" : "googleMaps"
+      },
+      "tags" : "Element,Software System,External"
+    }, {
+      "description" : "External email delivery service used to send verification and notification emails.",
+      "documentation" : { },
+      "id" : "4",
+      "name" : "Email Service",
+      "properties" : {
+        "structurizr.dsl.identifier" : "emailService"
+      },
+      "tags" : "Element,Software System,External"
+    }, {
+      "description" : "Platform that connects tourists and locals through activities and tourist places.",
+      "documentation" : { },
+      "id" : "5",
+      "name" : "Planazo",
+      "properties" : {
+        "structurizr.dsl.identifier" : "planazo"
+      },
+      "relationships" : [ {
+        "description" : "Retrieves maps and geolocation data",
+        "destinationId" : "3",
+        "id" : "8",
+        "sourceId" : "5",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Sends verification and notification emails",
+        "destinationId" : "4",
+        "id" : "9",
+        "sourceId" : "5",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Software System,Internal"
+    } ]
+  },
+  "name" : "Planazo",
+  "properties" : {
+    "structurizr.inspection.error" : "5",
+    "structurizr.dsl" : "d29ya3NwYWNlICJQbGFuYXpvIiAiQXJjaGl0ZWN0dXJlIGRvY3VtZW50YXRpb24gdXNpbmcgdGhlIEM0IG1vZGVsIiB7CiAgICAKICAgIC8vICBFc3RvIGV2aXRhIGNvbGlzaW9uZXMgY3VhbmRvIGV4aXN0YW4gY29tcG9uZW50ZXMgY29uIG5vbWJyZXMgc2ltaWxhcmVzIGVuIGRpc3RpbnRvcyBjb250ZW5lZG9yZXMuCiAgICAhaWRlbnRpZmllcnMgaGllcmFyY2hpY2FsCgogICAgbW9kZWwgewoKICAgICAgICAvLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CiAgICAgICAgLy8gUGVvcGxlCiAgICAgICAgLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKICAgICAgICB1c2VyID0gcGVyc29uICJVc2VyIiAiUmVnaXN0ZXJlZCB1c2VyIHdobyBpbnRlcmFjdHMgd2l0aCB0aGUgcGxhdGZvcm0gdGhyb3VnaCB0aGUgbW9iaWxlIGFwcGxpY2F0aW9uLiIgIlVzZXIiCgogICAgICAgIGFkbWluaXN0cmF0b3IgPSBwZXJzb24gIkFkbWluaXN0cmF0b3IiICJQbGF0Zm9ybSBhZG1pbmlzdHJhdG9yIHdobyBtYW5hZ2VzIHRoZSBhcHBsaWNhdGlvbiB0aHJvdWdoIHRoZSB3ZWIgYWRtaW5pc3RyYXRpb24gcGFuZWwuIiAiQWRtaW4iCgogICAgICAgIC8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KICAgICAgICAvLyBFeHRlcm5hbCBTeXN0ZW1zCiAgICAgICAgLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKICAgICAgICBnb29nbGVNYXBzID0gc29mdHdhcmVTeXN0ZW0gIkdvb2dsZSBNYXBzIFBsYXRmb3JtIiAiUHJvdmlkZXMgbWFwcywgZ2VvY29kaW5nIGFuZCBsb2NhdGlvbi1yZWxhdGVkIHNlcnZpY2VzLiIgIkV4dGVybmFsIgoKICAgICAgICBlbWFpbFNlcnZpY2UgPSBzb2Z0d2FyZVN5c3RlbSAiRW1haWwgU2VydmljZSIgIkV4dGVybmFsIGVtYWlsIGRlbGl2ZXJ5IHNlcnZpY2UgdXNlZCB0byBzZW5kIHZlcmlmaWNhdGlvbiBhbmQgbm90aWZpY2F0aW9uIGVtYWlscy4iICJFeHRlcm5hbCIKCgogICAgICAgIC8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KICAgICAgICAvLyBTb2Z0d2FyZSBTeXN0ZW1zCiAgICAgICAgLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKICAgICAgICBwbGFuYXpvID0gc29mdHdhcmVTeXN0ZW0gIlBsYW5hem8iICJQbGF0Zm9ybSB0aGF0IGNvbm5lY3RzIHRvdXJpc3RzIGFuZCBsb2NhbHMgdGhyb3VnaCBhY3Rpdml0aWVzIGFuZCB0b3VyaXN0IHBsYWNlcy4iICJJbnRlcm5hbCIKCgogICAgICAgIC8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KICAgICAgICAvLyBSZWxhdGlvbnNoaXBzCiAgICAgICAgLy8gKExhcyByZWxhY2lvbmVzIGRlYmVyw61hbiBleHByZXNhciBlbCBwcm9ww7NzaXRvIGRlIGxhIGludGVyYWNjacOzbiwgbm8gZWwgcHJvdG9jb2xvKQogICAgICAgIC8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KCiAgICAgICAgdXNlciAtPiBwbGFuYXpvICJVc2VzIgoKICAgICAgICBhZG1pbmlzdHJhdG9yIC0+IHBsYW5hem8gIk1hbmFnZXMiCgogICAgICAgIHBsYW5hem8gLT4gZ29vZ2xlTWFwcyAiUmV0cmlldmVzIG1hcHMgYW5kIGdlb2xvY2F0aW9uIGRhdGEiCgogICAgICAgIHBsYW5hem8gLT4gZW1haWxTZXJ2aWNlICJTZW5kcyB2ZXJpZmljYXRpb24gYW5kIG5vdGlmaWNhdGlvbiBlbWFpbHMiCiAgICB9CgogICAgdmlld3MgewoKICAgICAgICAvLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CiAgICAgICAgLy8gU3lzdGVtIENvbnRleHQKICAgICAgICAvLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CgogICAgICAgIHN5c3RlbUNvbnRleHQgcGxhbmF6byAic3lzdGVtQ29udGV4dCIgIlN5c3RlbSBDb250ZXh0IERpYWdyYW0iIHsKCiAgICAgICAgICAgIC8vIGluZGljYSBxdWUgc2UgaW5jbHV5YW4gdG9kb3MgbG9zIGVsZW1lbnRvcyByZWxhY2lvbmFkb3MgY29uIHBsYW5hem8KICAgICAgICAgICAgaW5jbHVkZSAqCgogICAgICAgICAgICAvLyBvcmdhbml6YSBlbCBkaWFncmFtYSBhdXRvbcOhdGljYW1lbnRlIGRlIGl6cXVpZXJkYSBhIGRlcmVjaGEKICAgICAgICAgICAgYXV0b0xheW91dCBscgoKICAgICAgICB9CgoKICAgICAgICAvLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CiAgICAgICAgLy8gQ29udGFpbmVyIFZpZXdzCiAgICAgICAgLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKICAgICAgICAKCiAgICAgICAgLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQogICAgICAgIC8vIENvbXBvbmVudCBWaWV3cwogICAgICAgIC8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KICAgICAgICAKICAgICAgICBzdHlsZXMgewogICAgICAgICAgICBlbGVtZW50ICJQZXJzb24iIHsKICAgICAgICAgICAgICAgIGJhY2tncm91bmQgIzBCNkVGRAogICAgICAgICAgICAgICAgY29sb3IgI0ZGRkZGRgogICAgICAgICAgICAgICAgc2hhcGUgUGVyc29uCiAgICAgICAgICAgIH0KCiAgICAgICAgICAgIGVsZW1lbnQgIlNvZnR3YXJlIFN5c3RlbSIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjMTE2OEJECiAgICAgICAgICAgICAgICBjb2xvciAjRkZGRkZGCiAgICAgICAgICAgICAgICBzdHJva2UgIzAwMDAwMAogICAgICAgICAgICB9CgogICAgICAgICAgICBlbGVtZW50ICJFeHRlcm5hbCIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjOTk5OTk5CiAgICAgICAgICAgICAgICBjb2xvciAjRkZGRkZGCiAgICAgICAgICAgICAgICBzdHJva2UgIzAwMDAwMAogICAgICAgICAgICB9CgogICAgICAgICAgICBlbGVtZW50ICJJbnRlcm5hbCIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjMkU3RDMyCiAgICAgICAgICAgICAgICBjb2xvciAjRkZGRkZGCiAgICAgICAgICAgICAgICBzdHJva2UgIzAwMDAwMAogICAgICAgICAgICB9CgogICAgICAgIH0KCiAgICB9Cgp9",
+    "structurizr.inspection.info" : "0",
+    "structurizr.inspection.ignore" : "0",
+    "structurizr.inspection.warning" : "0"
+  },
+  "views" : {
+    "configuration" : {
+      "styles" : {
+        "elements" : [ {
+          "background" : "#999999",
+          "color" : "#ffffff",
+          "stroke" : "#000000",
+          "tag" : "External"
+        }, {
+          "background" : "#2e7d32",
+          "color" : "#ffffff",
+          "stroke" : "#000000",
+          "tag" : "Internal"
+        }, {
+          "background" : "#0b6efd",
+          "color" : "#ffffff",
+          "shape" : "Person",
+          "tag" : "Person"
+        }, {
+          "background" : "#1168bd",
+          "color" : "#ffffff",
+          "stroke" : "#000000",
+          "tag" : "Software System"
+        } ]
+      },
+      "terminology" : { }
+    },
+    "systemContextViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "System Context Diagram",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "systemContext",
+      "name" : "System Context View: Planazo",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "6"
+      }, {
+        "id" : "7"
+      }, {
+        "id" : "8"
+      }, {
+        "id" : "9"
+      } ],
+      "softwareSystemId" : "5"
+    } ]
+  }
+}
