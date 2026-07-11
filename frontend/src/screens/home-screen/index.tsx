@@ -24,6 +24,7 @@ import { useToken, decodeJwt } from '@/context/token-context';
 import { useProfile, UserProfile } from '@/services/user';
 import { PlanSummary, usePlans } from '@/services/plan';
 import { useTouristPlaces, TouristPlaceSummary } from '@/services/tourist-place';
+import { useGeocoding } from '@/services/geocoding';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { formatInterest } from '@/utils/interests';
 import i18n from '@/config/i18n';
@@ -76,6 +77,7 @@ export default function HomeScreen() {
   const { fetchProfile } = useProfile();
   const { fetchFilteredPlans, fetchPublicPlans, fetchMyJoinedPlans } = usePlans();
   const { fetchAll: fetchAllTouristPlaces } = useTouristPlaces();
+  const { reverse: reverseGeocode } = useGeocoding();
 
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [locationPermission, setLocationPermission] = useState<Location.PermissionStatus | null>(null);
@@ -327,6 +329,17 @@ export default function HomeScreen() {
     ]
   );
 
+  // Resolve the user's country from coordinates via the unified geocoding service.
+  const applyUserCountry = async (currentCoords: { latitude: number; longitude: number }) => {
+    try {
+      const result = await reverseGeocode(currentCoords);
+      setUserCountry(result.country?.toUpperCase() || null);
+      setUserCountryCode(result.countryCode || null);
+    } catch {
+      Alert.alert(t('error'), t('something_went_wrong'));
+    }
+  };
+
   // Initialize and check permissions
   const checkLocationPermissionAndLoad = async () => {
     try {
@@ -341,16 +354,7 @@ export default function HomeScreen() {
         };
         setCoords(currentCoords);
 
-        // Reverse geocode to find user country name and code
-        try {
-          const geocodes = await Location.reverseGeocodeAsync(currentCoords);
-          if (geocodes && geocodes.length > 0) {
-            setUserCountry(geocodes[0].country?.toUpperCase() || null);
-            setUserCountryCode(geocodes[0].isoCountryCode || null);
-          }
-        } catch (e) {
-          Alert.alert(t('error'), t('something_went_wrong'));
-        }
+        await applyUserCountry(currentCoords);
 
         await loadData(status, currentCoords);
       } else {
@@ -382,16 +386,7 @@ export default function HomeScreen() {
         };
         setCoords(currentCoords);
 
-        // Fetch user country
-        try {
-          const geocodes = await Location.reverseGeocodeAsync(currentCoords);
-          if (geocodes && geocodes.length > 0) {
-            setUserCountry(geocodes[0].country?.toUpperCase() || null);
-            setUserCountryCode(geocodes[0].isoCountryCode || null);
-          }
-        } catch (e) {
-          Alert.alert(t('error'), t('something_went_wrong'));
-        }
+        await applyUserCountry(currentCoords);
 
         setLoading(true);
         await loadData(status, currentCoords);
@@ -424,16 +419,7 @@ export default function HomeScreen() {
         };
         setCoords(currentCoords);
 
-        // Fetch user country
-        try {
-          const geocodes = await Location.reverseGeocodeAsync(currentCoords);
-          if (geocodes && geocodes.length > 0) {
-            setUserCountry(geocodes[0].country?.toUpperCase() || null);
-            setUserCountryCode(geocodes[0].isoCountryCode || null);
-          }
-        } catch (e) {
-          Alert.alert(t('error'), t('something_went_wrong'));
-        }
+        await applyUserCountry(currentCoords);
       } else {
         setUserCountry(null);
         setUserCountryCode(null);

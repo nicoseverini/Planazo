@@ -35,10 +35,10 @@ Partes/Actores del modelado:
     * Interactúa con el sistema a través del panel web de administración. Se modela como un actor separado porque su forma de uso es distinta a la del `User`.
 * `Map Provider`
     * > Desc: Renders interactive maps and resolves device geolocation on the mobile app (Google Maps on Android, Apple Maps on iOS).
-    * Sistema externo. Proveedor de mapas de la aplicación móvil. Se modela como un único sistema genérico porque el proveedor concreto depende de la plataforma: **Google Maps** en Android y **Apple Maps** en iOS (a través del componente `react-native-maps`). También cubre el geocoding a nivel de dispositivo que utiliza `expo-location`.
+    * Sistema externo. Proveedor de mapas de la aplicación móvil. Se modela como un único sistema genérico porque el proveedor concreto depende de la plataforma: **Google Maps** en Android y **Apple Maps** en iOS (a través del componente `react-native-maps`). Cubre únicamente el renderizado de mapas y la ubicación del dispositivo (GPS) vía `expo-location`; el geocoding **no** pasa por aquí.
 * `OpenStreetMap`
     * > Desc: Provides address geocoding through the Nominatim service.
-    * Sistema externo. El panel web (`Web Panel UI`) lo consume **directamente** para geocodificar direcciones (dirección → coordenadas) mediante el servicio Nominatim.
+    * Sistema externo. Es el **único** proveedor de geocoding de la plataforma. El `Backend API` lo consume (servicio Nominatim) para geocodificar direcciones (dirección → coordenadas) y hacer geocoding inverso (coordenadas → dirección), tanto para la app móvil como para el panel web. Ambos clientes llegan a él **a través del `Backend API`**, nunca de forma directa.
 * `Google Gemini`
     * > Desc: Generative AI service used to translate user-generated content between Spanish and English.
     * Sistema externo. El `Backend API` lo utiliza para traducir contenido generado por los usuarios entre español e inglés.
@@ -69,14 +69,14 @@ Contenedores que componen el sistema `Planazo`:
 
 * `Mobile App`
     * **Tecnología:** React Native + Expo + TypeScript
-    * Aplicación móvil utilizada por el `User`. Es el punto de entrada principal para turistas y locales. Consume la API del backend mediante HTTPS y renderiza mapas interactivos consumiendo directamente el `Map Provider` (mediante `react-native-maps` y `expo-location`).
+    * Aplicación móvil utilizada por el `User`. Es el punto de entrada principal para turistas y locales. Consume la API del backend mediante HTTPS y renderiza mapas interactivos consumiendo directamente el `Map Provider` (mediante `react-native-maps` y `expo-location`). El geocoding lo resuelve a través del `Backend API`.
 * `Web Panel UI`
     * **Tecnología:** HTML + CSS + TypeScript
-    * Panel web de administración utilizado por el `Administrator` para moderar y gestionar la plataforma. Consume la API del backend mediante HTTPS y geocodifica direcciones llamando **directamente** a `OpenStreetMap` (Nominatim).
+    * Panel web de administración utilizado por el `Administrator` para moderar y gestionar la plataforma. Consume la API del backend mediante HTTPS, incluido el geocoding de direcciones (que el `Backend API` resuelve contra `OpenStreetMap`).
 * `Backend API`
     * **Tecnología:** Java 21 + Spring Boot
     * > Desc: Implements the business logic and exposes a REST API.
-    * Núcleo del sistema. Concentra la lógica de negocio, expone la API REST y orquesta el acceso a la base de datos y a los servicios externos (`Google Gemini` para traducción y `Email Service` para el envío de correos).
+    * Núcleo del sistema. Concentra la lógica de negocio, expone la API REST y orquesta el acceso a la base de datos y a los servicios externos: `OpenStreetMap` (geocoding, punto único para móvil y web), `Google Gemini` (traducción) y `Email Service` (envío de correos).
 * `Database`
     * **Tecnología:** PostgreSQL
     * Almacenamiento persistente del sistema. El `Backend API` lee y escribe sobre ella.
@@ -90,8 +90,8 @@ Contenedores que componen el sistema `Planazo`:
 | `Mobile App` | `Backend API` | HTTPS |
 | `Web Panel UI` | `Backend API` | HTTPS |
 | `Mobile App` | `Map Provider` | Renders interactive maps and reads device location [SDK] |
-| `Web Panel UI` | `OpenStreetMap` | Geocodes addresses [HTTPS] |
 | `Backend API` | `Database` | Reads from and writes to [TCP] |
+| `Backend API` | `OpenStreetMap` | Geocodes addresses [HTTPS] |
 | `Backend API` | `Google Gemini` | Translates user-generated content [HTTPS] |
 | `Backend API` | `Email Service` | Sends verification and notification emails [HTTPS] |
 

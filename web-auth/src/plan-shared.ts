@@ -1,3 +1,5 @@
+import { getBackendUrl } from './config'
+
 export type PlanVisibility = 'PUBLIC' | 'PRIVATE'
 export type Interest = 'OTHER' | 'BEACH' | 'NIGHTLIFE' | 'MOUNTAINS' | 'NATURE' | 'SHOPPING' | 'CULTURE' | 'ADVENTURE' | 'HISTORY' | 'FOOD' | 'SPORTS'
 
@@ -195,20 +197,29 @@ export async function geocodeAddress(
 	address: string,
 	city: string,
 	country: string,
-): Promise<{ lat: number; lng: number } | null> {
+): Promise<{ lat: number; lng: number }> {
 	const query = [address, city, country].filter(Boolean).join(', ')
-	if (!query) return null
-	try {
-		const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`
-		const response = await fetch(url, { headers: { 'Accept-Language': 'en' } })
-		const data = (await response.json()) as Array<{ lat: string; lon: string }>
-		if (Array.isArray(data) && data.length > 0) {
-			return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }
-		}
-	} catch {
-		// network or parse error
+	if (!query) {
+		throw new Error('Please enter an address, city, and country before searching for the location.')
 	}
-	return null
+
+	const accessToken = sessionStorage.getItem('accessToken')
+	const url = `${getBackendUrl()}/api/v1/geocoding/search?query=${encodeURIComponent(query)}`
+	const response = await fetch(url, {
+		headers: {
+			Accept: 'application/json',
+			Authorization: `Bearer ${accessToken ?? ''}`,
+			'ngrok-skip-browser-warning': 'true',
+		},
+	})
+
+	if (!response.ok) {
+		const errorText = await response.text()
+		throw new Error(errorText || 'Could not resolve the coordinates for this address.')
+	}
+
+	const data = (await response.json()) as { latitude: number; longitude: number }
+	return { lat: data.latitude, lng: data.longitude }
 }
 
 export function readFileAsDataUrl(file: File) {

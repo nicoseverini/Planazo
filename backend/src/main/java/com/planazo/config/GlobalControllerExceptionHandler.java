@@ -1,12 +1,14 @@
 package com.planazo.config;
 
 import com.planazo.common.exception.AgeRestrictionException;
+import com.planazo.common.exception.GeocodingUnavailableException;
 import com.planazo.common.exception.InvalidAgeRangeException;
 import com.planazo.common.exception.InvalidBudgetException;
 import com.planazo.common.exception.InvalidDateRangeException;
 import com.planazo.common.exception.InvalidMaxSubscribersException;
 import com.planazo.common.exception.InvalidTimezoneException;
 import com.planazo.common.exception.ItemNotFoundException;
+import com.planazo.common.exception.LocationNotFoundException;
 import com.planazo.common.exception.PlanExpiredException;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -113,6 +115,19 @@ public class GlobalControllerExceptionHandler {
     @ApiResponse(responseCode = "410", description = "Plan has ended", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
     public ResponseEntity<String> handlePlanExpired(PlanExpiredException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.GONE);
+    }
+
+    @ExceptionHandler(LocationNotFoundException.class)
+    @ApiResponse(responseCode = "404", description = "The address or coordinates could not be resolved", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
+    public ResponseEntity<String> handleLocationNotFound(LocationNotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(GeocodingUnavailableException.class)
+    @ApiResponse(responseCode = "503", description = "The geocoding provider is temporarily unavailable", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
+    public ResponseEntity<String> handleGeocodingUnavailable(GeocodingUnavailableException ex) {
+        log.warn("Geocoding provider unavailable", ex);
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

@@ -1,17 +1,18 @@
 import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location';
 import { useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import type { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import type MapView from 'react-native-maps';
 import { useTranslation } from 'react-i18next';
 
+import { useGeocoding } from '@/services/geocoding';
 import { validateAgeFields } from '@/utils/age-restriction';
 import { addOneHour, buildDateTimeWithTimezone, getDeviceTimezone } from '@/utils/date';
 import { ensureMediaLibraryPermission } from '@/utils/media-permissions';
 
 export function usePlanForm() {
     const { t } = useTranslation();
+    const { geocode, reverse } = useGeocoding();
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -82,16 +83,11 @@ export function usePlanForm() {
         if (!query) return;
         setIsSearchingLoc(true);
         try {
-            const geocoded = await Location.geocodeAsync(query);
-            if (geocoded.length > 0) {
-                const { latitude, longitude } = geocoded[0];
-                setPinLocation({ latitude, longitude });
-                mapRef.current?.animateToRegion({ latitude, longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 }, 1000);
-            } else {
-                Alert.alert(t('not_found'), t('specific_location_hint'));
-            }
-        } catch {
-            Alert.alert(t('error'), t('error_search_address'));
+            const { latitude, longitude } = await geocode(query);
+            setPinLocation({ latitude, longitude });
+            mapRef.current?.animateToRegion({ latitude, longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 }, 1000);
+        } catch (err) {
+            Alert.alert(t('not_found'), err instanceof Error ? err.message : t('error_search_address'));
         } finally {
             setIsSearchingLoc(false);
         }
@@ -101,22 +97,19 @@ export function usePlanForm() {
         setPinLocation(coordinate);
         setIsFetchingAddress(true);
         try {
-            const geocoded = await Location.reverseGeocodeAsync(coordinate);
-            if (geocoded?.length > 0) {
-                const result = geocoded[0];
-                if (result.country) setCountry(result.country);
-                setCity(result.city || result.subregion || '');
-                let streetAddress = '';
-                if (result.street) {
-                    streetAddress = result.street;
-                    if (result.streetNumber) streetAddress += ` ${result.streetNumber}`;
-                } else if (result.name) {
-                    streetAddress = result.name;
-                }
-                setAddress(streetAddress.trim());
+            const result = await reverse(coordinate);
+            if (result.country) setCountry(result.country);
+            setCity(result.city || '');
+            let streetAddress = '';
+            if (result.street) {
+                streetAddress = result.street;
+                if (result.streetNumber) streetAddress += ` ${result.streetNumber}`;
+            } else if (result.displayName) {
+                streetAddress = result.displayName;
             }
+            setAddress(streetAddress.trim());
         } catch (err) {
-            Alert.alert(t('error'), t('error_search_address'));
+            Alert.alert(t('error'), err instanceof Error ? err.message : t('error_search_address'));
         } finally {
             setIsFetchingAddress(false);
         }

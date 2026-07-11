@@ -58,8 +58,8 @@ workspace "Planazo" "Architecture documentation using the C4 model" {
         planazoSystem.mobileApp -> planazoSystem.backendAPI "HTTPS"
         planazoSystem.webPanelUI -> planazoSystem.backendAPI "HTTPS"
         planazoSystem.mobileApp -> mapProvider "Renders interactive maps and reads device location [SDK]"
-        planazoSystem.webPanelUI -> openStreetMap "Geocodes addresses [HTTPS]"
         planazoSystem.backendAPI -> planazoSystem.db "Reads from and writes to [TCP]"
+        planazoSystem.backendAPI -> openStreetMap "Geocodes addresses [HTTPS]"
         planazoSystem.backendAPI -> geminiAI "Translates user-generated content [HTTPS]"
         planazoSystem.backendAPI -> emailService "Sends verification and notification emails [HTTPS]"
     }

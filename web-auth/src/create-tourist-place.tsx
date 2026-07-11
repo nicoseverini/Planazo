@@ -79,11 +79,6 @@ export function CreateTouristPlacePage() {
 
 			if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
 				const coords = await geocodeAddress(form.address, form.city, form.country)
-				if (!coords) {
-					setStatus('error')
-					setMessage('Could not find coordinates for this address. Please be more specific (e.g. add street number, city, and country).')
-					return
-				}
 				latitude = coords.lat
 				longitude = coords.lng
 			}
