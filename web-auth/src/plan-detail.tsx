@@ -230,7 +230,7 @@ export function PlanDetailPage({ planId }: PlanDetailPageProps) {
 								</dd>
 							</div>
 							<div>
-								<dt>Budget</dt>
+								<dt>Cost per Person</dt>
 								<dd>{plan.budget ? `$${plan.budget.toLocaleString()}` : 'Not specified'}</dd>
 							</div>
 						</dl>

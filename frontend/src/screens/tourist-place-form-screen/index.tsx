@@ -315,10 +315,10 @@ export default function TouristPlaceFormScreen({
                     <TextInput
                         value={maxAge}
                         onChangeText={setMaxAge}
-                        placeholder={t('label_none')}
+                        placeholder={t('zero_no_limit')}
                         placeholderTextColor={mutedText}
                         keyboardType="numeric"
-                        style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
+                        style={[styles.input, { backgroundColor: surface, borderColor: border, color: text, fontSize: 13 }]}
                     />
                 </View>
             </View>

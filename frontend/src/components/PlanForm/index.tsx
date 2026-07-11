@@ -97,7 +97,7 @@ export function PlanForm({
             {/* Title + Visibility toggle */}
             <View style={styles.titleRow}>
                 <View style={styles.titleInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_title')}</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_title')} *</ThemedText>
                     <TextInput
                         value={title}
                         onChangeText={setTitle}
@@ -132,7 +132,7 @@ export function PlanForm({
             {/* Start date/time */}
             <View style={styles.row}>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_start_date')}</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_start_date')} *</ThemedText>
                     <Pressable
                         onPress={() => {
                             const next = !showStartDatePicker;
@@ -156,7 +156,7 @@ export function PlanForm({
                     </Pressable>
                 </View>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_start_time')}</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_start_time')} *</ThemedText>
                     <Pressable
                         onPress={() => {
                             const next = !showStartTimePicker;
@@ -214,7 +214,7 @@ export function PlanForm({
             {/* End date/time */}
             <View style={styles.row}>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_end_date')}</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_end_date')} *</ThemedText>
                     <Pressable
                         onPress={() => {
                             const next = !showEndDatePicker;
@@ -238,7 +238,7 @@ export function PlanForm({
                     </Pressable>
                 </View>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_end_time')}</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_end_time')} *</ThemedText>
                     <Pressable
                         onPress={() => {
                             const next = !showEndTimePicker;
@@ -319,9 +319,62 @@ export function PlanForm({
                 </View>
             </View>
 
+            {/* Categories */}
+            <View style={styles.inputGroup}>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_category')} *</ThemedText>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={styles.categoryRow}>
+                        {CATEGORY_OPTIONS.map((cat) => (
+                            <Pressable
+                                key={cat}
+                                onPress={() => toggleCategory(cat)}
+                                style={[
+                                    styles.categoryChip,
+                                    { borderColor: border },
+                                    selectedCategories.includes(cat) && { backgroundColor: tint, borderColor: tint },
+                                ]}
+                            >
+                                <ThemedText
+                                    type="label"
+                                    style={{ color: selectedCategories.includes(cat) ? tintText : text }}
+                                >
+                                    {formatInterest(cat)}
+                                </ThemedText>
+                            </Pressable>
+                        ))}
+                    </View>
+                </ScrollView>
+            </View>
+
+            {/* Max Participants + Budget */}
+            <View style={styles.row}>
+                <View style={styles.halfInput}>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_max_participants')} *</ThemedText>
+                    <TextInput
+                        value={maxParticipants}
+                        onChangeText={setMaxParticipants}
+                        placeholder="e.g. 10"
+                        placeholderTextColor={mutedText}
+                        keyboardType="numeric"
+                        style={[styles.input, { backgroundColor: background, borderColor: border, color: text }]}
+                    />
+                </View>
+                <View style={styles.halfInput}>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_budget_optional')}</ThemedText>
+                    <TextInput
+                        value={budget}
+                        onChangeText={setBudget}
+                        placeholder="e.g. 500"
+                        placeholderTextColor={mutedText}
+                        keyboardType="decimal-pad"
+                        style={[styles.input, { backgroundColor: background, borderColor: border, color: text }]}
+                    />
+                </View>
+            </View>
+
             {/* Location: Country / City / Address + Map */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_country')}</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_country')} *</ThemedText>
                 <TextInput
                     value={country}
                     onChangeText={setCountry}
@@ -329,7 +382,7 @@ export function PlanForm({
                     placeholderTextColor={mutedText}
                     style={[styles.input, { marginTop: 0, marginBottom: 12, backgroundColor: surface, borderColor: border, color: text }]}
                 />
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_city')}</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_city')} *</ThemedText>
                 <TextInput
                     value={city}
                     onChangeText={setCity}
@@ -337,7 +390,7 @@ export function PlanForm({
                     placeholderTextColor={mutedText}
                     style={[styles.input, { marginTop: 0, marginBottom: 12, backgroundColor: surface, borderColor: border, color: text }]}
                 />
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_address')}</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_address')} *</ThemedText>
                 <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                     <TextInput
                         value={address}
@@ -364,6 +417,7 @@ export function PlanForm({
                         )}
                     </Pressable>
                 </View>
+
                 <ThemedText type="label" style={{ color: mutedText, marginBottom: 8, fontSize: 12 }}>
                     {t('map_instruction')}
                 </ThemedText>
@@ -391,6 +445,20 @@ export function PlanForm({
                 </View>
             </View>
 
+            {/* Description */}
+            <View style={styles.inputGroup}>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_description')}</ThemedText>
+                <TextInput
+                    value={description}
+                    onChangeText={setDescription}
+                    placeholder={descriptionPlaceholder}
+                    placeholderTextColor={mutedText}
+                    multiline
+                    numberOfLines={4}
+                    style={[styles.textArea, { backgroundColor: surface, borderColor: border, color: text }]}
+                />
+            </View>
+
             {/* Images */}
             <View style={styles.inputGroup}>
                 <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_images')}</ThemedText>
@@ -415,74 +483,6 @@ export function PlanForm({
                         </Pressable>
                     </View>
                 </ScrollView>
-            </View>
-
-            {/* Description */}
-            <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_description')}</ThemedText>
-                <TextInput
-                    value={description}
-                    onChangeText={setDescription}
-                    placeholder={descriptionPlaceholder}
-                    placeholderTextColor={mutedText}
-                    multiline
-                    numberOfLines={4}
-                    style={[styles.textArea, { backgroundColor: surface, borderColor: border, color: text }]}
-                />
-            </View>
-
-            {/* INFO section (categories, participants, budget) */}
-            <View style={[styles.infoSection, { backgroundColor: surface, borderColor: border }]}>
-                <ThemedText type="subtitle" style={{ marginBottom: 12 }}>INFO</ThemedText>
-                <View style={styles.infoInputGroup}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_category')}</ThemedText>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <View style={styles.categoryRow}>
-                            {CATEGORY_OPTIONS.map((cat) => (
-                                <Pressable
-                                    key={cat}
-                                    onPress={() => toggleCategory(cat)}
-                                    style={[
-                                        styles.categoryChip,
-                                        { borderColor: border },
-                                        selectedCategories.includes(cat) && { backgroundColor: tint, borderColor: tint },
-                                    ]}
-                                >
-                                    <ThemedText
-                                        type="label"
-                                        style={{ color: selectedCategories.includes(cat) ? tintText : text }}
-                                    >
-                                        {formatInterest(cat)}
-                                    </ThemedText>
-                                </Pressable>
-                            ))}
-                        </View>
-                    </ScrollView>
-                </View>
-                <View style={styles.row}>
-                    <View style={styles.halfInput}>
-                        <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_max_participants')}</ThemedText>
-                        <TextInput
-                            value={maxParticipants}
-                            onChangeText={setMaxParticipants}
-                            placeholder="e.g. 10"
-                            placeholderTextColor={mutedText}
-                            keyboardType="numeric"
-                            style={[styles.input, { backgroundColor: background, borderColor: border, color: text }]}
-                        />
-                    </View>
-                    <View style={styles.halfInput}>
-                        <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_budget_optional')}</ThemedText>
-                        <TextInput
-                            value={budget}
-                            onChangeText={setBudget}
-                            placeholder="e.g. 500"
-                            placeholderTextColor={mutedText}
-                            keyboardType="decimal-pad"
-                            style={[styles.input, { backgroundColor: background, borderColor: border, color: text }]}
-                        />
-                    </View>
-                </View>
             </View>
 
             {/* Error */}
