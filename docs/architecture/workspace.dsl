@@ -17,7 +17,11 @@ workspace "Planazo" "Architecture documentation using the C4 model" {
         // External Systems
         // =========================================================================
 
-        googleMaps = softwareSystem "Google Maps Platform" "Provides maps, geocoding and location-related services." "External"
+        mapProvider = softwareSystem "Map Provider" "Renders interactive maps and resolves device geolocation on the mobile app (Google Maps on Android, Apple Maps on iOS)." "External"
+
+        openStreetMap = softwareSystem "OpenStreetMap" "Provides address geocoding through the Nominatim service." "External"
+
+        geminiAI = softwareSystem "Google Gemini" "Generative AI service used to translate user-generated content between Spanish and English." "External"
 
         emailService = softwareSystem "Email Service" "External email delivery service used to send verification and notification emails." "External"
 
@@ -43,7 +47,9 @@ workspace "Planazo" "Architecture documentation using the C4 model" {
         # Context
         user -> planazoSystem "Uses"
         administrator -> planazoSystem "Manages"
-        planazoSystem -> googleMaps "Retrieves maps and geolocation data"
+        planazoSystem -> mapProvider "Renders interactive maps"
+        planazoSystem -> openStreetMap "Geocodes addresses"
+        planazoSystem -> geminiAI "Translates user-generated content"
         planazoSystem -> emailService "Sends verification and notification emails"
 
         # Containers
@@ -51,8 +57,10 @@ workspace "Planazo" "Architecture documentation using the C4 model" {
         administrator -> planazoSystem.webPanelUI "Uses"
         planazoSystem.mobileApp -> planazoSystem.backendAPI "HTTPS"
         planazoSystem.webPanelUI -> planazoSystem.backendAPI "HTTPS"
+        planazoSystem.mobileApp -> mapProvider "Renders interactive maps and reads device location [SDK]"
+        planazoSystem.webPanelUI -> openStreetMap "Geocodes addresses [HTTPS]"
         planazoSystem.backendAPI -> planazoSystem.db "Reads from and writes to [TCP]"
-        planazoSystem.backendAPI -> googleMaps "Retrieves maps and geolocation data [HTTPS]"
+        planazoSystem.backendAPI -> geminiAI "Translates user-generated content [HTTPS]"
         planazoSystem.backendAPI -> emailService "Sends verification and notification emails [HTTPS]"
     }
 

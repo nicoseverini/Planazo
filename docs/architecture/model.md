@@ -33,9 +33,15 @@ Partes/Actores del modelado:
 * `Administrator`
     * > Desc: Administrator responsible for moderating and managing the platform through the web administration panel.
     * Interactúa con el sistema a través del panel web de administración. Se modela como un actor separado porque su forma de uso es distinta a la del `User`.
-* `Google Maps Platform`
-    * > Desc: Provides maps, geocoding and location-related services.
-    * Sistema externo. Proporciona mapas, geocodificación y servicios relacionados con la ubicación.
+* `Map Provider`
+    * > Desc: Renders interactive maps and resolves device geolocation on the mobile app (Google Maps on Android, Apple Maps on iOS).
+    * Sistema externo. Proveedor de mapas de la aplicación móvil. Se modela como un único sistema genérico porque el proveedor concreto depende de la plataforma: **Google Maps** en Android y **Apple Maps** en iOS (a través del componente `react-native-maps`). También cubre el geocoding a nivel de dispositivo que utiliza `expo-location`.
+* `OpenStreetMap`
+    * > Desc: Provides address geocoding through the Nominatim service.
+    * Sistema externo. El panel web (`Web Panel UI`) lo consume **directamente** para geocodificar direcciones (dirección → coordenadas) mediante el servicio Nominatim.
+* `Google Gemini`
+    * > Desc: Generative AI service used to translate user-generated content between Spanish and English.
+    * Sistema externo. El `Backend API` lo utiliza para traducir contenido generado por los usuarios entre español e inglés.
 * `Email server (SMTP)` — modelado en el DSL como `Email Service`
     * > Desc: External email delivery service used to send verification and notification emails.
     * Sistema externo. Servicio de entrega de correos utilizado para el envío de emails de verificación y notificación.
@@ -46,7 +52,9 @@ Partes/Actores del modelado:
 | ------ | ------- | ----------- |
 | `User` | `Planazo` | Uses |
 | `Administrator` | `Planazo` | Manages |
-| `Planazo` | `Google Maps Platform` | Retrieves maps and geolocation data |
+| `Planazo` | `Map Provider` | Renders interactive maps |
+| `Planazo` | `OpenStreetMap` | Geocodes addresses |
+| `Planazo` | `Google Gemini` | Translates user-generated content |
 | `Planazo` | `Email Service` | Sends verification and notification emails |
 
 > Diagrama exportado: [`exports/context_view.png`](./exports/context_view.png) (con su leyenda en [`exports/context_view_key.png`](./exports/context_view_key.png)).
@@ -61,14 +69,14 @@ Contenedores que componen el sistema `Planazo`:
 
 * `Mobile App`
     * **Tecnología:** React Native + Expo + TypeScript
-    * Aplicación móvil utilizada por el `User`. Es el punto de entrada principal para turistas y locales. Consume la API del backend mediante HTTPS.
+    * Aplicación móvil utilizada por el `User`. Es el punto de entrada principal para turistas y locales. Consume la API del backend mediante HTTPS y renderiza mapas interactivos consumiendo directamente el `Map Provider` (mediante `react-native-maps` y `expo-location`).
 * `Web Panel UI`
     * **Tecnología:** HTML + CSS + TypeScript
-    * Panel web de administración utilizado por el `Administrator` para moderar y gestionar la plataforma. Consume la API del backend mediante HTTPS.
+    * Panel web de administración utilizado por el `Administrator` para moderar y gestionar la plataforma. Consume la API del backend mediante HTTPS y geocodifica direcciones llamando **directamente** a `OpenStreetMap` (Nominatim).
 * `Backend API`
     * **Tecnología:** Java 21 + Spring Boot
     * > Desc: Implements the business logic and exposes a REST API.
-    * Núcleo del sistema. Concentra la lógica de negocio, expone la API REST y orquesta el acceso a la base de datos y a los servicios externos.
+    * Núcleo del sistema. Concentra la lógica de negocio, expone la API REST y orquesta el acceso a la base de datos y a los servicios externos (`Google Gemini` para traducción y `Email Service` para el envío de correos).
 * `Database`
     * **Tecnología:** PostgreSQL
     * Almacenamiento persistente del sistema. El `Backend API` lee y escribe sobre ella.
@@ -81,13 +89,17 @@ Contenedores que componen el sistema `Planazo`:
 | `Administrator` | `Web Panel UI` | Uses |
 | `Mobile App` | `Backend API` | HTTPS |
 | `Web Panel UI` | `Backend API` | HTTPS |
+| `Mobile App` | `Map Provider` | Renders interactive maps and reads device location [SDK] |
+| `Web Panel UI` | `OpenStreetMap` | Geocodes addresses [HTTPS] |
 | `Backend API` | `Database` | Reads from and writes to [TCP] |
-| `Backend API` | `Google Maps Platform` | Retrieves maps and geolocation data [HTTPS] |
+| `Backend API` | `Google Gemini` | Translates user-generated content [HTTPS] |
 | `Backend API` | `Email Service` | Sends verification and notification emails [HTTPS] |
 
 > Diagrama exportado: [`exports/container_view.png`](./exports/container_view.png) (con su leyenda en [`exports/container_view_key.png`](./exports/container_view_key.png)).
 
-> **Nota de modelado:** el servicio `web-auth` (SPA de autenticación web) todavía no está representado como un contenedor independiente en el modelo. Queda pendiente decidir si se modela como un contenedor aparte o si se considera parte del `Web Panel UI`. Ver el comentario correspondiente en `workspace.dsl`.
+> **Nota de modelado:** el contenedor `Web Panel UI` se corresponde con el servicio `web-auth` del repositorio (SPA de React + Vite que sirve tanto los flujos de autenticación como el panel de administración). Se modela como un único contenedor.
+>
+> **Nota sobre `Map Provider`:** se modela como un único sistema externo genérico porque el proveedor real depende de la plataforma del dispositivo (Google Maps en Android, Apple Maps en iOS) y se accede a través de la librería `react-native-maps`; no existe una integración directa del backend con una API de mapas.
 
 #### Component View
 
