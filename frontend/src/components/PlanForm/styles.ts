@@ -97,15 +97,6 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    infoSection: {
-        padding: 16,
-        borderRadius: Layout.buttonRadius,
-        borderWidth: 1,
-        marginBottom: 16,
-    },
-    infoInputGroup: {
-        marginBottom: 16,
-    },
     categoryRow: {
         flexDirection: 'row',
         gap: 8,

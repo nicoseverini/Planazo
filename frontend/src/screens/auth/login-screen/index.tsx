@@ -96,7 +96,7 @@ export default function LoginScreen() {
           <View style={{ position: 'relative' }}>
             <AuthInput label={t('password')} value={password} onChangeText={(v) => { setPassword(v); setError(null); }} secureTextEntry={!showPassword} autoCapitalize="none" autoComplete="password"/>
             <Pressable onPress={() => setShowPassword(!showPassword)} style={{position: 'absolute', right: 12, top: 42, zIndex: 1,}}>
-              <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="gray"/>
+              <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={22} color="gray"/>
             </Pressable>
           </View>
           <AuthButton label={loading ? t('signing_in') : t('sign_in')} onPress={handleLogin} disabled={loading} />

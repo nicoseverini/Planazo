@@ -178,9 +178,9 @@ export function validateBudget(budget: string): string | null {
 	const trimmed = budget.trim()
 	if (!trimmed) return null
 	const parsed = Number(trimmed)
-	if (!Number.isFinite(parsed)) return 'Budget must be a valid number.'
-	if (parsed <= 0) return 'Budget must be greater than 0.'
-	if (parsed > 9_999_999) return 'Budget cannot exceed 9,999,999.'
+	if (!Number.isFinite(parsed)) return 'Cost per Person must be a valid number.'
+	if (parsed <= 0) return 'Cost per Person must be greater than 0.'
+	if (parsed > 9_999_999) return 'Cost per Person cannot exceed 9,999,999.'
 	return null
 }
 

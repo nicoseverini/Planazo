@@ -11,7 +11,7 @@ export function TouristPlaceFormFields({ form, onChange }: TouristPlaceFormField
 	return (
 		<div className="form-grid">
 			<label className="field field--wide">
-				Name
+				Name *
 				<input value={form.name} onChange={(event) => onChange('name', event.target.value)} required />
 			</label>
 
