@@ -97,7 +97,7 @@ export function PlanForm({
             {/* Title + Visibility toggle */}
             <View style={styles.titleRow}>
                 <View style={styles.titleInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_title')}</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_title')} *</ThemedText>
                     <TextInput
                         value={title}
                         onChangeText={setTitle}
@@ -132,7 +132,7 @@ export function PlanForm({
             {/* Start date/time */}
             <View style={styles.row}>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_start_date')}</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_start_date')} *</ThemedText>
                     <Pressable
                         onPress={() => {
                             const next = !showStartDatePicker;
@@ -156,7 +156,7 @@ export function PlanForm({
                     </Pressable>
                 </View>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_start_time')}</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_start_time')} *</ThemedText>
                     <Pressable
                         onPress={() => {
                             const next = !showStartTimePicker;
@@ -214,7 +214,7 @@ export function PlanForm({
             {/* End date/time */}
             <View style={styles.row}>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_end_date')}</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_end_date')} *</ThemedText>
                     <Pressable
                         onPress={() => {
                             const next = !showEndDatePicker;
@@ -238,7 +238,7 @@ export function PlanForm({
                     </Pressable>
                 </View>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_end_time')}</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_end_time')} *</ThemedText>
                     <Pressable
                         onPress={() => {
                             const next = !showEndTimePicker;
@@ -321,7 +321,7 @@ export function PlanForm({
 
             {/* Categories */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_category')}</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_category')} *</ThemedText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.categoryRow}>
                         {CATEGORY_OPTIONS.map((cat) => (
@@ -349,7 +349,7 @@ export function PlanForm({
             {/* Max Participants + Budget */}
             <View style={styles.row}>
                 <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_max_participants')}</ThemedText>
+                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_max_participants')} *</ThemedText>
                     <TextInput
                         value={maxParticipants}
                         onChangeText={setMaxParticipants}
@@ -374,7 +374,7 @@ export function PlanForm({
 
             {/* Location: Country / City / Address + Map */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_country')}</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_country')} *</ThemedText>
                 <TextInput
                     value={country}
                     onChangeText={setCountry}
@@ -382,7 +382,7 @@ export function PlanForm({
                     placeholderTextColor={mutedText}
                     style={[styles.input, { marginTop: 0, marginBottom: 12, backgroundColor: surface, borderColor: border, color: text }]}
                 />
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_city')}</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_city')} *</ThemedText>
                 <TextInput
                     value={city}
                     onChangeText={setCity}
@@ -390,7 +390,7 @@ export function PlanForm({
                     placeholderTextColor={mutedText}
                     style={[styles.input, { marginTop: 0, marginBottom: 12, backgroundColor: surface, borderColor: border, color: text }]}
                 />
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_address')}</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_address')} *</ThemedText>
                 <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                     <TextInput
                         value={address}

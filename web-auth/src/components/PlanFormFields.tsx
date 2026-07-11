@@ -11,7 +11,7 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 	return (
 		<div className="form-grid">
 			<label className="field">
-				Title
+				Title *
 				<input value={form.title} onChange=
 				{(event) => onChange('title', event.target.value)} required />
 			</label>
@@ -25,7 +25,7 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 			</label>
 
 			<label className="field">
-				Start Date
+				Start Date *
 				<input type="date" min={getTodayInputValue()} value={form.startDate} onChange={(event) => {
 					const val = event.target.value
 					onChange('startDate', val)
@@ -35,7 +35,7 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 			</label>
 
 			<label className="field">
-				Start Time
+				Start Time *
 				<input type="time" value={form.startTime} onChange={(event) => {
 					const val = event.target.value
 					onChange('startTime', val)
@@ -49,12 +49,12 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 			</label>
 
 			<label className="field">
-				End Date
+				End Date *
 				<input type="date" min={getTodayInputValue()} value={form.endDate} onChange={(event) => onChange('endDate', event.target.value)} required />
 			</label>
 
 			<label className="field">
-				End Time
+				End Time *
 				<input type="time" value={form.endTime} onChange={(event) => onChange('endTime', event.target.value)} required />
 			</label>
 
@@ -64,12 +64,12 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 			</label>
 
 			<label className="field">
-				Max. participants
+				Max. participants *
 				<input type="number" min="1" max="99999" placeholder="e.g. 10" value={form.maxSubscribers} onChange={(event) => onChange('maxSubscribers', event.target.value)} required />
 			</label>
 
 			<label className="field">
-				Estimated Cost per Person (optional)
+				Cost per Person
 				<input type="number" min="0" max="9999999" step="any" placeholder="0" value={form.budget} onChange={(event) => onChange('budget', event.target.value)} />
 			</label>
 
@@ -84,7 +84,7 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 			</label>
 
             <div className="field field--wide">
-                <span className="field-label">Interests</span>
+                <span className="field-label">Interests *</span>
                 <div className="checkbox-group">
                     {interestOptions.map((option) => {
                         const isChecked = form.interests?.includes(option.value as any) || false;
@@ -116,7 +116,7 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
             </div>
 
 			<label className="field">
-				Country
+				Country *
 				<Autocomplete
 					value={form.country}
 					onChange={(value) => onChange('country', value)}
@@ -127,7 +127,7 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 			</label>
 
 			<label className="field">
-				City
+				City *
 				<Autocomplete
 					value={form.city}
 					onChange={(value) => onChange('city', value)}
@@ -138,7 +138,7 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 			</label>
 
 			<label className="field field--wide">
-				Address
+				Address *
 				<input value={form.address} onChange={(event) => onChange('address', event.target.value)} required placeholder="e.g. Av. Paseo Colón 850" />
 			</label>
 
