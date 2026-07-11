@@ -12,3 +12,4 @@ docker-compose.override.yml
 CLAUDE.md
 tourist_places_impl.md
 .devin
+**/*.structurizr
