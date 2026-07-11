@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Alert, Modal, Platform, Pressable, View } from 'react-native';
+import { Alert, Modal, Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { AuthButton, AuthCard, AuthInput, ChoiceGroup, MultiChoiceGroup } from '@/components/auth';
+import { DateField } from '@/components/DateField';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import {
@@ -18,33 +18,15 @@ import {
   TRAVEL_TYPE_OPTIONS,
 } from '@/constants/profile-options';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import {
   buildSignupRequest,
   validateSignupForm,
   type SignupFormState,
 } from '@/models/auth';
 import { signupUser } from '@/services/auth';
-import { formatBirthDate } from '@/utils/date';
+import { parseISODate, toISODate } from '@/utils/date';
 
 import { styles } from './styles';
-
-function toIsoDate(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
-}
-
-function fromIsoDate(value: string) {
-  if (!value) {
-    return null;
-  }
-
-  const parsed = new Date(`${value}T00:00:00`);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
 
 type PickerOption = {
   label: string;
@@ -182,47 +164,20 @@ function MultiSelectField({
 }
 
 function BirthDateField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const selectedDate = fromIsoDate(value) ?? new Date(2013, 11, 31);
   const { t } = useTranslation();
-  const { surface, border, text: textColor, tint } = useAppTheme();
-  const colorScheme = useColorScheme();
+  // A birth date can never be in the future; today is both the upper bound and
+  // the default position when nothing is selected yet.
+  const today = useMemo(() => new Date(), []);
 
   return (
-    <View style={styles.pickerGroup}>
-      <ThemedText type="defaultSemiBold" style={styles.fieldLabel}>
-        {t('birth_date')}
-      </ThemedText>
-      <Pressable
-        onPress={() => setOpen((current) => !current)}
-        style={({ pressed }) => [styles.pickerTrigger, { backgroundColor: surface, borderColor: border }, pressed && styles.pressedField]}
-      >
-        <ThemedText style={[styles.pickerValue, !value && styles.placeholderValue]}>
-          {value ? formatBirthDate(value) : t('select_birth_date')}
-        </ThemedText>
-        <ThemedText style={styles.pickerChevron}>📅</ThemedText>
-      </Pressable>
-
-      {open ? (
-        <View style={[styles.inlinePicker, { backgroundColor: surface, borderColor: border }]}>
-          <DateTimePicker
-            value={selectedDate}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
-            maximumDate={new Date(2013, 11, 31)}
-            textColor={textColor}
-            themeVariant={colorScheme}
-            accentColor={tint}
-            onChange={(_, nextDate) => {
-              if (nextDate) {
-                onChange(toIsoDate(nextDate));
-                setOpen(false);
-              }
-            }}
-          />
-        </View>
-      ) : null}
-    </View>
+    <DateField
+      label={t('birth_date')}
+      placeholder={t('select_birth_date')}
+      value={parseISODate(value)}
+      onChange={(date) => onChange(toISODate(date))}
+      onClear={() => onChange('')}
+      maximumDate={today}
+    />
   );
 }
 

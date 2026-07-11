@@ -2,23 +2,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    ActivityIndicator, Alert, FlatList, Modal, Platform,
+    ActivityIndicator, Alert, FlatList, Modal,
     Pressable, RefreshControl, ScrollView, TextInput, View,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
 
 import { CategoryFilterSelector } from '@/components/CategoryFilterSelector';
+import { DateField } from '@/components/DateField';
 import { DistanceSlider } from '@/components/DistanceSlider';
 import { PlanCard } from '@/components/PlanCard';
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
 import { decodeJwt, useToken } from '@/context/token-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useProximityFilter } from '@/hooks/use-proximity-filter';
 import { useRefreshControl } from '@/hooks/use-refresh-control';
 import { PlanFilters, PlanSummary, PlanVisibility, usePlans } from '@/services/plan';
+import { formatLocalizedDate, toISODate } from '@/utils/date';
 import { normalizeSearch } from '@/utils/search';
 import { formatInterest } from '@/utils/interests';
 import { styles } from './styles';
@@ -28,9 +28,6 @@ const VISIBILITY_OPTIONS: { labelKey: string; value: PlanVisibility | null }[] =
     { labelKey: 'public', value: 'PUBLIC' },
     { labelKey: 'private', value: 'PRIVATE' },
 ];
-
-const fmt = (d: Date) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export function SearchPlansScreen() {
     const router = useRouter();
@@ -50,14 +47,9 @@ export function SearchPlansScreen() {
     const [dateTo, setDateTo] = useState<Date | null>(null);
     const [visibility, setVisibility] = useState<PlanVisibility | null>(null);
 
-    // Date picker visibility
-    const [showDateFrom, setShowDateFrom] = useState(false);
-    const [showDateTo, setShowDateTo] = useState(false);
-
     const { radius, userLocation, handleRadiusChange, clearRadius } = useProximityFilter();
 
     const { surface, border, tint, tintText, mutedText, text: textColor } = useAppTheme();
-    const colorScheme = useColorScheme();
 
     const hasActiveFilters = !!(
         selectedCategories.length > 0 || locationFilter || dateFrom || dateTo || radius || visibility
@@ -67,8 +59,8 @@ export function SearchPlansScreen() {
         const f: PlanFilters = {};
         if (selectedCategories.length > 0) f.interests = selectedCategories;
         if (locationFilter) f.location = locationFilter;
-        if (dateFrom) f.dateFrom = `${fmt(dateFrom)}T00:00:00`;
-        if (dateTo) f.dateTo = `${fmt(dateTo)}T23:59:59`;
+        if (dateFrom) f.dateFrom = `${toISODate(dateFrom)}T00:00:00`;
+        if (dateTo) f.dateTo = `${toISODate(dateTo)}T23:59:59`;
         if (radius && userLocation) {
             f.lat = userLocation.lat;
             f.lng = userLocation.lng;
@@ -171,12 +163,12 @@ export function SearchPlansScreen() {
                     )}
                     {dateFrom && (
                         <View style={[styles.activeChip, { backgroundColor: tint }]}>
-                            <ThemedText type="label" style={{ color: tintText }}>{t('from_date', { date: fmt(dateFrom) })}</ThemedText>
+                            <ThemedText type="label" style={{ color: tintText }}>{t('from_date', { date: formatLocalizedDate(dateFrom) })}</ThemedText>
                         </View>
                     )}
                     {dateTo && (
                         <View style={[styles.activeChip, { backgroundColor: tint }]}>
-                            <ThemedText type="label" style={{ color: tintText }}>{t('until_date', { date: fmt(dateTo) })}</ThemedText>
+                            <ThemedText type="label" style={{ color: tintText }}>{t('until_date', { date: formatLocalizedDate(dateTo) })}</ThemedText>
                         </View>
                     )}
                     {radius && (
@@ -319,78 +311,22 @@ export function SearchPlansScreen() {
 
                     {/* Start date */}
                     <ThemedText type="subtitle" style={styles.modalSectionTitle}>{t('start_date')}</ThemedText>
-                    <Pressable
-                        onPress={() => {
-                            const next = !showDateFrom;
-                            setShowDateFrom(next);
-                            if (next) setShowDateTo(false);
-                        }}
-                        style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24, marginHorizontal: 0 }]}
-                    >
-                        <Ionicons name="calendar-outline" size={18} color={mutedText} />
-                        <ThemedText type="body" style={[styles.flexText, { color: dateFrom ? textColor : mutedText }]}>
-                            {dateFrom ? fmt(dateFrom) : t('select_date')}
-                        </ThemedText>
-                        {dateFrom && (
-                            <Pressable onPress={() => setDateFrom(null)}>
-                                <Ionicons name="close-circle" size={18} color={mutedText} />
-                            </Pressable>
-                        )}
-                    </Pressable>
-                    {showDateFrom && (
-                        <View style={[styles.inlinePicker, { backgroundColor: surface, borderColor: border, marginBottom: 24, overflow: 'hidden', alignItems: 'center', padding: 8, borderWidth: 1, borderRadius: 12 }]}>
-                            <DateTimePicker
-                                value={dateFrom ?? new Date()}
-                                mode="date"
-                                display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                                textColor={textColor}
-                                themeVariant={colorScheme}
-                                accentColor={tint}
-                                onChange={(_, date) => {
-                                    setShowDateFrom(Platform.OS === 'ios');
-                                    if (date) setDateFrom(date);
-                                }}
-                            />
-                        </View>
-                    )}
+                    <DateField
+                        value={dateFrom}
+                        onChange={setDateFrom}
+                        onClear={() => setDateFrom(null)}
+                        containerStyle={styles.filterDateField}
+                    />
 
                     {/* End date */}
                     <ThemedText type="subtitle" style={styles.modalSectionTitle}>{t('end_date')}</ThemedText>
-                    <Pressable
-                        onPress={() => {
-                            const next = !showDateTo;
-                            setShowDateTo(next);
-                            if (next) setShowDateFrom(false);
-                        }}
-                        style={[styles.searchContainer, { backgroundColor: surface, borderColor: border, marginBottom: 24, marginHorizontal: 0 }]}
-                    >
-                        <Ionicons name="calendar-outline" size={18} color={mutedText} />
-                        <ThemedText type="body" style={[styles.flexText, { color: dateTo ? textColor : mutedText }]}>
-                            {dateTo ? fmt(dateTo) : t('select_date')}
-                        </ThemedText>
-                        {dateTo && (
-                            <Pressable onPress={() => setDateTo(null)}>
-                                <Ionicons name="close-circle" size={18} color={mutedText} />
-                            </Pressable>
-                        )}
-                    </Pressable>
-                    {showDateTo && (
-                        <View style={[styles.inlinePicker, { backgroundColor: surface, borderColor: border, marginBottom: 24, overflow: 'hidden', alignItems: 'center', padding: 8, borderWidth: 1, borderRadius: 12 }]}>
-                            <DateTimePicker
-                                value={dateTo ?? new Date()}
-                                mode="date"
-                                minimumDate={dateFrom ?? undefined}
-                                display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                                textColor={textColor}
-                                themeVariant={colorScheme}
-                                accentColor={tint}
-                                onChange={(_, date) => {
-                                    setShowDateTo(Platform.OS === 'ios');
-                                    if (date) setDateTo(date);
-                                }}
-                            />
-                        </View>
-                    )}
+                    <DateField
+                        value={dateTo}
+                        onChange={setDateTo}
+                        onClear={() => setDateTo(null)}
+                        minimumDate={dateFrom ?? undefined}
+                        containerStyle={styles.filterDateField}
+                    />
 
                     {/* Proximity */}
                     <ThemedText type="subtitle" style={styles.modalSectionTitleWithMargin}>{t('proximity_distance')}</ThemedText>

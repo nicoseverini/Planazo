@@ -56,12 +56,6 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.7,
   },
-  inlinePicker: {
-    borderRadius: 16,
-    borderWidth: 1,
-    overflow: 'hidden',
-    padding: 8,
-  },
   modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.45)',

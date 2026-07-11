@@ -1,13 +1,12 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useRef, useState } from 'react';
 import { Alert } from 'react-native';
-import type { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import type MapView from 'react-native-maps';
 import { useTranslation } from 'react-i18next';
 
 import { useGeocoding } from '@/services/geocoding';
 import { validateAgeFields } from '@/utils/age-restriction';
-import { addOneHour, buildDateTimeWithTimezone, getDeviceTimezone } from '@/utils/date';
+import { addOneHour, buildDateTimeWithTimezone, formatTime24, getDeviceTimezone, toISODate } from '@/utils/date';
 import { ensureMediaLibraryPermission } from '@/utils/media-permissions';
 
 export function usePlanForm() {
@@ -22,15 +21,9 @@ export function usePlanForm() {
 
     const [startDate, setStartDate] = useState('');
     const [startTime, setStartTime] = useState('');
-    const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-    const [showStartTimePicker, setShowStartTimePicker] = useState(false);
-    const [internalStartDate, setInternalStartDate] = useState(new Date());
 
     const [endDate, setEndDate] = useState('');
     const [endTime, setEndTime] = useState('');
-    const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-    const [showEndTimePicker, setShowEndTimePicker] = useState(false);
-    const [internalEndDate, setInternalEndDate] = useState(new Date());
 
     const mapRef = useRef<MapView>(null);
     const [isSearchingLoc, setIsSearchingLoc] = useState(false);
@@ -115,59 +108,28 @@ export function usePlanForm() {
         }
     };
 
-    const handleStartDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-        if (event.type === 'set' && selectedDate) {
-            setInternalStartDate(selectedDate);
-            const day = selectedDate.getDate().toString().padStart(2, '0');
-            const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
-            const year = selectedDate.getFullYear();
-            const formatted = `${day}/${month}/${year}`;
-            setStartDate(formatted);
-            setEndDate(formatted);
-            setInternalEndDate(selectedDate);
-            setShowStartDatePicker(false);
-        } else if (event.type === 'dismissed') {
-            setShowStartDatePicker(false);
-        }
+    // Start and end date/time are kept purely as strings; the final datetime is
+    // assembled from them via buildDateTimeWithTimezone. Picking a start date
+    // cascades to the end date (a plan starts and ends the same day by default).
+    const applyStartDate = (picked: Date) => {
+        const iso = toISODate(picked);
+        setStartDate(iso);
+        setEndDate(iso);
     };
 
-    const handleStartTimeChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-        if (event.type === 'set' && selectedDate) {
-            setInternalStartDate(selectedDate);
-            const hours = selectedDate.getHours().toString().padStart(2, '0');
-            const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
-            const formatted = `${hours}:${minutes}`;
-            setStartTime(formatted);
-            setEndTime(addOneHour(formatted));
-            setShowStartTimePicker(false);
-        } else if (event.type === 'dismissed') {
-            setShowStartTimePicker(false);
-        }
+    const applyEndDate = (picked: Date) => {
+        setEndDate(toISODate(picked));
     };
 
-    const handleEndDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-        if (event.type === 'set' && selectedDate) {
-            setInternalEndDate(selectedDate);
-            const day = selectedDate.getDate().toString().padStart(2, '0');
-            const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
-            const year = selectedDate.getFullYear();
-            setEndDate(`${day}/${month}/${year}`);
-            setShowEndDatePicker(false);
-        } else if (event.type === 'dismissed') {
-            setShowEndDatePicker(false);
-        }
+    // Picking a start time defaults the end time to one hour later.
+    const applyStartTime = (picked: Date) => {
+        const formatted = formatTime24(picked);
+        setStartTime(formatted);
+        setEndTime(addOneHour(formatted));
     };
 
-    const handleEndTimeChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-        if (event.type === 'set' && selectedDate) {
-            setInternalEndDate(selectedDate);
-            const hours = selectedDate.getHours().toString().padStart(2, '0');
-            const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
-            setEndTime(`${hours}:${minutes}`);
-            setShowEndTimePicker(false);
-        } else if (event.type === 'dismissed') {
-            setShowEndTimePicker(false);
-        }
+    const applyEndTime = (picked: Date) => {
+        setEndTime(formatTime24(picked));
     };
 
     const validateForm = ({ requireFutureStart = false } = {}): boolean => {
@@ -211,14 +173,8 @@ export function usePlanForm() {
         isPublic, setIsPublic,
         startDate, setStartDate,
         startTime, setStartTime,
-        showStartDatePicker, setShowStartDatePicker,
-        showStartTimePicker, setShowStartTimePicker,
-        internalStartDate, setInternalStartDate,
         endDate, setEndDate,
         endTime, setEndTime,
-        showEndDatePicker, setShowEndDatePicker,
-        showEndTimePicker, setShowEndTimePicker,
-        internalEndDate, setInternalEndDate,
         isSearchingLoc,
         country, setCountry,
         city, setCity,
@@ -237,10 +193,10 @@ export function usePlanForm() {
         toggleCategory,
         handleSearchAddress,
         handleMapInteract,
-        handleStartDateChange,
-        handleStartTimeChange,
-        handleEndDateChange,
-        handleEndTimeChange,
+        applyStartDate,
+        applyStartTime,
+        applyEndDate,
+        applyEndTime,
         validateForm,
     };
 }
