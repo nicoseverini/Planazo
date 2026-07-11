@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location';
 import React, { useRef, useState } from 'react';
 import {
     ActivityIndicator,
@@ -22,6 +21,7 @@ import {
     INTEREST_OPTIONS,
     TouristPlaceCreateRequest,
 } from '@/services/tourist-place';
+import { useGeocoding } from '@/services/geocoding';
 import { validateAgeFields, parseAge } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
 import { ensureMediaLibraryPermission } from '@/utils/media-permissions';
@@ -75,6 +75,7 @@ export default function TouristPlaceFormScreen({
 }: Props) {
     const mapRef = useRef<MapView>(null);
     const { t } = useTranslation();
+    const { geocode, reverse } = useGeocoding();
 
     const tint = useThemeColor({}, 'tint');
     const tintText = useThemeColor({}, 'tintText');
@@ -142,20 +143,15 @@ export default function TouristPlaceFormScreen({
         if (!searchTerm) return;
         setIsSearchingLoc(true);
         try {
-            const geocoded = await Location.geocodeAsync(searchTerm);
-            if (geocoded.length > 0) {
-                const { latitude: lat, longitude: lng } = geocoded[0];
-                setLatitude(lat.toString());
-                setLongitude(lng.toString());
-                mapRef.current?.animateToRegion(
-                    { latitude: lat, longitude: lng, latitudeDelta: 0.02, longitudeDelta: 0.02 },
-                    1000
-                );
-            } else {
-                Alert.alert(t('not_found'), t('specific_location_hint'));
-            }
-        } catch {
-            Alert.alert(t('error'), t('error_search_address'));
+            const { latitude: lat, longitude: lng } = await geocode(searchTerm);
+            setLatitude(lat.toString());
+            setLongitude(lng.toString());
+            mapRef.current?.animateToRegion(
+                { latitude: lat, longitude: lng, latitudeDelta: 0.02, longitudeDelta: 0.02 },
+                1000
+            );
+        } catch (err) {
+            Alert.alert(t('not_found'), err instanceof Error ? err.message : t('error_search_address'));
         } finally {
             setIsSearchingLoc(false);
         }
@@ -165,21 +161,17 @@ export default function TouristPlaceFormScreen({
         setLatitude(coordinate.latitude.toString());
         setLongitude(coordinate.longitude.toString());
         try {
-            const geocoded = await Location.reverseGeocodeAsync(coordinate);
-            if (geocoded?.length) {
-                const addr = geocoded[0];
-                if (addr.country) setCountry(addr.country);
-                const resolvedCity = addr.city || addr.subregion;
-                if (resolvedCity) setCity(resolvedCity);
-                let resolvedAddress = '';
-                if (addr.street) {
-                    resolvedAddress = addr.street;
-                    if (addr.streetNumber) resolvedAddress += ` ${addr.streetNumber}`;
-                } else if (addr.name) {
-                    resolvedAddress = addr.name;
-                }
-                if (resolvedAddress.trim()) setAddress(resolvedAddress.trim());
+            const addr = await reverse(coordinate);
+            if (addr.country) setCountry(addr.country);
+            if (addr.city) setCity(addr.city);
+            let resolvedAddress = '';
+            if (addr.street) {
+                resolvedAddress = addr.street;
+                if (addr.streetNumber) resolvedAddress += ` ${addr.streetNumber}`;
+            } else if (addr.displayName) {
+                resolvedAddress = addr.displayName;
             }
+            if (resolvedAddress.trim()) setAddress(resolvedAddress.trim());
         } catch {
             // ignore reverse geocoding errors
         }

@@ -1,5 +1,4 @@
 import React from 'react';
-import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +9,7 @@ import { AppScreen } from '@/components/ui';
 import { INTEREST_BY_CATEGORY } from '@/constants/plan-form';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { usePlanForm } from '@/hooks/use-plan-form';
+import { useGeocoding } from '@/services/geocoding';
 import { PlanUpdateRequest, usePlans } from '@/services/plan';
 import { parseAge } from '@/utils/age-restriction';
 import { buildDateTimeWithTimezone, getLocalPartsInTimezone } from '@/utils/date';
@@ -19,6 +19,7 @@ export default function EditPlanScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const { fetchPlanDetail, update } = usePlans();
+    const { geocode } = useGeocoding();
     const form = usePlanForm();
     const { tint } = useAppTheme();
     const [loadingData, setLoadingData] = useState(true);
@@ -103,14 +104,9 @@ export default function EditPlanScreen() {
 
             if (!finalLat || !finalLng) {
                 const query = [form.address.trim(), form.city.trim(), form.country.trim()].filter(Boolean).join(', ');
-                const geocodedLocation = await Location.geocodeAsync(query);
-                if (!geocodedLocation || geocodedLocation.length === 0) {
-                    form.setError(t('error_location_geocoding'));
-                    form.setSaving(false);
-                    return;
-                }
-                finalLat = geocodedLocation[0].latitude;
-                finalLng = geocodedLocation[0].longitude;
+                const geocoded = await geocode(query);
+                finalLat = geocoded.latitude;
+                finalLng = geocoded.longitude;
             }
 
             const mappedInterests = form.selectedCategories.map((cat) => INTEREST_BY_CATEGORY[cat]).filter(Boolean);
