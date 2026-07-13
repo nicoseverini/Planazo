@@ -3,15 +3,17 @@ import { StarRating } from '@/components/StarRating';
 import { ThemedText } from '@/components/ThemedText';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { ReviewResponse } from '@/services/review';
+import { formatLocalizedDate } from '@/utils/date';
 import { Image, StyleSheet, View } from 'react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TranslationButton } from '@/components/TranslationButton';
 
 export interface ReviewCardProps {
     review: ReviewResponse;
 }
 
-function formatTimeAgo(createdAt: any): string {
+function formatTimeAgo(createdAt: any, language?: string): string {
     if (!createdAt) return '';
 
     let date: Date;
@@ -58,20 +60,19 @@ function formatTimeAgo(createdAt: any): string {
     } else if (days < 7) {
         return `${days}d ago`;
     } else {
-        const month = String(date.getDate()).padStart(2, '0');
-        const monthStr = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${monthStr}/${month}/${year}`;
+        return formatLocalizedDate(date, language);
     }
 }
 
 export function ReviewCard({ review }: ReviewCardProps) {
+    const { i18n } = useTranslation();
     const { surface, border, mutedText, text, tint, tintText } = useAppTheme();
     const [translatedComment, setTranslatedComment] = useState<string | null>(null);
 
     const fullName = `${review.author.name || 'Anonymous'} ${review.author.lastname || ''}`.trim();
 
-    const formattedDate = formatTimeAgo(review.createdAt);
+    // Pass the active language so the date re-formats immediately on language change.
+    const formattedDate = formatTimeAgo(review.createdAt, i18n.language);
 
     return (
         <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}>

@@ -1,24 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import {
     ActivityIndicator,
     Image,
-    Platform,
     Pressable,
     ScrollView,
     TextInput,
     View,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import MapView, { Marker } from 'react-native-maps';
 import { useTranslation } from 'react-i18next';
 
+import { DateField } from '@/components/DateField';
 import { ThemedText } from '@/components/ThemedText';
+import { TimeField } from '@/components/TimeField';
 import { AppScreen } from '@/components/ui';
 import { CATEGORY_OPTIONS } from '@/constants/plan-form';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { PlanFormValues } from '@/hooks/use-plan-form';
+import { parseClockTime, parseFormDate } from '@/utils/date';
 import { formatInterest } from '@/utils/interests';
 
 import { styles } from './styles';
@@ -42,14 +43,8 @@ export function PlanForm({
     title, setTitle,
     description, setDescription,
     isPublic, setIsPublic,
-    startDate, startTime,
-    showStartDatePicker, setShowStartDatePicker,
-    showStartTimePicker, setShowStartTimePicker,
-    internalStartDate,
-    endDate, endTime,
-    showEndDatePicker, setShowEndDatePicker,
-    showEndTimePicker, setShowEndTimePicker,
-    internalEndDate,
+    startDate, setStartDate, startTime, setStartTime,
+    endDate, setEndDate, endTime, setEndTime,
     isSearchingLoc,
     country, setCountry,
     city, setCity,
@@ -67,15 +62,20 @@ export function PlanForm({
     toggleCategory,
     handleSearchAddress,
     handleMapInteract,
-    handleStartDateChange,
-    handleStartTimeChange,
-    handleEndDateChange,
-    handleEndTimeChange,
+    applyStartDate,
+    applyStartTime,
+    applyEndDate,
+    applyEndTime,
 }: PlanFormProps) {
     const router = useRouter();
     const { t } = useTranslation();
     const { tint, tintText, surface, border, mutedText, text, background } = useAppTheme();
-    const colorScheme = useColorScheme();
+    // Stable "today" reference so the date pickers don't re-init on every render.
+    const today = useMemo(() => new Date(), []);
+    const startDateValue = useMemo(() => parseFormDate(startDate), [startDate]);
+    const endDateValue = useMemo(() => parseFormDate(endDate), [endDate]);
+    const startTimeValue = useMemo(() => parseClockTime(startTime), [startTime]);
+    const endTimeValue = useMemo(() => parseClockTime(endTime), [endTime]);
 
     return (
         <AppScreen scrollable>
@@ -129,169 +129,47 @@ export function PlanForm({
                 </View>
             </View>
 
-            {/* Start date/time */}
-            <View style={styles.row}>
-                <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_start_date')} *</ThemedText>
-                    <Pressable
-                        onPress={() => {
-                            const next = !showStartDatePicker;
-                            setShowStartDatePicker(next);
-                            if (next) {
-                                setShowStartTimePicker(false);
-                                setShowEndDatePicker(false);
-                                setShowEndTimePicker(false);
-                            }
-                        }}
-                        style={({ pressed }) => [
-                            styles.input,
-                            { backgroundColor: surface, borderColor: border, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-                            pressed && styles.pressed,
-                        ]}
-                    >
-                        <ThemedText style={[{ color: text, fontSize: 16 }, !startDate && { color: mutedText }]}>
-                            {startDate || 'DD/MM/YYYY'}
-                        </ThemedText>
-                        <Ionicons name="calendar-outline" size={20} color={tint} />
-                    </Pressable>
-                </View>
-                <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_start_time')} *</ThemedText>
-                    <Pressable
-                        onPress={() => {
-                            const next = !showStartTimePicker;
-                            setShowStartTimePicker(next);
-                            if (next) {
-                                setShowStartDatePicker(false);
-                                setShowEndDatePicker(false);
-                                setShowEndTimePicker(false);
-                            }
-                        }}
-                        style={({ pressed }) => [
-                            styles.input,
-                            { backgroundColor: surface, borderColor: border, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-                            pressed && styles.pressed,
-                        ]}
-                    >
-                        <ThemedText style={[{ color: text, fontSize: 16 }, !startTime && { color: mutedText }]}>
-                            {startTime || 'HH:MM'}
-                        </ThemedText>
-                        <Ionicons name="time-outline" size={20} color={tint} />
-                    </Pressable>
-                </View>
+            {/* Start date */}
+            <View style={styles.inputGroup}>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_start_date')} *</ThemedText>
+                <DateField
+                    value={startDateValue}
+                    onChange={applyStartDate}
+                    onClear={() => setStartDate('')}
+                    minimumDate={today}
+                />
             </View>
 
-            {/* Start inline pickers (Full Width) */}
-            {showStartDatePicker && (
-                <View style={[styles.inlinePicker, { backgroundColor: surface, borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
-                    <DateTimePicker
-                        value={internalStartDate}
-                        mode="date"
-                        display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
-                        minimumDate={new Date()}
-                        textColor={text}
-                        themeVariant={colorScheme}
-                        accentColor={tint}
-                        onChange={handleStartDateChange}
-                    />
-                </View>
-            )}
-            {showStartTimePicker && (
-                <View style={[styles.inlinePicker, { backgroundColor: surface, borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
-                    <DateTimePicker
-                        value={internalStartDate}
-                        mode="time"
-                        display="spinner"
-                        is24Hour={true}
-                        textColor={text}
-                        themeVariant={colorScheme}
-                        accentColor={tint}
-                        onChange={handleStartTimeChange}
-                    />
-                </View>
-            )}
-
-            {/* End date/time */}
-            <View style={styles.row}>
-                <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_end_date')} *</ThemedText>
-                    <Pressable
-                        onPress={() => {
-                            const next = !showEndDatePicker;
-                            setShowEndDatePicker(next);
-                            if (next) {
-                                setShowStartDatePicker(false);
-                                setShowStartTimePicker(false);
-                                setShowEndTimePicker(false);
-                            }
-                        }}
-                        style={({ pressed }) => [
-                            styles.input,
-                            { backgroundColor: surface, borderColor: border, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-                            pressed && styles.pressed,
-                        ]}
-                    >
-                        <ThemedText style={[{ color: text, fontSize: 16 }, !endDate && { color: mutedText }]}>
-                            {endDate || 'DD/MM/YYYY'}
-                        </ThemedText>
-                        <Ionicons name="calendar-outline" size={20} color={tint} />
-                    </Pressable>
-                </View>
-                <View style={styles.halfInput}>
-                    <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_end_time')} *</ThemedText>
-                    <Pressable
-                        onPress={() => {
-                            const next = !showEndTimePicker;
-                            setShowEndTimePicker(next);
-                            if (next) {
-                                setShowStartDatePicker(false);
-                                setShowStartTimePicker(false);
-                                setShowEndDatePicker(false);
-                            }
-                        }}
-                        style={({ pressed }) => [
-                            styles.input,
-                            { backgroundColor: surface, borderColor: border, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-                            pressed && styles.pressed,
-                        ]}
-                    >
-                        <ThemedText style={[{ color: text, fontSize: 16 }, !endTime && { color: mutedText }]}>
-                            {endTime || 'HH:MM'}
-                        </ThemedText>
-                        <Ionicons name="time-outline" size={20} color={tint} />
-                    </Pressable>
-                </View>
+            {/* Start time */}
+            <View style={styles.inputGroup}>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_start_time')} *</ThemedText>
+                <TimeField
+                    value={startTimeValue}
+                    onChange={applyStartTime}
+                    onClear={() => setStartTime('')}
+                />
             </View>
 
-            {/* End inline pickers (Full Width) */}
-            {showEndDatePicker && (
-                <View style={[styles.inlinePicker, { backgroundColor: surface, borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
-                    <DateTimePicker
-                        value={internalEndDate}
-                        mode="date"
-                        display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
-                        minimumDate={new Date()}
-                        textColor={text}
-                        themeVariant={colorScheme}
-                        accentColor={tint}
-                        onChange={handleEndDateChange}
-                    />
-                </View>
-            )}
-            {showEndTimePicker && (
-                <View style={[styles.inlinePicker, { backgroundColor: surface, borderColor: border, marginBottom: 16, alignItems: 'center' }]}>
-                    <DateTimePicker
-                        value={internalEndDate}
-                        mode="time"
-                        display="spinner"
-                        is24Hour={true}
-                        textColor={text}
-                        themeVariant={colorScheme}
-                        accentColor={tint}
-                        onChange={handleEndTimeChange}
-                    />
-                </View>
-            )}
+            {/* End date */}
+            <View style={styles.inputGroup}>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_end_date')} *</ThemedText>
+                <DateField
+                    value={endDateValue}
+                    onChange={applyEndDate}
+                    onClear={() => setEndDate('')}
+                    minimumDate={startDateValue ?? today}
+                />
+            </View>
+
+            {/* End time */}
+            <View style={styles.inputGroup}>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_end_time')} *</ThemedText>
+                <TimeField
+                    value={endTimeValue}
+                    onChange={applyEndTime}
+                    onClear={() => setEndTime('')}
+                />
+            </View>
 
             {/* Age restrictions */}
             <View style={styles.row}>

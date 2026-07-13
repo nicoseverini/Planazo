@@ -78,12 +78,8 @@ export const styles = StyleSheet.create({
         opacity: 0.9,
         transform: [{ scale: 0.95 }],
     },
-    inlinePicker: {
-        borderWidth: 1,
-        borderRadius: 12,
-        padding: 8,
-        alignItems: 'center',
-        justifyContent: 'center',
+    filterDateField: {
+        marginBottom: 24,
     },
     activeChip: {
         borderRadius: 12,

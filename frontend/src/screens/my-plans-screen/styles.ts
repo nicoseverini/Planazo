@@ -97,6 +97,9 @@ export const styles = StyleSheet.create({
     modalLabel: {
         marginBottom: 12,
     },
+    filterDateField: {
+        marginBottom: 24,
+    },
     chipRow: {
         flexDirection: 'row',
         flexWrap: 'wrap',

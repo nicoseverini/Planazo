@@ -64,7 +64,6 @@ export default function EditPlanScreen() {
                     const { date: localDate, time: localTime } = getLocalPartsInTimezone(startDate, tz);
                     form.setStartDate(localDate);
                     form.setStartTime(localTime);
-                    form.setInternalStartDate(startDate);
                 }
 
                 if (plan.endDateTime) {
@@ -72,7 +71,6 @@ export default function EditPlanScreen() {
                     const { date: localDate, time: localTime } = getLocalPartsInTimezone(endDate, tz);
                     form.setEndDate(localDate);
                     form.setEndTime(localTime);
-                    form.setInternalEndDate(endDate);
                 }
             } catch {
                 Alert.alert(t('error'), t('error_load_plan'));

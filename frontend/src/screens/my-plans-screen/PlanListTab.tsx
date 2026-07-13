@@ -1,21 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-    ActivityIndicator, Alert, FlatList, Modal, Platform,
+    ActivityIndicator, Alert, FlatList, Modal,
     Pressable, RefreshControl, ScrollView, TextInput, View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { CategoryFilterSelector } from '@/components/CategoryFilterSelector';
+import { DateField } from '@/components/DateField';
 import { DistanceSlider } from '@/components/DistanceSlider';
 import { PlanCard } from '@/components/PlanCard';
 import { ThemedText } from '@/components/ThemedText';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useProximityFilter } from '@/hooks/use-proximity-filter';
 import { PlanSummary, PlanVisibility } from '@/services/plan';
+import { formatLocalizedDate } from '@/utils/date';
 import { formatInterest } from '@/utils/interests';
 import {
     EMPTY_PLAN_FILTERS, ParticipationStatus, PlanClientFilters,
@@ -59,22 +59,16 @@ const STATUS_OPTIONS: { labelKey: string; value: ParticipationStatus | null }[] 
     { labelKey: 'accepted', value: 'ACCEPTED' },
 ];
 
-const fmt = (d: Date) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-
 export function PlanListTab({
     load, showStatusBadge, showVisibilityFilter, showStatusFilter, errorMessage, empty, action, onPressPlan,
 }: Props) {
     const { t } = useTranslation();
     const { surface, border, tint, tintText, mutedText, text: textColor } = useAppTheme();
-    const colorScheme = useColorScheme();
 
     const [plans, setPlans] = useState<PlanSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
-    const [showDateFrom, setShowDateFrom] = useState(false);
-    const [showDateTo, setShowDateTo] = useState(false);
 
     // Radius + location permission flow is owned by the shared proximity hook.
     const { radius, userLocation, handleRadiusChange, clearRadius } = useProximityFilter();
@@ -161,12 +155,12 @@ export function PlanListTab({
                     )}
                     {filters.dateFrom && (
                         <View style={activeChipStyle}>
-                            <ThemedText type="label" style={{ color: tintText }}>{t('from_date', { date: fmt(filters.dateFrom) })}</ThemedText>
+                            <ThemedText type="label" style={{ color: tintText }}>{t('from_date', { date: formatLocalizedDate(filters.dateFrom) })}</ThemedText>
                         </View>
                     )}
                     {filters.dateTo && (
                         <View style={activeChipStyle}>
-                            <ThemedText type="label" style={{ color: tintText }}>{t('until_date', { date: fmt(filters.dateTo) })}</ThemedText>
+                            <ThemedText type="label" style={{ color: tintText }}>{t('until_date', { date: formatLocalizedDate(filters.dateTo) })}</ThemedText>
                         </View>
                     )}
                     {radius && (
@@ -310,70 +304,22 @@ export function PlanListTab({
 
                     {/* Start date */}
                     <ThemedText type="subtitle" style={styles.modalLabel}>{t('start_date')}</ThemedText>
-                    <Pressable
-                        onPress={() => setShowDateFrom(true)}
-                        style={[styles.modalInput, { backgroundColor: surface, borderColor: border }]}
-                    >
-                        <Ionicons name="calendar-outline" size={18} color={mutedText} />
-                        <ThemedText type="body" style={{ flex: 1, color: filters.dateFrom ? textColor : mutedText }}>
-                            {filters.dateFrom ? fmt(filters.dateFrom) : t('select_date')}
-                        </ThemedText>
-                        {filters.dateFrom && (
-                            <Pressable onPress={() => setFilters((f) => ({ ...f, dateFrom: null }))}>
-                                <Ionicons name="close-circle" size={18} color={mutedText} />
-                            </Pressable>
-                        )}
-                    </Pressable>
-                    {showDateFrom && (
-                        <View style={{ backgroundColor: surface, borderColor: border, borderWidth: 1, borderRadius: 12, padding: 8, marginBottom: 24, overflow: 'hidden', alignItems: 'center' }}>
-                            <DateTimePicker
-                                value={filters.dateFrom ?? new Date()}
-                                mode="date"
-                                display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                                textColor={textColor}
-                                themeVariant={colorScheme}
-                                accentColor={tint}
-                                onChange={(_, date) => {
-                                    setShowDateFrom(Platform.OS === 'ios');
-                                    if (date) setFilters((f) => ({ ...f, dateFrom: date }));
-                                }}
-                            />
-                        </View>
-                    )}
+                    <DateField
+                        value={filters.dateFrom}
+                        onChange={(date) => setFilters((f) => ({ ...f, dateFrom: date }))}
+                        onClear={() => setFilters((f) => ({ ...f, dateFrom: null }))}
+                        containerStyle={styles.filterDateField}
+                    />
 
                     {/* End date */}
                     <ThemedText type="subtitle" style={styles.modalLabel}>{t('end_date')}</ThemedText>
-                    <Pressable
-                        onPress={() => setShowDateTo(true)}
-                        style={[styles.modalInput, { backgroundColor: surface, borderColor: border }]}
-                    >
-                        <Ionicons name="calendar-outline" size={18} color={mutedText} />
-                        <ThemedText type="body" style={{ flex: 1, color: filters.dateTo ? textColor : mutedText }}>
-                            {filters.dateTo ? fmt(filters.dateTo) : t('select_date')}
-                        </ThemedText>
-                        {filters.dateTo && (
-                            <Pressable onPress={() => setFilters((f) => ({ ...f, dateTo: null }))}>
-                                <Ionicons name="close-circle" size={18} color={mutedText} />
-                            </Pressable>
-                        )}
-                    </Pressable>
-                    {showDateTo && (
-                        <View style={{ backgroundColor: surface, borderColor: border, borderWidth: 1, borderRadius: 12, padding: 8, marginBottom: 24, overflow: 'hidden', alignItems: 'center' }}>
-                            <DateTimePicker
-                                value={filters.dateTo ?? new Date()}
-                                mode="date"
-                                minimumDate={filters.dateFrom ?? undefined}
-                                display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                                textColor={textColor}
-                                themeVariant={colorScheme}
-                                accentColor={tint}
-                                onChange={(_, date) => {
-                                    setShowDateTo(Platform.OS === 'ios');
-                                    if (date) setFilters((f) => ({ ...f, dateTo: date }));
-                                }}
-                            />
-                        </View>
-                    )}
+                    <DateField
+                        value={filters.dateTo}
+                        onChange={(date) => setFilters((f) => ({ ...f, dateTo: date }))}
+                        onClear={() => setFilters((f) => ({ ...f, dateTo: null }))}
+                        minimumDate={filters.dateFrom ?? undefined}
+                        containerStyle={styles.filterDateField}
+                    />
 
                     {/* Proximity */}
                     <ThemedText type="subtitle" style={[styles.modalLabel, { marginTop: 8 }]}>{t('proximity_distance')}</ThemedText>

@@ -114,6 +114,7 @@
   "start_date": "Start Date",
   "end_date": "End Date",
   "select_date": "Select date",
+  "select_time": "Select time",
   "both": "Both",
   "public": "Public",
   "private": "Private",
