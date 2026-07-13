@@ -360,7 +360,8 @@ export default function PlanDetailScreen() {
                                 { text: 'OK', onPress: () => router.back() },
                             ]);
                         } catch (err) {
-                            Alert.alert(t('error'), t('could_not_delete_plan'));
+                            const message = err instanceof Error ? err.message : t('could_not_delete_plan');
+                            Alert.alert(t('error'), message);
                             setLoading(false);
                         }
                     },

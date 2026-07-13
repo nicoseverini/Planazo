@@ -189,7 +189,7 @@ export async function updatePlan(
     return response.json();
 }
 
-// Delete a plan (soft delete)
+// Permanently delete a plan and everything that belongs to it
 export async function deletePlan(id: number, accessToken: string): Promise<void> {
     const url = `${getBackendUrl()}/api/v1/plans/${id}`;
     console.log('[PlanService] Deleting plan:', url);
@@ -203,8 +203,9 @@ export async function deletePlan(id: number, accessToken: string): Promise<void>
     });
 
     if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to delete plan: ${errorText}`);
+        if (response.status === 403) throw new Error('You are not allowed to delete this plan.');
+        if (response.status === 404) throw new Error('Plan not found.');
+        throw new Error("Couldn't delete the plan. Please try again.");
     }
 }
 
