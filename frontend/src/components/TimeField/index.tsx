@@ -3,7 +3,7 @@ import DateTimePicker, {
     DateTimePickerAndroid,
     type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Platform, Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -66,7 +66,11 @@ export function TimeField({
     const selectedRef = useRef<Date | null>(null);
 
     const displayValue = value ? formatTime24(value) : (placeholder ?? 'HH:MM');
-    const pickerValue = value ?? new Date();
+    // With no value picked yet the spinner opens on "now". This must be a stable
+    // reference (captured once, like DateField) so the controlled iOS wheel is
+    // not re-anchored to a fresh instant on every render, which would keep
+    // snapping the selection back to the current time.
+    const pickerValue = useMemo(() => value ?? new Date(), [value]);
 
     const handleTriggerPress = () => {
         if (disabled) return;
