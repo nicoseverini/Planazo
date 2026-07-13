@@ -325,17 +325,23 @@ public class PlanService {
         emailService.sendRemovedFromPlanEmail(subscription.getUser().getEmail(), plan.getTitle());
     }
 
-    // ── Delete (soft) ────────────────────────────────────────────────────────
+    // ── Delete (permanent) ─────────────────────────────────────────────────────
 
-    public Optional<Long> deletePlan(Long id, String requesterEmail) {
-        return planRepository.findById(id)
-                .filter(Plan::isActive)
-                .filter(plan -> plan.getCreator().getUsername().equals(requesterEmail))
-                .map(plan -> {
-                    plan.setActive(false);
-                    planRepository.save(plan);
-                    return plan.getId();
-                });
+    /**
+     * Permanently deletes a plan owned by the requester together with every
+     * resource that cannot logically outlive it. Runs inside the service-level
+     * transaction, so the whole cleanup is atomic: if any step fails nothing is
+     * committed and the system is left untouched.
+     */
+    public void deletePlan(Long id, String requesterEmail) {
+        Plan plan = planRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan not found"));
+
+        if (!plan.getCreator().getUsername().equals(requesterEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to delete this plan.");
+        }
+
+        purgePlan(plan);
     }
 
     // ── Admin hard delete ────────────────────────────────────────────────────
@@ -344,13 +350,24 @@ public class PlanService {
         return planRepository.findById(id).map(plan -> {
             String creatorEmail = plan.getCreator().getEmail();
             String planTitle = plan.getTitle();
-            reportRepository.deleteByPlanId(id);
-            planRepository.deleteById(id);
+            purgePlan(plan);
             if (reason != null && !reason.isEmpty()) {
                 emailService.sendPlanDeletedEmail(creatorEmail, planTitle, reason);
             }
             return true;
         }).orElse(false);
+    }
+
+    /**
+     * Single source of truth for physically removing a plan. Subscribers,
+     * interests and images belong to the plan and are wiped by JPA
+     * cascade/orphanRemoval (all live in the database — there are no external
+     * files); reports point at the plan through an unowned FK, so they are
+     * removed explicitly before the plan to avoid referential-integrity errors.
+     */
+    private void purgePlan(Plan plan) {
+        reportRepository.deleteByPlanId(plan.getId());
+        planRepository.delete(plan);
     }
 
     private Plan saveUpdatedPlan(Plan plan, PlanUpdateDTO data) {

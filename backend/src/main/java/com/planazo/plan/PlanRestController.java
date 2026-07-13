@@ -233,20 +233,19 @@ class PlanRestController {
         return ResponseEntity.ok().build();
     }
 
-    // ── Delete (soft) ────────────────────────────────────────────────────────
+    // ── Delete (permanent) ─────────────────────────────────────────────────────
 
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping(value = "/{id}", produces = "application/json")
-    @Operation(summary = "Delete a plan (creator only, soft delete)")
+    @Operation(summary = "Permanently delete a plan and all its data (creator only)")
     @ApiResponse(responseCode = "403", description = "Not the creator", content = @Content)
     @ApiResponse(responseCode = "404", description = "Plan not found", content = @Content)
-    ResponseEntity<Object> deletePlan(
+    ResponseEntity<Void> deletePlan(
             @PathVariable Long id,
             @AuthenticationPrincipal(expression = "username") String email
     ) {
-        return planService.deletePlan(id, email)
-                .map(deleted -> ResponseEntity.<Void>ok().build())
-                .orElse(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+        planService.deletePlan(id, email);
+        return ResponseEntity.ok().build();
     }
 
     // ── Admin hard delete ────────────────────────────────────────────────────
