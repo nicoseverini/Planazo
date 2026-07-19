@@ -76,7 +76,7 @@ export default function MapScreen() {
                 1000
             );
         } catch (error) {
-            Alert.alert(t('error'), t('something_went_wrong'));
+            Alert.alert(t('error'), t('error_location_map'));
         }
     };
 

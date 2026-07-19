@@ -76,7 +76,7 @@ export async function createReviewForTarget(
         body: JSON.stringify(data),
     });
     if (!response.ok) {
-        throw new Error((await response.text()) || 'Unable to submit review.');
+        throw new Error((await response.text()) || 'submit_review_failed');
     }
     return response.json();
 }
@@ -94,7 +94,7 @@ export async function deleteReviewForTarget(
         },
     });
     if (!response.ok) {
-        throw new Error((await response.text()) || 'Unable to delete review.');
+        throw new Error((await response.text()) || 'error_delete_review');
     }
 }
 
@@ -114,7 +114,7 @@ export function useReviews() {
         try {
             return await getReviewsByTarget(targetType, targetId);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount((c) => c - 1);
@@ -127,7 +127,7 @@ export function useReviews() {
         try {
             return await getReviewStatsByTarget(targetType, targetId);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount((c) => c - 1);
@@ -137,13 +137,13 @@ export function useReviews() {
     const create = useCallback(
         async (targetType: ReviewTarget, targetId: number, data: ReviewCreateRequest) => {
             const token = getAccessToken();
-            if (!token) throw new Error('You must be logged in to leave a review.');
+            if (!token) throw new Error('sign_in_to_review');
             setLoadingCount((c) => c + 1);
             setError(null);
             try {
                 return await createReviewForTarget(targetType, targetId, data, token);
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'Unknown error');
+                setError(err instanceof Error ? err.message : 'error_unknown');
                 throw err;
             } finally {
                 setLoadingCount((c) => c - 1);
@@ -155,13 +155,13 @@ export function useReviews() {
     const remove = useCallback(
         async (targetType: ReviewTarget, targetId: number) => {
             const token = getAccessToken();
-            if (!token) throw new Error('You must be logged in to delete a review.');
+            if (!token) throw new Error('sign_in_to_review');
             setLoadingCount((c) => c + 1);
             setError(null);
             try {
                 return await deleteReviewForTarget(targetType, targetId, token);
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'Unknown error');
+                setError(err instanceof Error ? err.message : 'error_unknown');
                 throw err;
             } finally {
                 setLoadingCount((c) => c - 1);

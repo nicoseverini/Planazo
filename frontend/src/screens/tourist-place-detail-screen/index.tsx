@@ -92,7 +92,7 @@ export default function TouristPlaceDetailScreen() {
             const err = placeResult.reason;
             const isNotFound = (err as any)?.status === 404;
             if (!isNotFound) {
-                Alert.alert(t('error'), err instanceof Error ? err.message : t('unable_load_place'));
+                Alert.alert(t('error'), err instanceof Error ? t(err.message) : t('unable_load_place'));
             }
         }
 

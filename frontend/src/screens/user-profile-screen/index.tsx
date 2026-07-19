@@ -92,10 +92,10 @@ export default function UserProfileScreen() {
         } catch (err) {
             setError(
                 isOwnProfile
-                    ? 'Unable to load profile information.'
+                    ? t('unable_load_profile')
                     : err instanceof Error
-                        ? err.message
-                        : 'Unable to load this profile.'
+                        ? t(err.message)
+                        : t('unable_load_profile')
             );
         } finally {
             setLoading(false);
@@ -152,7 +152,7 @@ export default function UserProfileScreen() {
             setPhotoUrl(normalizePhotoValue(merged.photo));
             setEditing(false);
         } catch (err) {
-            setError('Unable to update your profile. Please try again.');
+            setError(t('error_update_profile_failed'));
         } finally {
             setSaving(false);
         }
@@ -247,7 +247,7 @@ export default function UserProfileScreen() {
                             if (router.canGoBack()) router.dismissAll();
                             router.replace('/');
                         } catch (err) {
-                            setError('Unable to delete your account. Please try again.');
+                            setError(t('error_delete_account_failed'));
                             setDeletingAccount(false);
                         }
                     },

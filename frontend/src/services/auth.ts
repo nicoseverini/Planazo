@@ -134,7 +134,7 @@ export async function resendVerificationEmail(req: ResendVerificationRequest): P
   });
 
   if (!response.ok) {
-    throw new Error('Failed to resend verification email');
+    throw new Error('error_resend_verification_failed');
   }
 }
 
@@ -152,6 +152,6 @@ export async function forgotPassword(req: ForgotPasswordRequest): Promise<void> 
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Forgot password failed: ${errorText}`);
+    throw new Error(errorText || 'error_forgot_password_failed');
   }
 }

@@ -18,8 +18,6 @@ export async function translateText(
   accessToken: string
 ): Promise<TranslationResponse> {
   const url = `${getBackendUrl()}/api/v1/translate`;
-  console.log('[TranslateService] Translating:', url);
-
   const langCode = data.targetLanguage.split('-')[0].toLowerCase();
   const response = await fetch(url, {
     method: 'POST',
@@ -36,7 +34,7 @@ export async function translateText(
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(errorText || 'Translation failed.');
+    throw new Error(errorText || 'translation_error');
   }
 
   return response.json();
@@ -50,13 +48,13 @@ export function useTranslationService() {
   const translate = useCallback(
     async (text: string, targetLanguage: string) => {
       const token = getAccessToken();
-      if (!token) throw new Error('No access token');
+      if (!token) throw new Error('error_no_access_token');
       setLoading(true);
       setError(null);
       try {
         return await translateText({ text, targetLanguage }, token);
       } catch (err: any) {
-        setError(err.message || 'Translation failed');
+        setError(err.message || 'translation_error');
         throw err;
       } finally {
         setLoading(false);

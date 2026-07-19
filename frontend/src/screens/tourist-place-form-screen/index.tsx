@@ -151,7 +151,7 @@ export default function TouristPlaceFormScreen({
                 1000
             );
         } catch (err) {
-            Alert.alert(t('not_found'), err instanceof Error ? err.message : t('error_search_address'));
+            Alert.alert(t('not_found'), err instanceof Error ? t(err.message) : t('error_search_address'));
         } finally {
             setIsSearchingLoc(false);
         }
