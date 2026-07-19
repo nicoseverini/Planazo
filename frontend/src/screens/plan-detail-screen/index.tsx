@@ -30,6 +30,7 @@ import { openInMaps } from '@/utils/navigation';
 import { ReportModal } from '@/components/ReportModal';
 import { TranslationButton } from '@/components/TranslationButton';
 import { useTranslation } from 'react-i18next';
+import { useToast } from '@/components/Toast';
 import { orderPlanMembers } from '@/utils/plan-members';
 
 import { styles } from './styles';
@@ -76,6 +77,7 @@ export default function PlanDetailScreen() {
     const [isMenuVisible, setIsMenuVisible] = useState(false);
 
     const { t, i18n } = useTranslation();
+    const { showToast } = useToast();
     const [translatedDescription, setTranslatedDescription] = useState<string | null>(null);
 
     const interestLabel = (plan?.interests ?? [])
@@ -222,10 +224,9 @@ export default function PlanDetailScreen() {
                 await join(plan.id);
                 await handleRefresh();
                 if (isPrivatePlan) {
-                    Alert.alert(
-                        t('request_sent'),
-                        t('request_sent_message')
-                    );
+                    showToast({ message: t('request_sent_message'), type: 'info' });
+                } else {
+                    showToast({ message: t('joined_success'), type: 'success' });
                 }
             }
         } catch (err) {
