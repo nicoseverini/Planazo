@@ -340,6 +340,9 @@ public class PlanService {
         if (!plan.getCreator().getUsername().equals(requesterEmail)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to delete this plan.");
         }
+        for (PlanSubscriber subscriber : plan.getSubscribers()) {
+            emailService.sendPlanDeletedEmail(subscriber.getUser().getEmail(), plan.getTitle());
+        }
 
         purgePlan(plan);
     }
@@ -352,7 +355,7 @@ public class PlanService {
             String planTitle = plan.getTitle();
             purgePlan(plan);
             if (reason != null && !reason.isEmpty()) {
-                emailService.sendPlanDeletedEmail(creatorEmail, planTitle, reason);
+                emailService.sendPlanDeletedEmailByAdmin(creatorEmail, planTitle, reason);
             }
             return true;
         }).orElse(false);

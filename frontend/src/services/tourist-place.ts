@@ -63,10 +63,10 @@ export async function getTouristPlaceById(id: number): Promise<TouristPlaceDetai
         headers: { Accept: 'application/json' },
     });
     if (response.status === 404) {
-        throw Object.assign(new Error('Tourist place not found.'), { status: 404 });
+        throw Object.assign(new Error('tourist_place_not_found'), { status: 404 });
     }
     if (!response.ok) {
-        throw new Error((await response.text()) || 'Unable to load tourist place information.');
+        throw new Error((await response.text()) || 'unable_load_place');
     }
     return response.json();
 }
@@ -142,7 +142,7 @@ export function useTouristPlaces() {
         try {
             return await getAllTouristPlaces();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount((c) => c - 1);
@@ -155,7 +155,7 @@ export function useTouristPlaces() {
         try {
             return await getTouristPlaceById(id);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount((c) => c - 1);
@@ -164,13 +164,13 @@ export function useTouristPlaces() {
 
     const fetchMine = useCallback(async () => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount((c) => c + 1);
         setError(null);
         try {
             return await getMyTouristPlaces(token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount((c) => c - 1);
@@ -179,13 +179,13 @@ export function useTouristPlaces() {
 
     const create = useCallback(async (data: TouristPlaceCreateRequest) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount((c) => c + 1);
         setError(null);
         try {
             return await createTouristPlace(data, token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount((c) => c - 1);
@@ -194,13 +194,13 @@ export function useTouristPlaces() {
 
     const update = useCallback(async (id: number, data: TouristPlaceUpdateRequest) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount((c) => c + 1);
         setError(null);
         try {
             return await updateTouristPlace(id, data, token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount((c) => c - 1);
@@ -209,13 +209,13 @@ export function useTouristPlaces() {
 
     const remove = useCallback(async (id: number) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount((c) => c + 1);
         setError(null);
         try {
             await deleteTouristPlace(id, token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount((c) => c - 1);

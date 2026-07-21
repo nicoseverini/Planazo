@@ -22,7 +22,7 @@ export default function ActivitiesScreen() {
     try {
       router.push(route as any);
     } catch {
-      Alert.alert(t('error'), t('something_went_wrong'));
+      Alert.alert(t('error'), t('error_navigation_failed'));
     }
   };
 

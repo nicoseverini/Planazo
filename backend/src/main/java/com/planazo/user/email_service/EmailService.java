@@ -104,13 +104,19 @@ public class EmailService {
         send(to, "A participant has left your plan: " + planTitle, html);
     }
 
-    public void sendPlanDeletedEmail(String to, String planTitle, String reason) {
-        String html = loadHtmlTemplate("classpath:templates/mail/plan_deleted.html");
+    public void sendPlanDeletedEmailByAdmin(String to, String planTitle, String reason) {
+        String html = loadHtmlTemplate("classpath:templates/mail/plan_deleted_admin.html");
         html = html.replace("${planTitle}", planTitle);
         html = html.replace("${reason}", reason != null && !reason.isEmpty() ? reason : "No reason provided");
 
         send(to, "Your plan has been deleted", html);
     }
+    public void sendPlanDeletedEmail(String to, String planTitle) {
+        String html = loadHtmlTemplate("classpath:templates/mail/plan_deleted.html");
+        html = html.replace("${planTitle}", planTitle);
+        send(to, "A plan you were subscribed to has been deleted", html);
+    }
+
 
     public void sendTouristPlaceDeletedEmail(String to, String placeName, String reason) {
         String html = loadHtmlTemplate("classpath:templates/mail/tourist_place_deleted.html");

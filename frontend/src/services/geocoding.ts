@@ -51,7 +51,7 @@ export function useGeocoding() {
   const geocode = useCallback(
     (query: string) => {
       const token = getAccessToken();
-      if (!token) throw new Error('No access token');
+      if (!token) throw new Error('error_no_access_token');
       return geocodeAddress(query, token);
     },
     [getAccessToken]
@@ -60,7 +60,7 @@ export function useGeocoding() {
   const reverse = useCallback(
     (coords: { latitude: number; longitude: number }) => {
       const token = getAccessToken();
-      if (!token) throw new Error('No access token');
+      if (!token) throw new Error('error_no_access_token');
       return reverseGeocode(coords, token);
     },
     [getAccessToken]

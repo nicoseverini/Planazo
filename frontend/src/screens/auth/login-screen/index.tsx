@@ -63,7 +63,7 @@ export default function LoginScreen() {
 
       const errorKey = requestError instanceof Error ? requestError.message : '';
 
-      const friendlyMessage = LOGIN_ERROR_MESSAGES[errorKey] ? t(LOGIN_ERROR_MESSAGES[errorKey]) : t('something_went_wrong');
+      const friendlyMessage = LOGIN_ERROR_MESSAGES[errorKey] ? t(LOGIN_ERROR_MESSAGES[errorKey]) : t('unexpected_auth_error');
 
       setError(friendlyMessage);
     } finally {

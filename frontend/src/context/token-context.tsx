@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import i18n from '@/config/i18n';
 
 type TokenContextData =
     | { state: 'LOADING' }
@@ -136,7 +137,7 @@ export function decodeJwt(token: string): { role: string; id?: number; sub?: str
         );
         return JSON.parse(jsonPayload);
     } catch (error) {
-        Alert.alert('Error', 'Could not verify your session.');
+        Alert.alert(i18n.t('error'), i18n.t('error_session_verification'));
         return { role: 'USER' };
     }
 }

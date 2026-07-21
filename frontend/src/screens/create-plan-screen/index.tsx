@@ -72,7 +72,7 @@ export default function CreatePlanScreen() {
                 { text: 'OK', onPress: () => router.back() },
             ]);
         } catch (err) {
-            form.setError(err instanceof Error ? err.message : t('error_create_plan'));
+            form.setError(err instanceof Error ? t(err.message) : t('error_create_plan'));
         } finally {
             form.setSaving(false);
         }

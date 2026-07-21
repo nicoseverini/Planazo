@@ -1,4 +1,5 @@
 import { Alert, Linking, Platform } from 'react-native';
+import i18n from '@/config/i18n';
 
 /**
  * Opens the native Google Maps application (on both Android and iOS)
@@ -27,7 +28,7 @@ export async function openInMaps(latitude: number, longitude: number, label: str
     try {
       await Linking.openURL(webFallbackUrl);
     } catch (fallbackErr) {
-      Alert.alert('Error', 'Could not open maps.');
+      Alert.alert(i18n.t('error'), i18n.t('error_open_maps'));
     }
   }
 }

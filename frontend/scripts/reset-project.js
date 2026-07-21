@@ -94,7 +94,8 @@ const moveDirectories = async (userInput) => {
       }`
     );
   } catch (error) {
-    console.error(`❌ Error during script execution: ${error.message}`);
+    process.stderr.write(`Error during script execution: ${error.message}\n`);
+    process.exit(1);
   }
 };
 
@@ -105,7 +106,7 @@ rl.question(
     if (userInput === "y" || userInput === "n") {
       moveDirectories(userInput).finally(() => rl.close());
     } else {
-      console.log("❌ Invalid input. Please enter 'Y' or 'N'.");
+      console.log("Invalid input. Please enter 'Y' or 'N'.");
       rl.close();
     }
   }

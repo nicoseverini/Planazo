@@ -51,7 +51,7 @@ export function ReviewForm({
                 setComment('');
             }
         } catch (err) {
-            setValidationError(err instanceof Error ? err.message : t('submit_review_failed'));
+            setValidationError(err instanceof Error ? t(err.message) : t('submit_review_failed'));
         }
     };
 

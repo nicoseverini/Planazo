@@ -142,8 +142,6 @@ export async function getPlanMembers(planId: number, accessToken: string): Promi
 // Create a new plan
 export async function createPlan(data: PlanCreateRequest, accessToken: string): Promise<PlanDetail> {
     const url = `${getBackendUrl()}/api/v1/plans`;
-    console.log('[PlanService] Creating plan:', url);
-
     const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -169,8 +167,6 @@ export async function updatePlan(
     accessToken: string
 ): Promise<PlanDetail> {
     const url = `${getBackendUrl()}/api/v1/plans/${id}`;
-    console.log('[PlanService] Updating plan:', url);
-
     const response = await fetch(url, {
         method: 'PATCH',
         headers: {
@@ -192,8 +188,6 @@ export async function updatePlan(
 // Permanently delete a plan and everything that belongs to it
 export async function deletePlan(id: number, accessToken: string): Promise<void> {
     const url = `${getBackendUrl()}/api/v1/plans/${id}`;
-    console.log('[PlanService] Deleting plan:', url);
-
     const response = await fetch(url, {
         method: 'DELETE',
         headers: {
@@ -211,8 +205,6 @@ export async function deletePlan(id: number, accessToken: string): Promise<void>
 
 export async function acceptSubscriber(planId: number, userId: number, accessToken: string): Promise<void> {
     const url = `${getBackendUrl()}/api/v1/plans/${planId}/accept/${userId}`;
-    console.log('[PlanService] Accepting subscriber:', url);
-
     const response = await fetch(url, {
         method: 'PATCH',
         headers: {
@@ -222,21 +214,19 @@ export async function acceptSubscriber(planId: number, userId: number, accessTok
     });
 
     if (!response.ok) {
-        if (response.status === 403) throw new Error('You are not allowed to manage this request.');
-        if (response.status === 404) throw new Error('This join request no longer exists.');
-        if (response.status === 409) throw new Error('This plan has already reached its member limit.');
+        if (response.status === 403) throw new Error('error_manage_request_forbidden');
+        if (response.status === 404) throw new Error('error_join_request_not_found');
+        if (response.status === 409) throw new Error('error_plan_member_limit');
         if (response.status === 410) {
             const errorText = await response.text();
-            throw new Error(errorText || 'This plan has already ended.');
+            throw new Error(errorText || 'error_plan_already_ended');
         }
-        throw new Error('Something went wrong. Please try again.');
+        throw new Error('error_something_went_wrong_try');
     }
 }
 
 export async function rejectSubscriber(planId: number, userId: number, accessToken: string): Promise<void> {
     const url = `${getBackendUrl()}/api/v1/plans/${planId}/reject/${userId}`;
-    console.log('[PlanService] Rejecting subscriber:', url);
-
     const response = await fetch(url, {
         method: 'PATCH',
         headers: {
@@ -246,20 +236,18 @@ export async function rejectSubscriber(planId: number, userId: number, accessTok
     });
 
     if (!response.ok) {
-        if (response.status === 403) throw new Error('You are not allowed to manage this request.');
-        if (response.status === 404) throw new Error('This join request no longer exists.');
+        if (response.status === 403) throw new Error('error_manage_request_forbidden');
+        if (response.status === 404) throw new Error('error_join_request_not_found');
         if (response.status === 410) {
             const errorText = await response.text();
-            throw new Error(errorText || 'This plan has already ended.');
+            throw new Error(errorText || 'error_plan_already_ended');
         }
-        throw new Error('Something went wrong. Please try again.');
+        throw new Error('error_something_went_wrong_try');
     }
 }
 // Organizer removes a member from a plan
 export async function removeMember(planId: number, userId: number, accessToken: string): Promise<void> {
     const url = `${getBackendUrl()}/api/v1/plans/${planId}/members/${userId}`;
-    console.log('[PlanService] Removing member:', url);
-
     const response = await fetch(url, {
         method: 'DELETE',
         headers: { Accept: 'application/json', Authorization: `Bearer ${accessToken}` },
@@ -267,11 +255,11 @@ export async function removeMember(planId: number, userId: number, accessToken: 
 
     if (!response.ok) {
         const errorText = await response.text();
-        if (response.status === 403) throw new Error(errorText || 'Only the organizer can remove members.');
-        if (response.status === 404) throw new Error(errorText || 'This member is no longer part of the activity.');
-        if (response.status === 409) throw new Error(errorText || 'The organizer cannot be removed from the activity.');
-        if (response.status === 410) throw new Error(errorText || 'This activity no longer exists.');
-        throw new Error(errorText || 'Unable to remove the member. Please try again.');
+        if (response.status === 403) throw new Error(errorText || 'error_remove_member_forbidden');
+        if (response.status === 404) throw new Error(errorText || 'error_member_not_found');
+        if (response.status === 409) throw new Error(errorText || 'error_organizer_remove_forbidden');
+        if (response.status === 410) throw new Error(errorText || 'error_activity_not_found');
+        throw new Error(errorText || 'error_remove_member_failed');
     }
 }
 
@@ -285,12 +273,12 @@ export async function joinPlan(planId: number, accessToken: string): Promise<voi
 
     if (!response.ok) {
         const errorText = await response.text();
-        if (response.status === 410) throw new Error(errorText || 'This plan has already ended.');
-        if (response.status === 422) throw new Error(errorText || "You don't meet this plan's age requirements.");
-        if (response.status === 409) throw new Error(errorText || 'You are already a member of this plan, or it is full.');
-        if (response.status === 404) throw new Error(errorText || 'Plan not found.');
-        if (response.status === 403) throw new Error(errorText || 'You are not allowed to join this plan.');
-        throw new Error(errorText || 'Could not process the join request. Please try again.');
+        if (response.status === 410) throw new Error(errorText || 'error_plan_already_ended');
+        if (response.status === 422) throw new Error(errorText || 'error_age_restriction_plan');
+        if (response.status === 409) throw new Error(errorText || 'error_already_member_or_full');
+        if (response.status === 404) throw new Error(errorText || 'error_plan_not_found');
+        if (response.status === 403) throw new Error(errorText || 'error_join_forbidden');
+        throw new Error(errorText || 'error_join_failed');
     }
 }
 
@@ -304,9 +292,9 @@ export async function leavePlan(planId: number, accessToken: string): Promise<vo
 
     if (!response.ok) {
         const errorText = await response.text();
-        if (response.status === 410) throw new Error(errorText || 'This plan has already ended.');
-        if (response.status === 409) throw new Error(errorText || 'You are not a member of this plan.');
-        throw new Error(errorText || 'Could not leave the plan. Please try again.');
+        if (response.status === 410) throw new Error(errorText || 'error_plan_already_ended');
+        if (response.status === 409) throw new Error(errorText || 'error_not_member');
+        throw new Error(errorText || 'error_leave_failed');
     }
 }
 
@@ -361,7 +349,7 @@ export function usePlans() {
         try {
             return await getPublicPlans();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -369,13 +357,13 @@ export function usePlans() {
     }, []);
     const fetchMyCreatedPlans = useCallback(async () => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
             return await getMyCreatedPlans(token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -384,13 +372,13 @@ export function usePlans() {
 
     const fetchMyJoinedPlansButNotMine = useCallback(async () => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
             return await getMyJoinedPlansButNotMine(token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -399,13 +387,13 @@ export function usePlans() {
 
         const fetchMyJoinedPlans = useCallback(async () => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
             return await getMyJoinedPlans(token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -414,13 +402,13 @@ export function usePlans() {
 
     const fetchPlanDetail = useCallback(async (id: number) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
             return await getPlanById(id, token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -429,13 +417,13 @@ export function usePlans() {
 
     const fetchPendingSubscribers = useCallback(async (planId: number) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
             return await getPendingSubscribers(planId, token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -444,13 +432,13 @@ export function usePlans() {
 
     const fetchPlanMembers = useCallback(async (planId: number) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
             return await getPlanMembers(planId, token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -459,13 +447,13 @@ export function usePlans() {
 
     const fetchNearbyPlans = useCallback(async (lat: number, lng: number, radius?: number) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
             return await getNearbyPlans(lat, lng, radius);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'failed to fetch nearby plans');
+            setError(err instanceof Error ? err.message : 'error_fetch_nearby_failed');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -478,7 +466,7 @@ export function usePlans() {
         try {
             return await getFilteredPlans(filters);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -487,13 +475,13 @@ export function usePlans() {
 
     const join = useCallback(async (planId: number) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
             await joinPlan(planId, token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -502,13 +490,13 @@ export function usePlans() {
 
     const leave = useCallback(async (planId: number) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
             await leavePlan(planId, token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -517,13 +505,13 @@ export function usePlans() {
 
     const create = useCallback(async (data: PlanCreateRequest) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
             return await createPlan(data, token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -532,12 +520,12 @@ export function usePlans() {
 
     const update = useCallback(async (id: number, data: PlanUpdateRequest) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {            return await updatePlan(id, data, token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -546,13 +534,13 @@ export function usePlans() {
 
     const remove = useCallback(async (id: number) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
             await deletePlan(id, token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -561,13 +549,13 @@ export function usePlans() {
 
     const accept = useCallback(async (planId: number, userId: number) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
             await acceptSubscriber(planId, userId, token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -576,13 +564,13 @@ export function usePlans() {
 
     const reject = useCallback(async (planId: number, userId: number) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
             await rejectSubscriber(planId, userId, token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);
@@ -591,13 +579,13 @@ export function usePlans() {
 
     const removeMemberFromPlan = useCallback(async (planId: number, userId: number) => {
         const token = getAccessToken();
-        if (!token) throw new Error('No access token');
+        if (!token) throw new Error('error_no_access_token');
         setLoadingCount(c => c + 1);
         setError(null);
         try {
             await removeMember(planId, userId, token);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'error_unknown');
             throw err;
         } finally {
             setLoadingCount(c => c - 1);

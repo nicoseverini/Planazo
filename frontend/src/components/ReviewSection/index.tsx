@@ -96,7 +96,7 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
                             // Reload reviews and stats
                             await loadData();
                         } catch (err) {
-                            Alert.alert(t('error'), err instanceof Error ? err.message : t('error_delete_review'));
+                            Alert.alert(t('error'), err instanceof Error ? t(err.message) : t('error_delete_review'));
                         }
                     },
                 },

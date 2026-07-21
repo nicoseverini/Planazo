@@ -38,8 +38,6 @@ export type UpdateProfileRequest = {
 
 export async function getMyProfile(accessToken: string): Promise<UserProfile> {
   const url = `${getBackendUrl()}/api/v1/users/profile/me`;
-  console.log('[UserService] Fetching profile:', url);
-
   const response = await fetch(url, {
     method: 'GET',
     headers: {
@@ -51,7 +49,7 @@ export async function getMyProfile(accessToken: string): Promise<UserProfile> {
 
   if (!response.ok) {
     const message = await response.text();
-    throw new Error(message || `Failed to fetch profile: ${response.status}`);
+    throw new Error(message || 'error_fetch_profile_failed');
   }
 
   return response.json();
@@ -59,8 +57,6 @@ export async function getMyProfile(accessToken: string): Promise<UserProfile> {
 
 export async function getProfileById(accessToken: string, id: string | number): Promise<UserProfile> {
   const url = `${getBackendUrl()}/api/v1/users/profile/${id}`;
-  console.log('[UserService] Fetching profile by id:', url);
-
   const response = await fetch(url, {
     method: 'GET',
     headers: {
@@ -71,8 +67,8 @@ export async function getProfileById(accessToken: string, id: string | number): 
   });
 
   if (!response.ok) {
-    if (response.status === 404) throw new Error('User not found.');
-    throw new Error('Unable to load this profile.');
+    if (response.status === 404) throw new Error('user_not_found');
+    throw new Error('unable_load_profile');
   }
 
   return response.json();
@@ -80,7 +76,6 @@ export async function getProfileById(accessToken: string, id: string | number): 
 
 export async function fetchMyPicture(accessToken: string): Promise<string | null> {
   const url = `${getBackendUrl()}/api/v1/users/profile/me/picture`;
-  console.log('[UserService] Fetching picture:', url);
 
   try {
     const response = await fetch(url, {
@@ -91,7 +86,6 @@ export async function fetchMyPicture(accessToken: string): Promise<string | null
     });
 
     if (!response.ok) {
-      console.log('[UserService] No profile picture found');
       return null;
     }
 
@@ -106,7 +100,6 @@ export async function fetchMyPicture(accessToken: string): Promise<string | null
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.log('[UserService] Error fetching picture:', error);
     return null;
   }
 }
@@ -116,7 +109,6 @@ export async function updateMyProfile(
     data: UpdateProfileRequest
 ): Promise<UserProfile> {
   const url = `${getBackendUrl()}/api/v1/users/update/me`;
-  console.log('[UserService] Updating profile:', url);
 
   const response = await fetch(url, {
     method: 'PATCH',
@@ -130,7 +122,7 @@ export async function updateMyProfile(
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Failed to update profile: ${errorText}`);
+    throw new Error(errorText || 'error_update_profile_failed');
   }
 
   return response.json();
@@ -141,7 +133,6 @@ export async function updateProfilePicture(
     photo: { uri: string; type: string; name: string }
 ): Promise<void> {
   const url = `${getBackendUrl()}/api/v1/users/update/me/picture`;
-  console.log('[UserService] Updating profile picture:', url);
 
   const formData = new FormData();
   formData.append('photo', photo as unknown as Blob);
@@ -157,13 +148,12 @@ export async function updateProfilePicture(
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Failed to update picture: ${errorText}`);
+    throw new Error(errorText || 'error_update_photo_failed');
   }
 }
 
 export async function deleteMyAccount(accessToken: string): Promise<void> {
   const url = `${getBackendUrl()}/api/v1/users/delete/me`;
-  console.log('[UserService] Deleting account:', url);
 
   const response = await fetch(url, {
     method: 'DELETE',
@@ -175,7 +165,7 @@ export async function deleteMyAccount(accessToken: string): Promise<void> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Failed to delete account: ${errorText}`);
+    throw new Error(errorText || 'error_delete_account_failed');
   }
 }
 
@@ -184,7 +174,6 @@ export async function updatePreferredLanguage(
     preferredLanguage: string
 ): Promise<void> {
   const url = `${getBackendUrl()}/api/v1/users/me/language`;
-  console.log('[UserService] Updating preferred language:', url);
 
   const response = await fetch(url, {
     method: 'PATCH',
@@ -198,7 +187,7 @@ export async function updatePreferredLanguage(
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Failed to update language: ${errorText}`);
+    throw new Error(errorText || 'error_save_language_preferences');
   }
 }
 
@@ -211,43 +200,43 @@ export function useProfile() {
 
   const fetchProfile = async () => {
     const token = getAccessToken();
-    if (!token) throw new Error('No access token');
+    if (!token) throw new Error('error_no_access_token');
     return getMyProfile(token);
   };
 
   const fetchProfileById = async (id: string | number) => {
     const token = getAccessToken();
-    if (!token) throw new Error('No access token');
+    if (!token) throw new Error('error_no_access_token');
     return getProfileById(token, id);
   };
 
   const fetchPicture = async () => {
     const token = getAccessToken();
-    if (!token) throw new Error('No access token');
+    if (!token) throw new Error('error_no_access_token');
     return fetchMyPicture(token);
   };
 
   const updateProfile = async (data: UpdateProfileRequest) => {
     const token = getAccessToken();
-    if (!token) throw new Error('No access token');
+    if (!token) throw new Error('error_no_access_token');
     return updateMyProfile(token, data);
   };
 
   const updatePicture = async (photo: { uri: string; type: string; name: string }) => {
     const token = getAccessToken();
-    if (!token) throw new Error('No access token');
+    if (!token) throw new Error('error_no_access_token');
     return updateProfilePicture(token, photo);
   };
 
   const deleteAccount = async () => {
     const token = getAccessToken();
-    if (!token) throw new Error('No access token');
+    if (!token) throw new Error('error_no_access_token');
     return deleteMyAccount(token);
   };
 
   const updateLanguage = async (preferredLanguage: string) => {
     const token = getAccessToken();
-    if (!token) throw new Error('No access token');
+    if (!token) throw new Error('error_no_access_token');
     return updatePreferredLanguage(token, preferredLanguage);
   };
 

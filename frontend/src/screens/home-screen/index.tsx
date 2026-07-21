@@ -110,7 +110,7 @@ export default function HomeScreen() {
             setMyUserId(Number(decoded.id));
           }
         } catch (e) {
-          Alert.alert(t('error'), t('something_went_wrong'));
+          Alert.alert(t('error'), t('error_session_verification'));
         }
       }
     }
@@ -137,7 +137,7 @@ export default function HomeScreen() {
             await i18n.changeLanguage(userProfile.preferredLanguage);
           }
         } catch (err) {
-          Alert.alert(t('error'), t('something_went_wrong'));
+          Alert.alert(t('error'), t('unable_load_profile'));
         }
 
         // 2. Fetch my joined plans to mark subscribed state
@@ -171,8 +171,7 @@ export default function HomeScreen() {
         try {
           allPublicList = await fetchPublicPlans();
         } catch (err) {
-          // Alert.alert(t('error'), t('something_went_wrong'));
-          console.log(t('error'), t('unable_load_places_try'));
+          // Non-critical: silently skip
         }
 
         // Fetch tourist places only if location is granted
@@ -192,8 +191,7 @@ export default function HomeScreen() {
             });
             setTouristPlaces(sortedByDistance.slice(0, 5));
           } catch (err) {
-            // Alert.alert(t('error'), t('unable_load_places_try'));
-            console.log(t('error'), t('unable_load_places_try'));
+            // Non-critical: silently skip
           }
         } else {
           setTouristPlaces([]);
@@ -213,7 +211,7 @@ export default function HomeScreen() {
               activeCase = 'CASE_1';
               labelKey = 'recommended_near_you';
             } catch (err) {
-              Alert.alert(t('error'), t('something_went_wrong'));
+              Alert.alert(t('error'), t('unable_load_recommendations'));
             }
           }
 
@@ -229,7 +227,7 @@ export default function HomeScreen() {
               activeCase = 'CASE_2';
               labelKey = 'popular_near_you';
             } catch (err) {
-              Alert.alert(t('error'), t('something_went_wrong'));
+              Alert.alert(t('error'), t('unable_load_nearby'));
             }
           }
         } else {
@@ -254,7 +252,7 @@ export default function HomeScreen() {
               activeCase = 'CASE_3';
               labelKey = 'matching_your_interests';
             } catch (err) {
-              Alert.alert(t('error'), t('something_went_wrong'));
+              Alert.alert(t('error'), t('unable_load_interest_plans'));
             }
           }
 
@@ -336,7 +334,7 @@ export default function HomeScreen() {
       setUserCountry(result.country?.toUpperCase() || null);
       setUserCountryCode(result.countryCode || null);
     } catch {
-      Alert.alert(t('error'), t('something_went_wrong'));
+      Alert.alert(t('error'), t('unable_determine_location'));
     }
   };
 
@@ -361,7 +359,7 @@ export default function HomeScreen() {
         await loadData(status, null);
       }
     } catch (err) {
-      Alert.alert(t('error'), t('something_went_wrong'));
+      Alert.alert(t('error'), t('error_loading_recommendations'));
       await loadData(null, null);
     }
   };
@@ -401,7 +399,7 @@ export default function HomeScreen() {
         }
       }
     } catch (err) {
-      Alert.alert(t('error'), t('something_went_wrong'));
+      Alert.alert(t('error'), t('error_location_service'));
     }
   };
 
@@ -426,7 +424,7 @@ export default function HomeScreen() {
       }
       await loadData(status, currentCoords);
     } catch (e) {
-      Alert.alert(t('error'), t('something_went_wrong'));
+      Alert.alert(t('error'), t('unable_refresh_try'));
     } finally {
       setRefreshing(false);
     }
