@@ -10,6 +10,7 @@ public record TouristPlaceSummaryDTO(
         Double cost,
         List<Interest> interests,
         String country,
+        String state,
         String city,
         String address,
         String location,

@@ -28,6 +28,7 @@ export function usePlanForm() {
     const mapRef = useRef<MapView>(null);
     const [isSearchingLoc, setIsSearchingLoc] = useState(false);
     const [country, setCountry] = useState('');
+    const [state, setState] = useState('');
     const [city, setCity] = useState('');
     const [address, setAddress] = useState('');
     const [isFetchingAddress, setIsFetchingAddress] = useState(false);
@@ -72,13 +73,14 @@ export function usePlanForm() {
     };
 
     const handleSearchAddress = async () => {
-        const query = [address.trim(), city.trim(), country.trim()].filter(Boolean).join(', ');
+        const query = [address.trim(), city.trim(), state.trim(), country.trim()].filter(Boolean).join(', ');
         if (!query) return;
         setIsSearchingLoc(true);
         try {
             const { latitude, longitude } = await geocode(query);
             setPinLocation({ latitude, longitude });
             mapRef.current?.animateToRegion({ latitude, longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 }, 1000);
+            if (!state.trim() && city.trim()) setState(city.trim());
         } catch (err) {
             Alert.alert(t('not_found'), err instanceof Error ? err.message : t('error_search_address'));
         } finally {
@@ -92,7 +94,9 @@ export function usePlanForm() {
         try {
             const result = await reverse(coordinate);
             if (result.country) setCountry(result.country);
-            setCity(result.city || '');
+            const resolvedCity = result.city || '';
+            setCity(resolvedCity);
+            setState(result.state || resolvedCity);
             let streetAddress = '';
             if (result.street) {
                 streetAddress = result.street;
@@ -177,6 +181,7 @@ export function usePlanForm() {
         endTime, setEndTime,
         isSearchingLoc,
         country, setCountry,
+        state, setState,
         city, setCity,
         address, setAddress,
         isFetchingAddress,

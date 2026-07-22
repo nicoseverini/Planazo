@@ -439,5 +439,6 @@
   "error_open_maps": "No se pudo abrir el mapa.",
   "unexpected_auth_error": "Ocurrió un error inesperado al iniciar sesión.",
   "unexpected_error": "Ocurrió un error inesperado. Intenta de nuevo.",
-  "error_session_verification": "No se pudo verificar tu sesión."
+  "error_session_verification": "No se pudo verificar tu sesión.",
+  "label_state": "Estado / Provincia"
 }

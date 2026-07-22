@@ -34,6 +34,7 @@ export default function EditPlanScreen() {
                 form.setTitle(plan.title || '');
                 form.setDescription(plan.description || '');
                 form.setCountry(plan.country || '');
+                form.setState(plan.state || '');
                 form.setCity(plan.city || '');
                 form.setAddress(plan.address || plan.location || '');
                 form.setIsPublic(plan.visibility === 'PUBLIC');
@@ -101,7 +102,7 @@ export default function EditPlanScreen() {
             let finalLng = form.pinLocation?.longitude;
 
             if (!finalLat || !finalLng) {
-                const query = [form.address.trim(), form.city.trim(), form.country.trim()].filter(Boolean).join(', ');
+                const query = [form.address.trim(), form.city.trim(), form.state.trim() || undefined, form.country.trim()].filter(Boolean).join(', ');
                 const geocoded = await geocode(query);
                 finalLat = geocoded.latitude;
                 finalLng = geocoded.longitude;
@@ -123,6 +124,7 @@ export default function EditPlanScreen() {
                 maxAge: parseAge(form.maxAge),
                 interests: mappedInterests,
                 country: form.country.trim(),
+                state: form.state.trim(),
                 city: form.city.trim(),
                 address: form.address.trim(),
                 images: form.images.length > 0 ? form.images : undefined,

@@ -38,7 +38,7 @@ export default function CreatePlanScreen() {
             let finalLng = form.pinLocation?.longitude;
 
             if (!finalLat || !finalLng) {
-                const query = [form.address.trim(), form.city.trim(), form.country.trim()].filter(Boolean).join(', ');
+                const query = [form.address.trim(), form.city.trim(), form.state.trim(), form.country.trim()].filter(Boolean).join(', ');
                 const geocoded = await geocode(query);
                 finalLat = geocoded.latitude;
                 finalLng = geocoded.longitude;
@@ -60,6 +60,7 @@ export default function CreatePlanScreen() {
                 maxAge: parseAge(form.maxAge),
                 interests: mappedInterests,
                 country: form.country.trim(),
+                state: form.state.trim(),
                 city: form.city.trim(),
                 address: form.address.trim(),
                 images: form.images.length > 0 ? form.images : undefined,

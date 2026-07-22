@@ -35,6 +35,7 @@ export type TouristPlaceFormValues = {
     maxAge: string;
     interests: Interest[];
     country: string;
+    state: string;
     city: string;
     address: string;
     latitude: string;
@@ -50,6 +51,7 @@ export const DEFAULT_FORM_VALUES: TouristPlaceFormValues = {
     maxAge: '',
     interests: [],
     country: '',
+    state: '',
     city: '',
     address: '',
     latitude: '',
@@ -94,6 +96,7 @@ export default function TouristPlaceFormScreen({
     const [maxAge, setMaxAge] = useState(initialValues.maxAge);
     const [interests, setInterests] = useState<Interest[]>(initialValues.interests);
     const [country, setCountry] = useState(initialValues.country);
+    const [state, setState] = useState(initialValues.state);
     const [city, setCity] = useState(initialValues.city);
     const [address, setAddress] = useState(initialValues.address);
     const [latitude, setLatitude] = useState(initialValues.latitude);
@@ -139,7 +142,7 @@ export default function TouristPlaceFormScreen({
     };
 
     const handleSearchAddress = async () => {
-        const searchTerm = [address, city, country].filter(Boolean).join(', ').trim();
+        const searchTerm = [address, city, state, country].filter(Boolean).join(', ').trim();
         if (!searchTerm) return;
         setIsSearchingLoc(true);
         try {
@@ -163,7 +166,9 @@ export default function TouristPlaceFormScreen({
         try {
             const addr = await reverse(coordinate);
             if (addr.country) setCountry(addr.country);
-            if (addr.city) setCity(addr.city);
+            const resolvedCity = addr.city || '';
+            setCity(resolvedCity);
+            setState(addr.state || resolvedCity);
             let resolvedAddress = '';
             if (addr.street) {
                 resolvedAddress = addr.street;
@@ -227,6 +232,7 @@ export default function TouristPlaceFormScreen({
                 minAge: parseAge(minAge),
                 maxAge: parseAge(maxAge),
                 country: country.trim(),
+                state: state.trim() || undefined,
                 city: city.trim(),
                 address: address.trim(),
                 latitude: parsedLat && !isNaN(parsedLat) ? parsedLat : undefined,
@@ -352,6 +358,18 @@ export default function TouristPlaceFormScreen({
                     value={country}
                     onChangeText={setCountry}
                     placeholder="e.g. Argentina"
+                    placeholderTextColor={mutedText}
+                    style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
+                />
+            </View>
+
+            {/* State */}
+            <View style={styles.inputGroup}>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_state')} *</ThemedText>
+                <TextInput
+                    value={state}
+                    onChangeText={setState}
+                    placeholder="e.g. Buenos Aires"
                     placeholderTextColor={mutedText}
                     style={[styles.input, { backgroundColor: surface, borderColor: border, color: text }]}
                 />

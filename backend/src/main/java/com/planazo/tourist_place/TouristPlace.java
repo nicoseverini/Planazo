@@ -51,6 +51,9 @@ public class TouristPlace {
     private String country;
 
     @Column
+    private String state;
+
+    @Column
     private String city;
 
     @Column(name = "address_line")
@@ -76,14 +79,14 @@ public class TouristPlace {
 
     public TouristPlace(String name, Double cost, Integer minAge, Integer maxAge,
                          List<Interest> interests,
-                         String country, String city, String address,
+                         String country, String state, String city, String address,
                          Double latitude, Double longitude, List<String> images) {
         this.name = name;
         this.cost = cost;
         this.minAge = minAge;
         this.maxAge = maxAge;
         this.interests = interests == null ? new ArrayList<>() : new ArrayList<>(interests);
-        setLocationParts(country, city, address);
+        setLocationParts(country, state, city, address);
         this.latitude = latitude;
         this.longitude = longitude;
         this.images = images == null ? new ArrayList<>() : new ArrayList<>(images);
@@ -112,12 +115,14 @@ public class TouristPlace {
     public void setDescription(String description) { this.description = description; }
 
     public String getCountry() { return country; }
+    public String getState() { return state; }
     public String getCity() { return city; }
     public String getAddress() { return address; }
     public String getLocation() { return location; }
 
-    public void setLocationParts(String country, String city, String address) {
+    public void setLocationParts(String country, String state, String city, String address) {
         this.country = country != null ? country.trim() : null;
+        this.state = state != null ? state.trim() : null;
         this.city    = city    != null ? city.trim()    : null;
         this.address = address != null ? address.trim() : null;
         StringBuilder derived = new StringBuilder();
@@ -125,6 +130,10 @@ public class TouristPlace {
         if (this.city != null && !this.city.isBlank()) {
             if (derived.length() > 0) derived.append(", ");
             derived.append(this.city);
+        }
+        if (this.state != null && !this.state.isBlank()) {
+            if (derived.length() > 0) derived.append(", ");
+            derived.append(this.state);
         }
         if (this.country != null && !this.country.isBlank()) {
             if (derived.length() > 0) derived.append(", ");

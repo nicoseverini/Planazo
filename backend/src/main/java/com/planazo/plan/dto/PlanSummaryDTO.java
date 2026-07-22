@@ -18,6 +18,8 @@ public record PlanSummaryDTO(
 
         String country,
 
+        String state,
+
         String city,
 
         String address,

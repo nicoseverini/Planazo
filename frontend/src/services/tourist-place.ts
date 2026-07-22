@@ -12,6 +12,7 @@ export type TouristPlaceSummary = {
     cost: number | null;
     interests: Interest[];
     country: string | null;
+    state: string | null;
     city: string | null;
     address: string | null;
     location: string | null;
@@ -34,6 +35,7 @@ export type TouristPlaceCreateRequest = {
     maxAge?: number;
     interests: Interest[];
     country: string;
+    state: string;
     city: string;
     address: string;
     latitude?: number;

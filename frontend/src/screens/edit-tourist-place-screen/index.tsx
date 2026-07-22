@@ -17,6 +17,7 @@ function toFormValues(place: TouristPlaceDetail): TouristPlaceFormValues {
         maxAge: place.maxAge?.toString() ?? '',
         interests: place.interests ?? [],
         country: place.country ?? '',
+        state: place.state ?? '',
         city: place.city ?? '',
         address: place.address ?? place.location ?? '',
         latitude: place.latitude?.toString() ?? '-34.6037',

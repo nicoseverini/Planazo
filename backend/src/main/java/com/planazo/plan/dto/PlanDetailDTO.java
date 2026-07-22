@@ -34,6 +34,8 @@ public record PlanDetailDTO(
 
         String country,
 
+        String state,
+
         String city,
 
         String address,

@@ -35,6 +35,9 @@ public record TouristPlaceCreateDTO(
         @Size(max = 100, message = "Country must be 100 characters or less.")
         String country,
 
+        @Size(max = 100, message = "State must be 100 characters or less.")
+        String state,
+
         @NotBlank(message = "City is required.")
         @Size(max = 100, message = "City must be 100 characters or less.")
         String city,

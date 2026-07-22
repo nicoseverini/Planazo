@@ -80,6 +80,7 @@ public class PlanService {
                 normalizedMax,
                 data.interests(),
                 data.country().trim(),
+                data.state() != null ? data.state().trim() : null,
                 data.city().trim(),
                 data.address().trim(),
                 data.latitude(),
@@ -415,6 +416,7 @@ public class PlanService {
         boolean hasNewLocationParts = data.country() != null || data.city() != null || data.address() != null;
         if (hasNewLocationParts) {
             String newCountry = data.country() != null ? data.country().trim() : plan.getCountry();
+            String newState   = data.state()   != null ? data.state().trim()   : plan.getState();
             String newCity    = data.city()    != null ? data.city().trim()    : plan.getCity();
             String newAddress = data.address() != null ? data.address().trim() : plan.getAddress();
             if (newCountry == null || newCountry.isBlank())
@@ -423,7 +425,7 @@ public class PlanService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "City is required.");
             if (newAddress == null || newAddress.isBlank())
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Address is required.");
-            plan.setLocationParts(newCountry, newCity, newAddress);
+            plan.setLocationParts(newCountry, newState, newCity, newAddress);
         } else if (data.location() != null) {
             plan.setLocation(data.location());
         }
@@ -540,6 +542,7 @@ public class PlanService {
                 List.copyOf(plan.getInterests()),
                 plan.getLocation(),
                 plan.getCountry(),
+                plan.getState(),
                 plan.getCity(),
                 plan.getAddress(),
                 plan.getLatitude(),
@@ -565,6 +568,7 @@ public class PlanService {
                 plan.getStartDateTime().atOffset(ZoneOffset.UTC),
                 plan.getLocation(),
                 plan.getCountry(),
+                plan.getState(),
                 plan.getCity(),
                 plan.getAddress(),
                 plan.getLatitude(),

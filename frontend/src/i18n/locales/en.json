@@ -439,5 +439,6 @@
   "error_open_maps": "Could not open maps.",
   "unexpected_auth_error": "An unexpected error occurred while signing in.",
   "unexpected_error": "An unexpected error occurred. Please try again.",
-  "error_session_verification": "Could not verify your session."
+  "error_session_verification": "Could not verify your session.",
+  "label_state": "State / Province"
 }

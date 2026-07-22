@@ -58,6 +58,9 @@ public class Plan {
     private String country;
 
     @Column
+    private String state;
+
+    @Column
     private String city;
 
     @Column(name = "address_line")
@@ -99,7 +102,7 @@ public class Plan {
 
     public Plan(String title, String description, LocalDateTime startDateTime, LocalDateTime endDateTime,
                 PlanVisibility visibility, Integer maxSubscribers, Integer minAge, Integer maxAge,
-                List<Interest> interests, String country, String city, String address,
+                List<Interest> interests, String country, String state, String city, String address,
                 Double latitude, Double longitude, List<String> images, User creator, String timezone) {
         this.title = title;
         this.description = description;
@@ -111,7 +114,7 @@ public class Plan {
         this.minAge = minAge;
         this.maxAge = maxAge;
         this.interests = interests == null ? new ArrayList<>() : new ArrayList<>(interests);
-        setLocationParts(country, city, address);
+        setLocationParts(country, state, city, address);
         this.latitude = latitude;
         this.longitude = longitude;
         this.images = images == null ? new ArrayList<>() : new ArrayList<>(images);
@@ -151,6 +154,8 @@ public class Plan {
     }
     public String getCountry() { return country; }
     public void setCountry(String country) { this.country = country; }
+    public String getState() { return state; }
+    public void setState(String state) { this.state = state; }
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }
     public String getAddress() { return address; }
@@ -158,8 +163,9 @@ public class Plan {
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
 
-    public void setLocationParts(String country, String city, String address) {
+    public void setLocationParts(String country, String state, String city, String address) {
         this.country = country != null ? country.trim() : null;
+        this.state = state != null ? state.trim() : null;
         this.city = city != null ? city.trim() : null;
         this.address = address != null ? address.trim() : null;
         StringBuilder derived = new StringBuilder();
@@ -167,6 +173,10 @@ public class Plan {
         if (this.city != null && !this.city.isBlank()) {
             if (derived.length() > 0) derived.append(", ");
             derived.append(this.city);
+        }
+        if (this.state != null && !this.state.isBlank()) {
+            if (derived.length() > 0) derived.append(", ");
+            derived.append(this.state);
         }
         if (this.country != null && !this.country.isBlank()) {
             if (derived.length() > 0) derived.append(", ");

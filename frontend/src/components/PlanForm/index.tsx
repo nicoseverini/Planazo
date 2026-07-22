@@ -47,6 +47,7 @@ export function PlanForm({
     endDate, setEndDate, endTime, setEndTime,
     isSearchingLoc,
     country, setCountry,
+    state, setState,
     city, setCity,
     address, setAddress,
     pinLocation,
@@ -257,6 +258,14 @@ export function PlanForm({
                     value={country}
                     onChangeText={setCountry}
                     placeholder="e.g. Argentina"
+                    placeholderTextColor={mutedText}
+                    style={[styles.input, { marginTop: 0, marginBottom: 12, backgroundColor: surface, borderColor: border, color: text }]}
+                />
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_state')} *</ThemedText>
+                <TextInput
+                    value={state}
+                    onChangeText={setState}
+                    placeholder="e.g. Buenos Aires"
                     placeholderTextColor={mutedText}
                     style={[styles.input, { marginTop: 0, marginBottom: 12, backgroundColor: surface, borderColor: border, color: text }]}
                 />

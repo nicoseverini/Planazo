@@ -52,6 +52,7 @@ public class TouristPlaceService {
                 normalizedMax,
                 data.interests(),
                 data.country().trim(),
+                data.state() != null ? data.state().trim() : null,
                 data.city().trim(),
                 data.address().trim(),
                 data.latitude(),
@@ -159,6 +160,7 @@ public class TouristPlaceService {
         boolean hasNewLocationParts = data.country() != null || data.city() != null || data.address() != null;
         if (hasNewLocationParts) {
             String newCountry = data.country() != null ? data.country().trim() : place.getCountry();
+            String newState   = data.state()   != null ? data.state().trim()   : place.getState();
             String newCity    = data.city()    != null ? data.city().trim()    : place.getCity();
             String newAddress = data.address() != null ? data.address().trim() : place.getAddress();
             if (newCountry == null || newCountry.isBlank())
@@ -167,7 +169,7 @@ public class TouristPlaceService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "City is required.");
             if (newAddress == null || newAddress.isBlank())
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Address is required.");
-            place.setLocationParts(newCountry, newCity, newAddress);
+            place.setLocationParts(newCountry, newState, newCity, newAddress);
         }
 
         if (data.latitude()  != null) place.setLatitude(data.latitude());
@@ -191,6 +193,7 @@ public class TouristPlaceService {
                 place.getMaxAge(),
                 List.copyOf(place.getInterests()),
                 place.getCountry(),
+                place.getState(),
                 place.getCity(),
                 place.getAddress(),
                 place.getLocation(),
@@ -209,6 +212,7 @@ public class TouristPlaceService {
                 place.getCost(),
                 List.copyOf(place.getInterests()),
                 place.getCountry(),
+                place.getState(),
                 place.getCity(),
                 place.getAddress(),
                 place.getLocation(),

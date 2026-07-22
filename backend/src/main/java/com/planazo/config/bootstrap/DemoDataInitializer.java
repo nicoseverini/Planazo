@@ -160,61 +160,61 @@ public class DemoDataInitializer {
         User seba = team.get(0), marcos = team.get(1), rocio = team.get(2), bryan = team.get(3), emanuel = team.get(4);
 
         TouristPlace obelisco = place(seba, "Obelisco de Buenos Aires", 0.0, null, null,
-                List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "Buenos Aires", "Av. 9 de Julio s/n",
+                List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "CABA", "Buenos Aires", "Av. 9 de Julio s/n",
                 -34.6037, -58.3816,
                 "The 67-metre obelisk on Avenida 9 de Julio is the city's most recognisable landmark. The plaza around it fills up after every big football win — go early if you want a clean photo.",
                 List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782396911/Buenos_Aires__20234294752_etpxl1.jpg")  );
 
         TouristPlace iguazu = place(marcos, "Cataratas del Iguazú", 35.0, 6, null,
-                List.of(Interest.NATURE, Interest.ADVENTURE), "Argentina", "Puerto Iguazú", "Parque Nacional Iguazú",
+                List.of(Interest.NATURE, Interest.ADVENTURE), "Argentina", "Misiones", "Puerto Iguazú", "Parque Nacional Iguazú",
                 -25.6953, -54.4367,
                 "A system of 275 waterfalls on the border with Brazil. The Garganta del Diablo walkway puts you right at the edge of the roar — bring a poncho, you will get soaked.",
                 List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782399643/images_pgv3sy.jpg"));
 
         TouristPlace peritoMoreno = place(marcos, "Glaciar Perito Moreno", 45.0, null, null,
-                List.of(Interest.NATURE, Interest.MOUNTAINS), "Argentina", "El Calafate", "Parque Nacional Los Glaciares",
+                List.of(Interest.NATURE, Interest.MOUNTAINS), "Argentina", "Santa Cruz", "El Calafate", "Parque Nacional Los Glaciares",
                 -50.4967, -73.1377,
                 "One of the few advancing glaciers in the world. From the balconies you can hear blocks of ice crack and collapse into the lake. Dress for wind even in summer.",
                 List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782399743/minitrekking-glaciar-el-calafate-1_zm9e11.jpg"));
 
         TouristPlace caminito = place(rocio, "Caminito, La Boca", 0.0, null, null,
-                List.of(Interest.CULTURE, Interest.HISTORY, Interest.SHOPPING), "Argentina", "Buenos Aires", "Caminito, La Boca",
+                List.of(Interest.CULTURE, Interest.HISTORY, Interest.SHOPPING), "Argentina", "CABA", "Buenos Aires", "Caminito, La Boca",
                 -34.6395, -58.3625,
                 "A short, colourful street museum in La Boca with tango dancers and corrugated-metal houses painted every colour imaginable. Touristy but genuinely fun in the afternoon.",
                 List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782399798/caminito_q1vb1i.jpg"));
 
         TouristPlace aconcagua = place(bryan, "Cerro Aconcagua", 50.0, 16, null,
-                List.of(Interest.MOUNTAINS, Interest.ADVENTURE, Interest.SPORTS), "Argentina", "Mendoza", "Parque Provincial Aconcagua",
+                List.of(Interest.MOUNTAINS, Interest.ADVENTURE, Interest.SPORTS), "Argentina", "Mendoza", "Mendoza", "Parque Provincial Aconcagua",
                 -32.6533, -70.0109,
                 "The highest peak in the Americas at 6,961 m. You don't need to summit — the entrance trails to Laguna de Horcones give you the views without the altitude permit.",
                 List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782399840/cerro_imad6o.jpg"));
 
         TouristPlace bodega = place(rocio, "Bodega en Luján de Cuyo", 28.0, 18, null,
-                List.of(Interest.FOOD, Interest.CULTURE), "Argentina", "Mendoza", "Luján de Cuyo",
+                List.of(Interest.FOOD, Interest.CULTURE), "Argentina", "Mendoza", "Luján de Cuyo", "Ruta del Vino",
                 -33.0386, -68.8794,
                 "Classic Malbec country at the foot of the Andes. Most wineries offer a guided tour plus a three-glass tasting; book the lunch pairing if you can, it is worth the extra.",
                 List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782409099/bodega_l_xv2plk.jpg"));
 
         TouristPlace catedral = place(bryan, "Cerro Catedral, Bariloche", 60.0, null, null,
-                List.of(Interest.MOUNTAINS, Interest.SPORTS, Interest.NATURE), "Argentina", "San Carlos de Bariloche", "Cerro Catedral",
+                List.of(Interest.MOUNTAINS, Interest.SPORTS, Interest.NATURE), "Argentina", "Río Negro", "San Carlos de Bariloche", "Cerro Catedral",
                 -41.1667, -71.4333,
                 "The largest ski resort in South America in winter, and a great hiking and chairlift spot the rest of the year. The view over Lago Gutiérrez from the top is the postcard everyone takes.",
                 List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782399889/bodegalujan_rlyejf.jpg"));
 
         TouristPlace humahuaca = place(emanuel, "Quebrada de Humahuaca", 10.0, null, null,
-                List.of(Interest.NATURE, Interest.HISTORY, Interest.CULTURE), "Argentina", "Jujuy", "Purmamarca",
+                List.of(Interest.NATURE, Interest.HISTORY, Interest.CULTURE), "Argentina", "Jujuy", "Purmamarca", "Ruta 9",
                 -23.7450, -65.5000,
                 "A UNESCO valley of layered, multicoloured rock. The Cerro de los Siete Colores above Purmamarca glows best in the early morning light, before the tour buses arrive.",
                 List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782399933/cerrocatedra_jyugze.jpg"));
 
         TouristPlace colon = place(rocio, "Teatro Colón", 22.0, null, null,
-                List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "Buenos Aires", "Cerrito 628",
+                List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "CABA", "Buenos Aires", "Cerrito 628",
                 -34.6010, -58.3835,
                 "One of the world's great opera houses, with acoustics musicians rave about. The guided backstage tour is excellent even if you don't catch a performance.",
                 List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782399973/6f_otbjj9.jpg"));
 
         TouristPlace ischigualasto = place(emanuel, "Valle de la Luna (Ischigualasto)", 30.0, null, null,
-                List.of(Interest.NATURE, Interest.ADVENTURE), "Argentina", "San Juan", "Parque Provincial Ischigualasto",
+                List.of(Interest.NATURE, Interest.ADVENTURE), "Argentina", "San Juan", "San Juan", "Parque Provincial Ischigualasto",
                 -29.9000, -67.8333,
                 "A desert moonscape of wind-carved rock and one of the richest dinosaur fossil sites on Earth. Go for the full-moon night tour if the dates line up — it is unforgettable.",
                 List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782400016/valledelaluna_c0wygm.jpg"));
@@ -224,10 +224,10 @@ public class DemoDataInitializer {
     }
 
     private TouristPlace place(User creator, String name, Double cost, Integer minAge, Integer maxAge,
-                                List<Interest> interests, String country, String city, String address,
+                                List<Interest> interests, String country, String state, String city, String address,
                                 double lat, double lng, String description, List<String> images) {
         TouristPlace place = new TouristPlace(name, cost, minAge, maxAge, interests,
-                country, city, address, lat, lng, images);
+                country, state, city, address, lat, lng, images);
         place.setDescription(description);
         place.setCreator(creator);
         return touristPlaceRepository.save(place);
@@ -247,7 +247,7 @@ public class DemoDataInitializer {
         Plan p1 = plan(seba, "Asado y fútbol en Palermo",
                 "Casual Sunday asado before the Boca match. Bring something to share — we cover the meat and the fire.",
                 dt(2026, 7, 12, 13, 0), dt(2026, 7, 12, 19, 0), PlanVisibility.PUBLIC, 20, 18, null,
-                List.of(Interest.FOOD, Interest.SPORTS), "Argentina", "Buenos Aires", "Parque Tres de Febrero, Palermo",
+                List.of(Interest.FOOD, Interest.SPORTS), "Argentina", "CABA", "Buenos Aires", "Parque Tres de Febrero, Palermo",
                 -34.5711, -58.4173, 8000.0, List.of(marcos, bryan, emanuel), 
                 List.of(
                     "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410450/Gemini_Generated_Image_osoyo4osoyo4osoy_pyaqsr.png",
@@ -258,7 +258,7 @@ public class DemoDataInitializer {
         Plan p2 = plan(marcos, "Trekking a la Laguna de los Tres",
                 "Full-day hike to the base of Mount Fitz Roy. Moderate-to-hard, ~10h round trip. Decent boots required.",
                 dt(2026, 8, 9, 6, 30), dt(2026, 8, 9, 18, 0), PlanVisibility.PUBLIC, 12, 16, null,
-                List.of(Interest.NATURE, Interest.MOUNTAINS, Interest.ADVENTURE), "Argentina", "El Chaltén", "Sendero Laguna de los Tres",
+                List.of(Interest.NATURE, Interest.MOUNTAINS, Interest.ADVENTURE), "Argentina", "Santa Cruz", "El Chaltén", "Sendero Laguna de los Tres",
                 -49.3300, -72.8860, 15000.0, List.of(bryan, emanuel), 
                 List.of(
                     "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410624/p2_xxf27b.jpg",
@@ -269,7 +269,7 @@ public class DemoDataInitializer {
         Plan p3 = plan(rocio, "Noche de ópera en el Colón",
                 "We grabbed a block of seats for the season's Traviata. Smart-casual dress, dinner nearby afterwards.",
                 dt(2026, 9, 3, 20, 0), dt(2026, 9, 3, 23, 30), PlanVisibility.PUBLIC, 8, 18, null,
-                List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "Buenos Aires", "Teatro Colón, Cerrito 628",
+                List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "CABA", "Buenos Aires", "Teatro Colón, Cerrito 628",
                 -34.6010, -58.3835, 22000.0, List.of(seba, emanuel), 
                 List.of(
                     "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410796/colon2_nrvsao.jpg",
@@ -280,7 +280,7 @@ public class DemoDataInitializer {
         Plan p4 = plan(bryan, "Día de ski en Cerro Catedral",
                 "Mid-week ski day to dodge the crowds. Carpooling from Bariloche centre at 8am. All levels welcome.",
                 dt(2026, 7, 22, 8, 0), dt(2026, 7, 22, 17, 0), PlanVisibility.PUBLIC, 16, null, null,
-                List.of(Interest.SPORTS, Interest.MOUNTAINS), "Argentina", "San Carlos de Bariloche", "Cerro Catedral",
+                List.of(Interest.SPORTS, Interest.MOUNTAINS), "Argentina", "Río Negro", "San Carlos de Bariloche", "Cerro Catedral",
                 -41.1667, -71.4333, 45000.0, List.of(marcos, seba), 
                 List.of(
                     "https://res.cloudinary.com/p5hffsjm/image/upload/v1782410903/dia-de-ski-en-cerro-catedral_47796_202507071715330_f2ekwe.jpg",
@@ -291,7 +291,7 @@ public class DemoDataInitializer {
         Plan p5 = plan(emanuel, "Tour de bodegas en Mendoza",
                 "Three wineries in Luján de Cuyo with a long lunch in the middle. We split a driver so everyone can taste.",
                 dt(2026, 10, 4, 10, 0), dt(2026, 10, 4, 18, 0), PlanVisibility.PUBLIC, 10, 18, null,
-                List.of(Interest.FOOD, Interest.CULTURE), "Argentina", "Mendoza", "Luján de Cuyo",
+                List.of(Interest.FOOD, Interest.CULTURE), "Argentina", "Mendoza", "Mendoza", "Luján de Cuyo",
                 -33.0386, -68.8794, 30000.0, List.of(seba, rocio), 
                 List.of(
                     "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411005/df_nrtp3a.jpg",
@@ -303,7 +303,7 @@ public class DemoDataInitializer {
         Plan p6 = plan(seba, "Recorrida foodie en San Telmo",
                 "Sunday market crawl: empanadas, choripán, and the best dulce de leche stalls. Cash helps at the fair.",
                 dt(2026, 7, 19, 11, 0), dt(2026, 7, 19, 16, 0), PlanVisibility.PUBLIC, 15, null, null,
-                List.of(Interest.FOOD, Interest.CULTURE, Interest.SHOPPING), "Argentina", "Buenos Aires", "Feria de San Telmo, Defensa 900",
+                List.of(Interest.FOOD, Interest.CULTURE, Interest.SHOPPING), "Argentina", "CABA", "Buenos Aires", "Feria de San Telmo, Defensa 900",
                 -34.6208, -58.3735, 12000.0, List.of(rocio, emanuel, marcos), 
                 List.of(
                     "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411091/p3_vzgyfj.jpg",
@@ -313,7 +313,7 @@ public class DemoDataInitializer {
         Plan p7 = plan(marcos, "Avistaje y caminata en Iguazú",
                 "Two days at the falls: Argentine side on day one, the boat under the falls on day two. Ponchos provided.",
                 dt(2026, 9, 19, 9, 0), dt(2026, 9, 20, 17, 0), PlanVisibility.PUBLIC, 14, 8, null,
-                List.of(Interest.NATURE, Interest.ADVENTURE), "Argentina", "Puerto Iguazú", "Parque Nacional Iguazú",
+                List.of(Interest.NATURE, Interest.ADVENTURE), "Argentina", "Misiones", "Puerto Iguazú", "Parque Nacional Iguazú",
                 -25.6953, -54.4367, 38000.0, List.of(emanuel, bryan), 
                 List.of(
                     "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411175/ig_pbmouj.jpg",
@@ -325,7 +325,7 @@ public class DemoDataInitializer {
         Plan p8 = plan(rocio, "Tarde de tango en La Boca",
                 "Caminito stroll, a milonga lesson for total beginners, and coffee with a view of the river.",
                 dt(2026, 8, 16, 15, 0), dt(2026, 8, 16, 20, 0), PlanVisibility.PUBLIC, 18, null, null,
-                List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "Buenos Aires", "Caminito, La Boca",
+                List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "CABA", "Buenos Aires", "Caminito, La Boca",
                 -34.6395, -58.3625, 9000.0, List.of(seba, emanuel), 
                 List.of(
                     "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411275/tang_izmyga.jpg",
@@ -335,7 +335,7 @@ public class DemoDataInitializer {
         Plan p9 = plan(bryan, "Escapada de surf a Mar del Plata",
                 "Weekend of beginner surf lessons and beach volley. Boards and wetsuits rented on site.",
                 dt(2026, 11, 7, 9, 0), dt(2026, 11, 8, 18, 0), PlanVisibility.PUBLIC, 12, 16, 45,
-                List.of(Interest.BEACH, Interest.SPORTS, Interest.ADVENTURE), "Argentina", "Mar del Plata", "Playa Grande",
+                List.of(Interest.BEACH, Interest.SPORTS, Interest.ADVENTURE), "Argentina", "Buenos Aires", "Mar del Plata", "Playa Grande",
                 -38.0500, -57.5300, 26000.0, List.of(seba, marcos),
                  List.of(
                     "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411346/123_qjemzs.jpg",
@@ -346,18 +346,19 @@ public class DemoDataInitializer {
         Plan p10 = plan(emanuel, "Amanecer en Purmamarca",
                 "Early start to catch the Cerro de los Siete Colores at sunrise, then a slow breakfast in the village.",
                 dt(2026, 10, 25, 6, 0), dt(2026, 10, 25, 11, 0), PlanVisibility.PRIVATE, 8, null, null,
-                List.of(Interest.NATURE, Interest.HISTORY), "Argentina", "Purmamarca", "Cerro de los Siete Colores",
+                List.of(Interest.NATURE, Interest.HISTORY), "Argentina", "Jujuy", "Purmamarca", "Cerro de los Siete Colores",
                 -23.7450, -65.5000, 7000.0, List.of(marcos, rocio), 
                 List.of(
                     "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411449/p10_advyub.jpg",
                     "https://res.cloudinary.com/p5hffsjm/image/upload/v1782411452/p102_arrjnv.jpg"
                 ));
+
         Plan p11 = plan(allUsers.get(rng.nextInt(allUsers.size())), 
         "Recorrida de tiendas en Buenos Aires",
             "A friendly get-together to enjoy Mercado de San Telmo without rushing.",
             dt(2026, 7, 12, 11, 0), dt(2026, 7, 12, 16, 0),
             PlanVisibility.PRIVATE, 30, null, 5000,
-            List.of(), "Argentina", "Buenos Aires",
+            List.of(), "Argentina", "CABA", "Buenos Aires",
             "Mercado de San Telmo",
             -34.6206, -58.3716, 300,
             List.of(marcos, rocio),
@@ -368,7 +369,7 @@ public class DemoDataInitializer {
                 "Group plan at Usina del Arte; bring good vibes and comfy shoes.",
                 dt(2026, 7, 13, 12, 0), dt(2026, 11, 02, 18, 0),
                 PlanVisibility.PUBLIC, 35, null, 7500,
-                List.of(), "Argentina", "Buenos Aires",
+                List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Usina del Arte",
                 -34.6286, -58.3568, 360,
                 List.of(seba),
@@ -383,7 +384,7 @@ public class DemoDataInitializer {
                 "Discovering Reserva Ecológica Costanera Sur together and grabbing a bite nearby afterwards.",
                 dt(2026, 7, 14, 13, 0), dt(2026, 7, 14, 16, 0),
                 PlanVisibility.PUBLIC, 10, 18, 10000,
-                List.of(), "Argentina", "Buenos Aires",
+                List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Reserva Ecológica Costanera Sur",
                 -34.612, -58.35, 180,
                 List.of(seba, marcos),
@@ -396,7 +397,7 @@ public class DemoDataInitializer {
                 "A friendly get-together to enjoy Centro Cultural Kirchner without rushing.",
                 dt(2026, 7, 15, 14, 0), dt(2026, 7, 15, 18, 0),
                 PlanVisibility.PUBLIC, 15, null, 12500,
-                List.of(), "Argentina", "Buenos Aires",
+                List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Centro Cultural Kirchner",
                 -34.6075, -58.3702, 240,
                 List.of(),
@@ -409,7 +410,7 @@ public class DemoDataInitializer {
                 "Group plan at Estadio Monumental; bring good vibes and comfy shoes.",
                 dt(2026, 7, 16, 15, 0), dt(2026, 7, 16, 20, 0),
                 PlanVisibility.PUBLIC, 20, null, 15000,
-                List.of(), "Argentina", "Buenos Aires",
+                List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Estadio Monumental",
                 -34.5453, -58.4498, 300,
                 List.of(),
@@ -422,7 +423,7 @@ public class DemoDataInitializer {
                 "Exploring La Bombonera at an easy pace, with plenty of time to chat.",
                 dt(2026, 7, 17, 16, 0), dt(2026, 7, 17, 22, 0),
                 PlanVisibility.PRIVATE, 25, null, 17500,
-                List.of(), "Argentina", "Buenos Aires",
+                List.of(), "Argentina", "CABA", "Buenos Aires",
                 "La Bombonera",
                 -34.6356, -58.3647, 360,
                 List.of(),
@@ -435,7 +436,7 @@ public class DemoDataInitializer {
                 "Discovering Barrio Chino de Belgrano together and grabbing a bite nearby afterwards.",
                 dt(2026, 7, 18, 9, 0), dt(2026, 7, 18, 12, 0),
                 PlanVisibility.PUBLIC, 30, 18, 20000,
-                List.of(), "Argentina", "Buenos Aires",
+                List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Barrio Chino de Belgrano",
                 -34.561, -58.454, 180,
                 List.of(),
@@ -448,7 +449,7 @@ public class DemoDataInitializer {
                 "Group plan at Galerías Pacífico; bring good vibes and comfy shoes.",
                 dt(2026, 7, 19, 10, 0), dt(2026, 7, 19, 14, 0),
                 PlanVisibility.PUBLIC, 35, null, 22500,
-                List.of(), "Argentina", "Buenos Aires",
+                List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Galerías Pacífico",
                 -34.601, -58.375, 240,
                 List.of(),
@@ -460,7 +461,7 @@ public class DemoDataInitializer {
                 "Exploring Avenida Corrientes at an easy pace, with plenty of time to chat.",
                 dt(2026, 7, 20, 11, 0), dt(2026, 7, 20, 16, 0),
                 PlanVisibility.PUBLIC, 10, null, 25000,
-                List.of(), "Argentina", "Buenos Aires",
+                List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Avenida Corrientes",
                 -34.6038, -58.385, 300,
                 List.of(),
@@ -473,7 +474,7 @@ public class DemoDataInitializer {
                 "Meeting up around Congreso de la Nación for a relaxed few hours together.",
                 dt(2026, 7, 21, 12, 0), dt(2026, 7, 21, 18, 0),
                 PlanVisibility.PUBLIC, 15, null, 27500,
-                List.of(), "Argentina", "Buenos Aires",
+                List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Congreso de la Nación",
                 -34.6097, -58.3925, 360,
                 List.of(emanuel, rocio, seba, marcos, bryan),
@@ -489,10 +490,10 @@ public class DemoDataInitializer {
     private Plan plan(User creator, String title, String description,
                       LocalDateTime start, LocalDateTime end, PlanVisibility visibility,
                       Integer maxSubscribers, Integer minAge, Integer maxAge,
-                      List<Interest> interests, String country, String city, String address,
+                      List<Interest> interests, String country, String state, String city, String address,
                       double lat, double lng, double budget, List<User> members, List<String> images) {
         Plan plan = new Plan(title, description, start, end, visibility, maxSubscribers, minAge, maxAge,
-                interests, country, city, address, lat, lng, images, creator, AR_TZ);
+                interests, country, state, city, address, lat, lng, images, creator, AR_TZ);
         plan.setBudget(budget);
         // Persist first so the generated id backs the @MapsId subscriber key.
         plan = planRepository.save(plan);
@@ -623,7 +624,7 @@ public class DemoDataInitializer {
 
     private TouristPlace createPlace(SeedData.PlaceSpec s, User creator) {
         TouristPlace place = new TouristPlace(s.name(), s.cost(), null, null, s.interests(),
-                s.country(), s.city(), s.address(), s.lat(), s.lng(), s.images());
+                s.country(), s.state(), s.city(), s.address(), s.lat(), s.lng(), s.images());
         place.setDescription(s.description());
         place.setCreator(creator);
         return touristPlaceRepository.save(place);
@@ -675,7 +676,7 @@ public class DemoDataInitializer {
             String tz = "Argentina".equals(place.getCountry()) ? AR_TZ : "UTC";
 
             Plan plan = new Plan(title, description, start, end, visibility, maxSubscribers, minAge, null,
-                    place.getInterests(), place.getCountry(), place.getCity(), place.getAddress(),
+                    place.getInterests(), place.getCountry(), place.getState(), place.getCity(), place.getAddress(),
                     place.getLatitude(), place.getLongitude(), List.of(), creator, tz);
             plan.setBudget(budget);
             plan = planRepository.save(plan);

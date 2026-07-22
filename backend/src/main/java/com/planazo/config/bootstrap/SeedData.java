@@ -37,6 +37,7 @@ final class SeedData {
     record PlaceSpec(
             String name,
             String country,
+            String state,
             String city,
             String address,
             double lat,
@@ -106,9 +107,14 @@ final class SeedData {
     static final List<PlaceSpec> PLACES = buildPlaces();
 
     private static PlaceSpec p(String name, String city, String country, double lat, double lng,
-                              double cost, List<Interest> interests, String description, List<String> images) {
-        return new PlaceSpec(name, country, city, null, lat, lng, cost, interests, description, images);
-    }
+                          double cost, List<Interest> interests, String description, List<String> images) {
+        return new PlaceSpec(name, country, null, city, null, lat, lng, cost, interests, description, images);
+        }
+    private static PlaceSpec p(String name, String city, String state, String country,
+                          double lat, double lng, double cost,
+                          List<Interest> interests, String description, List<String> images) {
+        return new PlaceSpec(name, country, state, city, null, lat, lng, cost, interests, description, images);
+        }
 
     private static List<PlaceSpec> buildPlaces() {
         List<PlaceSpec> l = new ArrayList<>();
@@ -149,9 +155,9 @@ final class SeedData {
         l.add(p("Ciudad Cultural Konex", "Buenos Aires", "Argentina", -34.6040, -58.4110, 15.0, List.of(Interest.NIGHTLIFE), "Industrial venue famous for its Monday-night drum show.", List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782401990/konex_y3mgdd.jpg")));
 
         // --- Argentine provinces (17) ---
-        l.add(p("Quebrada de Cafayate", "Cafayate", "Argentina", -26.0731, -65.9786, 0.0, List.of(Interest.NATURE), "Wind-sculpted red canyons on the road through Salta's wine country.", List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782402030/cyafate_bche5b.jpg")));
+        l.add(p("Quebrada de Cafayate", "Cafayate", "Salta", "Argentina", -26.0731, -65.9786, 0.0, List.of(Interest.NATURE), "Wind-sculpted red canyons on the road through Salta's wine country.", List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782402030/cyafate_bche5b.jpg")));
         l.add(p("Salinas Grandes", "Jujuy", "Argentina", -23.6260, -66.0960, 10.0, List.of(Interest.NATURE), "A blinding white salt flat high on the Andean plateau.", List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782402068/salinas_illuqq.jpg")));
-        l.add(p("Cerro de los Siete Colores", "Purmamarca", "Argentina", -23.7450, -65.5000, 0.0, List.of(Interest.NATURE, Interest.HISTORY), "The seven-coloured hill glowing above an adobe village.", List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782402101/caption_mjy3zz.jpg")));
+        l.add(p("Cerro de los Siete Colores", "Purmamarca", "Jujuy", "Argentina", -23.7450, -65.5000, 0.0, List.of(Interest.NATURE, Interest.HISTORY), "The seven-coloured hill glowing above an adobe village.", List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782402101/caption_mjy3zz.jpg")));
         l.add(p("Villa Carlos Paz", "Córdoba", "Argentina", -31.4241, -64.4978, 0.0, List.of(Interest.NIGHTLIFE), "A lakeside resort town buzzing in the summer season.", List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782402141/carlopas_vclplp.jpg")));
         l.add(p("La Cumbrecita", "Córdoba", "Argentina", -31.9000, -64.7800, 0.0, List.of(Interest.NATURE, Interest.MOUNTAINS), "A car-free Alpine-style village in the Sierras.", List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782402176/se-encuentra-ubicado-en-el-valle-de-calamuchita-5K3FBSAJYNCY5G72HTEANVWFVI_oxv8hw.jpg")));
         l.add(p("Tren del Fin del Mundo", "Ushuaia", "Argentina", -54.8019, -68.3030, 40.0, List.of(Interest.ADVENTURE), "A steam train into the forests of the world's southernmost city.", List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782402221/tren_qrg9ce.jpg")));

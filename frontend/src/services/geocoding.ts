@@ -13,6 +13,7 @@ export type GeocodeResult = {
 export type ReverseGeocodeResult = {
   country: string | null;
   countryCode: string | null;
+  state: string | null;
   city: string | null;
   street: string | null;
   streetNumber: string | null;

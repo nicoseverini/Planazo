@@ -97,6 +97,7 @@ public class GeocodingService {
         return new ReverseGeocodeResultDTO(
                 textOrNull(address, "country"),
                 countryCode == null ? null : countryCode.toUpperCase(),
+                firstNonBlank(address, "state", "province", "region"),
                 firstNonBlank(address, "city", "town", "village", "county"),
                 textOrNull(address, "road"),
                 textOrNull(address, "house_number"),
