@@ -253,7 +253,11 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
                 </View>
             ) : (
                 otherReviews.map((item) => (
-                    <ReviewCard key={item.id} review={item} />
+                    <ReviewCard
+                        key={item.id}
+                        review={item}
+                        onAuthorPress={(authorId) => router.push(`/user/${authorId}` as any)}
+                    />
                 ))
             )}
         </View>

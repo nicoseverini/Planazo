@@ -4,13 +4,14 @@ import { ThemedText } from '@/components/ThemedText';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { ReviewResponse } from '@/services/review';
 import { formatLocalizedDate } from '@/utils/date';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TranslationButton } from '@/components/TranslationButton';
 
 export interface ReviewCardProps {
     review: ReviewResponse;
+    onAuthorPress?: (authorId: number) => void;
 }
 
 function formatTimeAgo(createdAt: any, language?: string): string {
@@ -64,7 +65,7 @@ function formatTimeAgo(createdAt: any, language?: string): string {
     }
 }
 
-export function ReviewCard({ review }: ReviewCardProps) {
+export function ReviewCard({ review, onAuthorPress }: ReviewCardProps) {
     const { i18n } = useTranslation();
     const { surface, border, mutedText, text, tint, tintText } = useAppTheme();
     const [translatedComment, setTranslatedComment] = useState<string | null>(null);
@@ -76,7 +77,11 @@ export function ReviewCard({ review }: ReviewCardProps) {
 
     return (
         <View style={[styles.card, { backgroundColor: surface, borderColor: border }]}>
-            <View style={styles.header}>
+            <Pressable
+                style={styles.header}
+                onPress={() => onAuthorPress?.(review.author.id)}
+                disabled={!onAuthorPress}
+            >
                 <Avatar name={review.author.name} photo={review.author.photo} size={36} />
                 <View style={styles.meta}>
                     <ThemedText type="body" style={[styles.authorName, { color: text }]}>
@@ -89,7 +94,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
                 <View style={styles.ratingContainer}>
                     <StarRating rating={review.rating} size={14} />
                 </View>
-            </View>
+            </Pressable>
             <ThemedText type="body" style={[styles.comment, { color: text }]}>
                 {translatedComment || review.comment}
             </ThemedText>
