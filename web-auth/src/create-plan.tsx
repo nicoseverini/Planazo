@@ -91,10 +91,15 @@ export function CreatePlanPage() {
 			return
 		}
 
-		if (endDateTime <= startDateTime) {
-			setStatus('error')
-			setMessage(t('error_end_after_start'))
-			return
+		if (startDateTime && endDateTime) {
+			const start = new Date(startDateTime).getTime();
+			const end   = new Date(endDateTime).getTime();
+
+			if (end <= start) {
+				setStatus('error');
+				setMessage(t('error_end_after_start'));
+				return;
+			}
 		}
 
 		if (form.interests.length === 0) {
