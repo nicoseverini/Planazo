@@ -147,6 +147,12 @@ export function usePlanForm() {
             }
         }
         if (!endDate.trim() || !endTime.trim()) { setError(t('error_end_date_time_required')); return false; }
+        const startDt = buildDateTimeWithTimezone(startDate, startTime, getDeviceTimezone());
+        const endDt   = buildDateTimeWithTimezone(endDate,   endTime,   getDeviceTimezone());
+        if (startDt && endDt && new Date(endDt).getTime() <= new Date(startDt).getTime()) {
+            setError(t('error_end_after_start'));
+            return false;
+        }
         if (!country.trim()) { setError(t('error_country_required')); return false; }
         if (!city.trim()) { setError(t('error_city_required')); return false; }
         if (!address.trim()) { setError(t('error_address_required')); return false; }

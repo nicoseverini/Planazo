@@ -339,7 +339,7 @@ export default function TouristPlaceFormScreen({
 
             {/* Categories (multi-select) */}
             <View style={styles.inputGroup}>
-                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_categories')} *</ThemedText>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 4 }}>{t('label_category')} *</ThemedText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.categoryRow}>
                         {INTEREST_OPTIONS.map((opt) => {

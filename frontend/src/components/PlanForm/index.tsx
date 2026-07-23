@@ -37,7 +37,7 @@ export function PlanForm({
     submitLabel,
     onSubmit,
     onBack,
-    descriptionPlaceholder = 'Describe this plan...',
+    descriptionPlaceholder,
     saving,
     error,
     title, setTitle,

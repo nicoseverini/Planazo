@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { getBackendUrl } from './config'
 import { PlanImagePicker } from './components/PlanImagePicker'
@@ -24,6 +25,7 @@ type CreatePlanResponse = {
 }
 
 export function CreatePlanPage() {
+	const { t } = useTranslation()
 	const [form, setForm] = useState<PlanFormState>({ ...defaultPlanFormState })
 	const [images, setImages] = useState<string[]>([])
 	const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -50,7 +52,7 @@ export function CreatePlanPage() {
 		const accessToken = sessionStorage.getItem('accessToken')
 		if (!accessToken) {
 			setStatus('error')
-			setMessage('No access token found. Please log in again.')
+			setMessage(t('error_no_access_token'))
 			return
 		}
 
@@ -89,10 +91,15 @@ export function CreatePlanPage() {
 			return
 		}
 
-		if (endDateTime <= startDateTime) {
-			setStatus('error')
-			setMessage('End date/time must be after start date/time.')
-			return
+		if (startDateTime && endDateTime) {
+			const start = new Date(startDateTime).getTime();
+			const end   = new Date(endDateTime).getTime();
+
+			if (end <= start) {
+				setStatus('error');
+				setMessage(t('error_end_after_start'));
+				return;
+			}
 		}
 
 		if (form.interests.length === 0) {

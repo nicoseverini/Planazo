@@ -267,7 +267,7 @@ export default function TouristPlaceDetailScreen() {
                                     }}
                                 >
                                     <Ionicons name="flag-outline" size={18} color={text} />
-                                    <ThemedText type="body" style={{ color: text, marginLeft: 8 }}>Report</ThemedText>
+                                    <ThemedText type="body" style={{ color: text, marginLeft: 8 }}>{t('report')}</ThemedText>
                                 </Pressable>
                             </View>
                         )}

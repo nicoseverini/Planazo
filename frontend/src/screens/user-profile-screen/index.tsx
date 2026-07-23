@@ -371,7 +371,7 @@ export default function UserProfileScreen() {
                                         }}
                                     >
                                         <Ionicons name="flag" size={18} color={mutedText} style={{ marginRight: 8 }} />
-                                        <ThemedText type="body" style={{ color: mutedText }}>Report User</ThemedText>
+                                        <ThemedText type="body" style={{ color: mutedText }}>{t('report_user')}</ThemedText>
                                     </Pressable>
                                 </View>
                             )}
@@ -407,7 +407,7 @@ export default function UserProfileScreen() {
                         </ThemedText>
                         <StarRating rating={averageRating} />
                         <ThemedText type="body" style={{ color: mutedText }}>
-                            ({reviewCount} reviews)
+                            {t('reviews_count', { count: reviewCount })}
                         </ThemedText>
                     </View>
                 )}
@@ -422,7 +422,7 @@ export default function UserProfileScreen() {
                             </ThemedText>
                             <StarRating rating={averageRating} />
                             <ThemedText type="body" style={{ color: mutedText }}>
-                                ({reviewCount} reviews)
+                                {t('reviews_count', { count: reviewCount })}
                             </ThemedText>
                         </View>
                     </>
