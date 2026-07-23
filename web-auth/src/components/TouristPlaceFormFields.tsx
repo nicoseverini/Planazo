@@ -1,6 +1,7 @@
 import { touristPlaceInterestOptions, type TouristPlaceFormState } from '../tourist-place-shared'
 import { Autocomplete } from './Autocomplete'
 import { countries, citiesByCountry } from '../location-data'
+import { OpeningHoursFormFields } from './OpeningHoursFormFields'
 
 type TouristPlaceFormFieldsProps = {
 	form: TouristPlaceFormState
@@ -90,6 +91,11 @@ export function TouristPlaceFormFields({ form, onChange }: TouristPlaceFormField
 				Description
 				<textarea rows={4} value={form.description} onChange={(event) => onChange('description', event.target.value)} />
 			</label>
+
+			<OpeningHoursFormFields 
+				openingHours={form.openingHours} 
+				onChange={(value) => onChange('openingHours', value)} 
+			/>
 
 		</div>
 	)

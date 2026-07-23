@@ -7,6 +7,7 @@ import { TouristPlaceFormFields } from './components/TouristPlaceFormFields'
 import { Navbar } from './components/Navbar'
 import {
 	defaultTouristPlaceFormState,
+	formatOpeningHoursForApi,
 	parseTouristPlaceOptionalNumber,
 	type TouristPlaceFormState,
 } from './tourist-place-shared'
@@ -106,6 +107,7 @@ export function CreateTouristPlacePage() {
 					longitude,
 					images,
 					description: form.description.trim() || null,
+					openingHours: formatOpeningHoursForApi(form.openingHours),
 				}),
 			})
 

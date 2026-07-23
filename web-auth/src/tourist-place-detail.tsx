@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { getBackendUrl } from './config'
 import { toTitleCase } from './plan-utils'
-import type { TouristPlaceDetailResponse } from './tourist-place-shared'
+import type { TouristPlaceDetailResponse, DayOfWeek } from './tourist-place-shared'
 import { Navbar } from './components/Navbar'
 import { DeleteConfirmationModal } from './components/DeleteConfirmationModal'
 
@@ -18,6 +18,22 @@ function formatAgeRestriction(minAge: number | null, maxAge: number | null): str
 function formatLocation(place: TouristPlaceDetailResponse): string {
 	const structured = [place.address, place.city, place.state, place.country].filter(Boolean).join(', ')
 	return structured || place.location || 'Not available'
+}
+
+function formatOpeningHours(place: TouristPlaceDetailResponse): string {
+	if (!place.openingHours || place.openingHours.length === 0) {
+		return 'Closed all days'
+	}
+
+	const dayOrder: DayOfWeek[] = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
+	const sortedHours = [...place.openingHours].sort((a, b) => 
+		dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek)
+	)
+
+	return sortedHours.map(oh => {
+		const dayLabel = oh.dayOfWeek.charAt(0) + oh.dayOfWeek.slice(1).toLowerCase()
+		return `${dayLabel}: ${oh.openTime} - ${oh.closeTime}`
+	}).join(', ')
 }
 
 type TouristPlaceDetailPageProps = {
@@ -165,6 +181,10 @@ export function TouristPlaceDetailPage({ placeId }: TouristPlaceDetailPageProps)
 							<div>
 								<span className="summary-label">Location</span>
 								<strong>{formatLocation(place)}</strong>
+							</div>
+							<div>
+								<span className="summary-label">Opening Hours</span>
+								<strong>{formatOpeningHours(place)}</strong>
 							</div>
 						</div>
 					</section>

@@ -1,5 +1,23 @@
 import { type Interest, interestOptions, parseOptionalNumber } from './plan-shared'
 
+export type DayOfWeek = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY'
+
+export type OpeningHours = {
+	dayOfWeek: DayOfWeek
+	openTime: string
+	closeTime: string
+}
+
+export const dayOfWeekOptions: { label: string; value: DayOfWeek }[] = [
+	{ label: 'Monday', value: 'MONDAY' },
+	{ label: 'Tuesday', value: 'TUESDAY' },
+	{ label: 'Wednesday', value: 'WEDNESDAY' },
+	{ label: 'Thursday', value: 'THURSDAY' },
+	{ label: 'Friday', value: 'FRIDAY' },
+	{ label: 'Saturday', value: 'SATURDAY' },
+	{ label: 'Sunday', value: 'SUNDAY' },
+]
+
 export type TouristPlaceFormState = {
 	name: string
 	cost: string
@@ -13,6 +31,7 @@ export type TouristPlaceFormState = {
 	latitude: string
 	longitude: string
 	description: string
+	openingHours: OpeningHours[]
 }
 
 export type TouristPlaceSummaryResponse = {
@@ -32,6 +51,7 @@ export type TouristPlaceSummaryResponse = {
 	images: string[]
 	creatorId: number | null
 	creatorName: string | null
+	openingHours: OpeningHours[]
 }
 
 export type TouristPlaceDetailResponse = TouristPlaceSummaryResponse & {
@@ -53,6 +73,7 @@ export const defaultTouristPlaceFormState: TouristPlaceFormState = {
 	latitude: '',
 	longitude: '',
 	description: '',
+	openingHours: [],
 }
 
 export function toTouristPlaceFormState(place: TouristPlaceDetailResponse): TouristPlaceFormState {
@@ -69,9 +90,18 @@ export function toTouristPlaceFormState(place: TouristPlaceDetailResponse): Tour
 		latitude: place.latitude?.toString() ?? '',
 		longitude: place.longitude?.toString() ?? '',
 		description: place.description ?? '',
+		openingHours: place.openingHours ?? [],
 	}
 }
 
 export function parseTouristPlaceOptionalNumber(value: string) {
 	return parseOptionalNumber(value)
+}
+
+export function formatOpeningHoursForApi(openingHours: OpeningHours[]): OpeningHours[] {
+	return openingHours.map(oh => ({
+		...oh,
+		openTime: oh.openTime.length === 5 ? `${oh.openTime}:00` : oh.openTime,
+		closeTime: oh.closeTime.length === 5 ? `${oh.closeTime}:00` : oh.closeTime,
+	}))
 }

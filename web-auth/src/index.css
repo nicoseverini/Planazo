@@ -1427,3 +1427,47 @@ body {
   font-size: 0.8rem;
   color: #8899aa;
 }
+
+.opening-hours-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	margin-bottom: 1rem;
+}
+
+.opening-hours-item {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+
+.opening-hours-day {
+	flex: 1;
+	min-width: 120px;
+	padding: 0.5rem;
+	border: 1px solid #d5e0eb;
+	border-radius: 6px;
+	background: #ffffff;
+	font-size: 0.9rem;
+}
+
+.opening-hours-time {
+	flex: 1 1;
+	padding: 0.5rem;
+	border: 1px solid #d5e0eb;
+	border-radius: 6px;
+	background: #ffffff;
+	font-size: 0.9rem;
+	width: 100px;
+}
+
+.opening-hours-separator {
+	color: #556677;
+	font-size: 0.9rem;
+}
+
+.button--small {
+	padding: 0.4rem 0.8rem;
+	font-size: 0.85rem;
+}
