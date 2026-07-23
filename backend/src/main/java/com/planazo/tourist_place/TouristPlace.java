@@ -71,6 +71,10 @@ public class TouristPlace {
     @Column(name = "image", columnDefinition = "TEXT")
     private List<String> images = new ArrayList<>();
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "tourist_place_opening_hours", joinColumns = @JoinColumn(name = "place_id"))
+    private List<OpeningHours> openingHours = new ArrayList<>();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id")
     private User creator;
@@ -151,6 +155,11 @@ public class TouristPlace {
     public List<String> getImages() { return images; }
     public void setImages(List<String> images) {
         this.images = images == null ? new ArrayList<>() : new ArrayList<>(images);
+    }
+
+    public List<OpeningHours> getOpeningHours() { return openingHours; }
+    public void setOpeningHours(List<OpeningHours> openingHours) {
+        this.openingHours = openingHours == null ? new ArrayList<>() : new ArrayList<>(openingHours);
     }
 
     public User getCreator() { return creator; }

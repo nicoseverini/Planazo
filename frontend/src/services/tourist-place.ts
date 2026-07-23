@@ -6,6 +6,22 @@ import { Interest, INTEREST_OPTIONS, INTEREST_LABEL } from '@/utils/interests';
 export type { Interest };
 export { INTEREST_OPTIONS, INTEREST_LABEL };
 
+export type Weekday =
+    | 'MONDAY'
+    | 'TUESDAY'
+    | 'WEDNESDAY'
+    | 'THURSDAY'
+    | 'FRIDAY'
+    | 'SATURDAY'
+    | 'SUNDAY';
+
+/** A single open day. `openTime`/`closeTime` are 24-hour clock strings (`HH:mm`, backend may send `HH:mm:ss`). */
+export type OpeningHours = {
+    dayOfWeek: Weekday;
+    openTime: string;
+    closeTime: string;
+};
+
 export type TouristPlaceSummary = {
     id: number;
     name: string;
@@ -22,6 +38,7 @@ export type TouristPlaceSummary = {
     maxAge: number | null;
     images: string[];
     creatorId: number | null;
+    openingHours: OpeningHours[];
 };
 
 export type TouristPlaceDetail = TouristPlaceSummary & {
@@ -42,6 +59,7 @@ export type TouristPlaceCreateRequest = {
     longitude?: number;
     images?: string[];
     description?: string;
+    openingHours?: OpeningHours[];
 };
 
 export type TouristPlaceUpdateRequest = Partial<TouristPlaceCreateRequest>;

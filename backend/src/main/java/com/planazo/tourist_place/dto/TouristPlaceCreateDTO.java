@@ -51,5 +51,8 @@ public record TouristPlaceCreateDTO(
         List<String> images,
 
         @Size(max = 1000, message = "Description must be 1,000 characters or less.")
-        String description
+        String description,
+
+        // Only open days; a day left out is closed. Business rules validated in the service.
+        List<OpeningHoursDTO> openingHours
 ) {}

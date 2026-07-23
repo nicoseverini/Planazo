@@ -46,5 +46,8 @@ public record TouristPlaceUpdateDTO(
         List<String> images,
 
         @Size(max = 1000, message = "Description must be 1,000 characters or less.")
-        String description
+        String description,
+
+        // null = don't touch; a present list (even empty) replaces the whole schedule.
+        List<OpeningHoursDTO> openingHours
 ) {}

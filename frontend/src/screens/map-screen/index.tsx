@@ -17,6 +17,7 @@ import { haversineKm } from '@/utils/distance';
 import { styles } from './styles';
 import { AppScreen } from '@/components/ui';
 import { MapFilterModal, MapFilters, DEFAULT_MAP_FILTERS } from './MapFilterModal';
+import { useLocation } from '@/context/location-context';
 
 const MAP_INITIAL_REGION = {
     latitude: -34.6037,
@@ -50,22 +51,25 @@ export default function MapScreen() {
     const mapRef = useRef<MapView>(null);
 
     const { tint, tintText, surface, border, text } = useAppTheme();
+    const { coords: globalCoords, refreshLocation, requestPermission } = useLocation();
 
     const [plans, setPlans] = useState<PlanSummary[]>([]);
     const [places, setPlaces] = useState<TouristPlaceSummary[]>([]);
     const [filters, setFilters] = useState<MapFilters>(DEFAULT_MAP_FILTERS);
     const [showFilters, setShowFilters] = useState(false);
-    const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+    const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(globalCoords);
     const [selectedMapItem, setSelectedMapItem] = useState<SelectedMapItem | null>(null);
 
     const acquireUserLocation = useCallback(async (): Promise<{ latitude: number; longitude: number } | null> => {
-        const { status } = await Location.requestForegroundPermissionsAsync();
+        const status = await requestPermission();
         if (status !== 'granted') return null;
-        const location = await Location.getCurrentPositionAsync({});
-        const coords = { latitude: location.coords.latitude, longitude: location.coords.longitude };
-        setUserLocation(coords);
-        return coords;
-    }, []);
+        const coords = await refreshLocation();
+        if (coords) {
+            setUserLocation(coords);
+            return coords;
+        }
+        return null;
+    }, [requestPermission, refreshLocation]);
 
     const centerOnUser = async () => {
         try {
@@ -99,8 +103,16 @@ export default function MapScreen() {
     }, [userLocation, acquireUserLocation, t]);
 
     useEffect(() => {
-        centerOnUser();
-    }, []);
+        if (globalCoords) {
+            setUserLocation(globalCoords);
+            mapRef.current?.animateToRegion(
+                { latitude: globalCoords.latitude, longitude: globalCoords.longitude, latitudeDelta: 0.05, longitudeDelta: 0.05 },
+                1000
+            );
+        } else {
+            centerOnUser();
+        }
+    }, [globalCoords]);
 
     useFocusEffect(
         useCallback(() => {

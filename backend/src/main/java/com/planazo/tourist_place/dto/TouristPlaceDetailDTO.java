@@ -20,5 +20,6 @@ public record TouristPlaceDetailDTO(
         Double longitude,
         List<String> images,
         String description,
-        Long creatorId
+        Long creatorId,
+        List<OpeningHoursDTO> openingHours
 ) {}

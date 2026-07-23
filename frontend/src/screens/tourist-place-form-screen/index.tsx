@@ -15,16 +15,24 @@ import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/ThemedText';
 import { AppScreen } from '@/components/ui';
+import { WeeklyScheduleField } from '@/components/WeeklyScheduleField';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import {
     Interest,
     INTEREST_OPTIONS,
+    OpeningHours,
     TouristPlaceCreateRequest,
 } from '@/services/tourist-place';
 import { useGeocoding } from '@/services/geocoding';
 import { validateAgeFields, parseAge } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
 import { ensureMediaLibraryPermission } from '@/utils/media-permissions';
+import {
+    buildWeekSchedule,
+    scheduleToOpeningHours,
+    validateSchedule,
+    type DaySchedule,
+} from '@/utils/schedule';
 
 import { styles } from './styles';
 
@@ -42,6 +50,7 @@ export type TouristPlaceFormValues = {
     longitude: string;
     images: string[];
     description: string;
+    openingHours: OpeningHours[];
 };
 
 export const DEFAULT_FORM_VALUES: TouristPlaceFormValues = {
@@ -58,6 +67,7 @@ export const DEFAULT_FORM_VALUES: TouristPlaceFormValues = {
     longitude: '',
     images: [],
     description: '',
+    openingHours: [],
 };
 
 type Props = {
@@ -103,6 +113,9 @@ export default function TouristPlaceFormScreen({
     const [longitude, setLongitude] = useState(initialValues.longitude);
     const [images, setImages] = useState<string[]>(initialValues.images);
     const [description, setDescription] = useState(initialValues.description);
+    const [schedule, setSchedule] = useState<DaySchedule[]>(() =>
+        buildWeekSchedule(initialValues.openingHours)
+    );
 
     const pinLocation =
         latitude && longitude
@@ -213,6 +226,8 @@ export default function TouristPlaceFormScreen({
         }
         const ageError = validateAgeFields(minAge, maxAge);
         if (ageError) { setError(ageError); return false; }
+        const scheduleError = validateSchedule(schedule);
+        if (scheduleError) { setError(t(scheduleError)); return false; }
         return true;
     };
 
@@ -239,6 +254,7 @@ export default function TouristPlaceFormScreen({
                 longitude: parsedLng && !isNaN(parsedLng) ? parsedLng : undefined,
                 images: images.length > 0 ? images : undefined,
                 description: description.trim() || undefined,
+                openingHours: scheduleToOpeningHours(schedule),
             };
             await onSubmit(payload);
         } catch {
@@ -453,6 +469,12 @@ export default function TouristPlaceFormScreen({
                     numberOfLines={4}
                     style={[styles.textArea, { backgroundColor: surface, borderColor: border, color: text }]}
                 />
+            </View>
+
+            {/* Weekly schedule */}
+            <View style={styles.inputGroup}>
+                <ThemedText type="label" style={{ color: mutedText, marginBottom: 8 }}>{t('weekly_schedule')}</ThemedText>
+                <WeeklyScheduleField value={schedule} onChange={setSchedule} />
             </View>
 
             {/* Images */}

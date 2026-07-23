@@ -104,10 +104,20 @@ public class PlanService {
     // ── Read ─────────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
-    public Optional<PlanDetailDTO> getPlanById(Long id) {
+    public Optional<PlanDetailDTO> getPlanById(Long id, String requesterEmail) {
         return planRepository.findById(id)
                 .filter(Plan::isActive)
-                .map(this::toDetailDTO);
+                .map(plan -> {
+                    if (plan.getVisibility() == PlanVisibility.PRIVATE) {
+                        boolean isCreator = plan.getCreator().getUsername().equals(requesterEmail);
+                        boolean isMember = plan.getSubscribers().stream()
+                                .anyMatch(s -> s.getUser().getUsername().equals(requesterEmail) && s.countsAsSubscriber());
+                        if (!isCreator && !isMember) {
+                            return toMaskedDetailDTO(plan);
+                        }
+                    }
+                    return toDetailDTO(plan);
+                });
     }
 
     @Transactional(readOnly = true)
@@ -547,6 +557,52 @@ public class PlanService {
                 plan.getAddress(),
                 plan.getLatitude(),
                 plan.getLongitude(),
+                List.copyOf(plan.getImages()),
+                plan.getCreator().getId(),
+                plan.getCreator().getName(),
+                plan.getSubscriberCount(),
+                plan.isFull(),
+                plan.getBudget(),
+                plan.getTimezone()
+        );
+    }
+
+    private PlanDetailDTO toMaskedDetailDTO(Plan plan) {
+        String generalLocation = "";
+        if (plan.getCity() != null && !plan.getCity().trim().isEmpty()) {
+            generalLocation += plan.getCity().trim();
+        }
+        if (plan.getState() != null && !plan.getState().trim().isEmpty()) {
+            if (!generalLocation.isEmpty()) generalLocation += ", ";
+            generalLocation += plan.getState().trim();
+        }
+        if (plan.getCountry() != null && !plan.getCountry().trim().isEmpty()) {
+            if (!generalLocation.isEmpty()) generalLocation += ", ";
+            generalLocation += plan.getCountry().trim();
+        }
+        if (generalLocation.isEmpty()) {
+            generalLocation = plan.getLocation();
+        }
+
+        return new PlanDetailDTO(
+                plan.getId(),
+                plan.getTitle(),
+                plan.getDescription(),
+                plan.getStartDateTime().atOffset(ZoneOffset.UTC),
+                plan.getEndDateTime().atOffset(ZoneOffset.UTC),
+                plan.getDurationMinutes(),
+                plan.getVisibility(),
+                plan.getMaxSubscribers(),
+                plan.getMinAge(),
+                plan.getMaxAge(),
+                List.copyOf(plan.getInterests()),
+                generalLocation,
+                plan.getCountry(),
+                plan.getState(),
+                plan.getCity(),
+                null,
+                null,
+                null,
                 List.copyOf(plan.getImages()),
                 plan.getCreator().getId(),
                 plan.getCreator().getName(),

@@ -10,6 +10,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { TokenProvider } from '@/context/token-context';
 import { ThemeProvider, useAppThemeContext } from '@/context/ThemeContext';
 import { ToastProvider } from '@/components/Toast';
+import { LocationProvider } from '@/context/location-context';
 
 function AppRootContent() {
   const { theme } = useAppThemeContext();
@@ -32,17 +33,19 @@ function AppRootContent() {
       }}
     >
       <TokenProvider>
-        <ToastProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            animation: 'none',
-            contentStyle: {
-              backgroundColor: colors.background,
-            },
-          }}
-        />
-        </ToastProvider>
+        <LocationProvider>
+          <ToastProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              animation: 'none',
+              contentStyle: {
+                backgroundColor: colors.background,
+              },
+            }}
+          />
+          </ToastProvider>
+        </LocationProvider>
       </TokenProvider>
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
     </NavigationThemeProvider>
