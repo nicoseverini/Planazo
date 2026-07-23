@@ -29,7 +29,7 @@ type PlanFormProps = PlanFormValues & {
     submitLabel: string;
     onSubmit: () => void;
     onBack: () => void;
-    descriptionPlaceholder?: string;
+    descriptionPlaceholderKey?: string;
 };
 
 export function PlanForm({
@@ -37,7 +37,7 @@ export function PlanForm({
     submitLabel,
     onSubmit,
     onBack,
-    descriptionPlaceholder,
+    descriptionPlaceholderKey,
     saving,
     error,
     title, setTitle,
@@ -338,7 +338,7 @@ export function PlanForm({
                 <TextInput
                     value={description}
                     onChangeText={setDescription}
-                    placeholder={descriptionPlaceholder}
+                    placeholder={t(descriptionPlaceholderKey ?? 'describe_plan_placeholder')}
                     placeholderTextColor={mutedText}
                     multiline
                     numberOfLines={4}

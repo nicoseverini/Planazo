@@ -158,7 +158,7 @@ export default function EditPlanScreen() {
             submitLabel={t('save_changes').toUpperCase()}
             onSubmit={handleUpdate}
             onBack={() => router.back()}
-            descriptionPlaceholder={t('describe_plan_placeholder')}
+            descriptionPlaceholderKey="describe_plan_placeholder"
         />
     );
 }
