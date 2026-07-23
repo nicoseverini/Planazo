@@ -240,7 +240,7 @@ export function ReviewSection({ targetType, targetId, onStatsUpdated }: ReviewSe
             {reviews.length === 0 ? (
                 <View style={styles.emptyContainer}>
                     <ThemedText type="body" style={{ color: mutedText, fontStyle: 'italic' }}>
-                        {isSelfTarget ? 'No reviews yet.' : t('no_reviews_be_first')}
+                        {isSelfTarget ? t('no_reviews_yet') : t('no_reviews_be_first')}
                     </ThemedText>
                 </View>
             ) : otherReviews.length === 0 ? (
