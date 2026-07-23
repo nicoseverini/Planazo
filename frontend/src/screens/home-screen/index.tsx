@@ -28,6 +28,7 @@ import { useGeocoding } from '@/services/geocoding';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { formatInterest } from '@/utils/interests';
 import i18n from '@/config/i18n';
+import { useLocation } from '@/context/location-context';
 
 import { styles } from './styles';
 
@@ -78,10 +79,9 @@ export default function HomeScreen() {
   const { fetchFilteredPlans, fetchPublicPlans, fetchMyJoinedPlans } = usePlans();
   const { fetchAll: fetchAllTouristPlaces } = useTouristPlaces();
   const { reverse: reverseGeocode } = useGeocoding();
+  const { coords, locationPermission, requestPermission: requestLocationCtxPermission, refreshLocation, loading: locationContextLoading } = useLocation();
 
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
-  const [locationPermission, setLocationPermission] = useState<Location.PermissionStatus | null>(null);
-  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [userCountry, setUserCountry] = useState<string | null>(null);
   const [userCountryCode, setUserCountryCode] = useState<string | null>(null);
   const [plans, setPlans] = useState<PlanSummary[]>([]);
@@ -92,6 +92,7 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [myUserId, setMyUserId] = useState<number | null>(null);
+  const [hasLoadedInitially, setHasLoadedInitially] = useState(false);
 
   // Business logic fallback labels
   const [listLabelKey, setListLabelKey] = useState('recommended_plans');
@@ -333,62 +334,49 @@ export default function HomeScreen() {
       const result = await reverseGeocode(currentCoords);
       setUserCountry(result.country?.toUpperCase() || null);
       setUserCountryCode(result.countryCode || null);
-    } catch {
-      Alert.alert(t('error'), t('unable_determine_location'));
-    }
-  };
-
-  // Initialize and check permissions
-  const checkLocationPermissionAndLoad = async () => {
-    try {
-      const { status } = await Location.getForegroundPermissionsAsync();
-      setLocationPermission(status);
-
-      if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({});
-        const currentCoords = {
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude,
-        };
-        setCoords(currentCoords);
-
-        await applyUserCountry(currentCoords);
-
-        await loadData(status, currentCoords);
-      } else {
-        await loadData(status, null);
-      }
     } catch (err) {
-      Alert.alert(t('error'), t('error_loading_recommendations'));
-      await loadData(null, null);
+      console.warn('[HomeScreen] Reverse geocoding failed:', err);
     }
   };
 
+  // Trigger loadData when location context is loaded and token is logged in
   useEffect(() => {
-    if (tokenData.state === 'LOGGED_IN') {
-      checkLocationPermissionAndLoad();
-    } else {
-      setLoading(false);
+    if (tokenData.state !== 'LOGGED_IN' || locationContextLoading) {
+      if (tokenData.state !== 'LOGGED_IN') {
+        setLoading(false);
+      }
+      return;
     }
-  }, [tokenData.state]);
+
+    if (!hasLoadedInitially) {
+      const initLoad = async () => {
+        if (locationPermission === 'granted' && coords) {
+          await applyUserCountry(coords);
+          await loadData(locationPermission, coords);
+        } else {
+          await loadData(locationPermission, null);
+        }
+        setHasLoadedInitially(true);
+      };
+      void initLoad();
+    }
+  }, [tokenData.state, locationContextLoading, locationPermission, coords, hasLoadedInitially, loadData]);
 
   const requestLocationPermission = async () => {
     try {
-      const { status, canAskAgain } = await Location.requestForegroundPermissionsAsync();
-      setLocationPermission(status);
+      const status = await requestLocationCtxPermission();
       if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({});
-        const currentCoords = {
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude,
-        };
-        setCoords(currentCoords);
-
-        await applyUserCountry(currentCoords);
-
-        setLoading(true);
-        await loadData(status, currentCoords);
+        const newCoords = await refreshLocation();
+        if (newCoords) {
+          await applyUserCountry(newCoords);
+          setLoading(true);
+          await loadData(status, newCoords);
+        } else {
+          setLoading(true);
+          await loadData(status, null);
+        }
       } else {
+        const { canAskAgain } = await Location.getForegroundPermissionsAsync();
         if (!canAskAgain) {
           Alert.alert(
             t('location_disabled'),
@@ -406,23 +394,15 @@ export default function HomeScreen() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      const { status } = await Location.getForegroundPermissionsAsync();
-      setLocationPermission(status);
-      let currentCoords = null;
-      if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({});
-        currentCoords = {
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude,
-        };
-        setCoords(currentCoords);
-
-        await applyUserCountry(currentCoords);
+      const newCoords = await refreshLocation();
+      if (locationPermission === 'granted' && newCoords) {
+        await applyUserCountry(newCoords);
+        await loadData(locationPermission, newCoords);
       } else {
         setUserCountry(null);
         setUserCountryCode(null);
+        await loadData(locationPermission, null);
       }
-      await loadData(status, currentCoords);
     } catch (e) {
       Alert.alert(t('error'), t('unable_refresh_try'));
     } finally {
