@@ -34,6 +34,7 @@ type PlanDetailResponse = {
 	interests: Interest[]
 	location: string
 	country: string | null
+	state: string | null
 	city: string | null
 	address: string | null
 	latitude: number | null
@@ -61,6 +62,7 @@ function toFormState(plan: PlanDetailResponse): PlanFormState {
 		maxAge: plan.maxAge?.toString() ?? '',
 		interests: plan.interests,
 		country: plan.country ?? '',
+		state: plan.state ?? '',
 		city: plan.city ?? '',
 		address: plan.address ?? plan.location ?? '',
 		latitude: plan.latitude?.toString() ?? '',
@@ -222,7 +224,7 @@ export function EditPlanPage({ planId }: { planId: number }) {
 			let longitude = form.longitude.trim() ? Number(form.longitude) : NaN
 
 			if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-				const coords = await geocodeAddress(form.address, form.city, form.country)
+				const coords = await geocodeAddress(form.address, form.city, form.state, form.country)
 				latitude = coords.lat
 				longitude = coords.lng
 			}
@@ -248,6 +250,7 @@ export function EditPlanPage({ planId }: { planId: number }) {
 					maxAge: parseOptionalNumber(form.maxAge),
 					interests: form.interests,
 					country: form.country.trim(),
+					state: form.state.trim(),
 					city: form.city.trim(),
 					address: form.address.trim(),
 					latitude,

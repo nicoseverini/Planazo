@@ -16,6 +16,7 @@ export type PlanFormState = {
 	maxAge: string
 	interests: Interest[]
 	country: string
+	state: string
 	city: string
 	address: string
 	latitude: string
@@ -56,6 +57,7 @@ export const defaultPlanFormState: PlanFormState = {
 	maxAge: '90',
 	interests: [],
 	country: '',
+	state: '',
 	city: '',
 	address: '',
 	latitude: '',
@@ -196,11 +198,12 @@ export function parseBudget(budget: string): number {
 export async function geocodeAddress(
 	address: string,
 	city: string,
+	state: string,
 	country: string,
 ): Promise<{ lat: number; lng: number }> {
-	const query = [address, city, country].filter(Boolean).join(', ')
+	const query = [address, city, state, country].filter(Boolean).join(', ')
 	if (!query) {
-		throw new Error('Please enter an address, city, and country before searching for the location.')
+		throw new Error('Please enter an address, city, state, and country before searching for the location.')
 	}
 
 	const accessToken = sessionStorage.getItem('accessToken')

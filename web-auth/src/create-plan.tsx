@@ -67,6 +67,11 @@ export function CreatePlanPage() {
 			setMessage('Country is required.')
 			return
 		}
+		if (!form.state.trim()) {
+			setStatus('error')
+			setMessage('State is required.')
+			return
+		}
 		if (!form.city.trim()) {
 			setStatus('error')
 			setMessage('City is required.')
@@ -125,7 +130,7 @@ export function CreatePlanPage() {
 			let longitude = form.longitude.trim() ? Number(form.longitude) : NaN
 
 			if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-				const coords = await geocodeAddress(form.address, form.city, form.country)
+				const coords = await geocodeAddress(form.address, form.city, form.state, form.country)
 				latitude = coords.lat
 				longitude = coords.lng
 			}
@@ -151,6 +156,7 @@ export function CreatePlanPage() {
 					maxAge: parseOptionalNumber(form.maxAge),
 					interests: form.interests,
 					country: form.country.trim(),
+					state: form.state.trim(),
 					city: form.city.trim(),
 					address: form.address.trim(),
 					latitude,

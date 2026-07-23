@@ -16,7 +16,7 @@ function formatAgeRestriction(minAge: number | null, maxAge: number | null): str
 }
 
 function formatLocation(place: TouristPlaceDetailResponse): string {
-	const structured = [place.address, place.city, place.country].filter(Boolean).join(', ')
+	const structured = [place.address, place.city, place.state, place.country].filter(Boolean).join(', ')
 	return structured || place.location || 'Not available'
 }
 

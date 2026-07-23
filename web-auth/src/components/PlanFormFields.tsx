@@ -127,14 +127,20 @@ export function PlanFormFields({ form, onChange }: PlanFormFieldsProps) {
 			</label>
 
 			<label className="field">
-				City *
+				State *
 				<Autocomplete
-					value={form.city}
-					onChange={(value) => onChange('city', value)}
+					value={form.state}
+					onChange={(value) => onChange('state', value)}
 					placeholder="e.g. Buenos Aires"
 					suggestions={citiesByCountry[form.country] || []}
 					required
 				/>
+			</label>
+
+			<label className="field">
+				City *
+				<input value={form.city} onChange={(event) => 
+					onChange('city', event.target.value)} placeholder="e.g. Palermo" required />
 			</label>
 
 			<label className="field field--wide">

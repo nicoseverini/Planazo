@@ -7,6 +7,7 @@ export type TouristPlaceFormState = {
 	maxAge: string
 	interests: Interest[]
 	country: string
+	state: string
 	city: string
 	address: string
 	latitude: string
@@ -20,6 +21,7 @@ export type TouristPlaceSummaryResponse = {
 	cost: number | null
 	interests: Interest[]
 	country: string | null
+	state: string | null
 	city: string | null
 	address: string | null
 	location: string | null
@@ -45,6 +47,7 @@ export const defaultTouristPlaceFormState: TouristPlaceFormState = {
 	maxAge: '',
 	interests: [],
 	country: '',
+	state: '',
 	city: '',
 	address: '',
 	latitude: '',
@@ -60,6 +63,7 @@ export function toTouristPlaceFormState(place: TouristPlaceDetailResponse): Tour
 		maxAge: place.maxAge?.toString() ?? '',
 		interests: place.interests ?? [],
 		country: place.country ?? '',
+		state: place.state ?? '',
 		city: place.city ?? '',
 		address: place.address ?? place.location ?? '',
 		latitude: place.latitude?.toString() ?? '',

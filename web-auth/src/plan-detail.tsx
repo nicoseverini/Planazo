@@ -18,6 +18,9 @@ type PlanDetailResponse = {
 	maxAge: number | null
 	interests: string[]
 	location: string
+	country: string | null
+	state: string | null
+	city: string | null
 	latitude: number | null
 	longitude: number | null
 	images: string[]

@@ -125,7 +125,7 @@ export function EditTouristPlacePage({ placeId }: { placeId: number }) {
 			let longitude = form.longitude.trim() ? Number(form.longitude) : NaN
 
 			if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-				const coords = await geocodeAddress(form.address, form.city, form.country)
+				const coords = await geocodeAddress(form.address, form.city, form.state, form.country)
 				latitude = coords.lat
 				longitude = coords.lng
 			}
@@ -146,6 +146,7 @@ export function EditTouristPlacePage({ placeId }: { placeId: number }) {
 					maxAge: parseTouristPlaceOptionalNumber(form.maxAge),
 					interests: form.interests,
 					country: form.country.trim(),
+					state: form.state.trim(),
 					city: form.city.trim(),
 					address: form.address.trim(),
 					latitude,
