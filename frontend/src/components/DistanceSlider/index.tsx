@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { ThemedText } from '@/components/ThemedText';
@@ -27,20 +27,29 @@ export function DistanceSlider({ radius, onChange, maxKm = DISTANCE_SLIDER_MAX_K
     // Map null (Any distance) to maxKm + 5 so there is a clear step at the end of the slider
     const sliderValue = isAny ? maxKm + 5 : radius;
 
+    const [localValue, setLocalValue] = useState(sliderValue);
+
+    useEffect(() => {
+        setLocalValue(sliderValue);
+    }, [sliderValue]);
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
                 <ThemedText type="label" style={{ color: text }}>{translate('distance_range')}</ThemedText>
                 <ThemedText type="label" style={{ color: tint, fontWeight: 'bold' }}>
-                    {isAny ? translate('max_distance') : `${translate('up_to')} ${radius} km`}
+                    {localValue > maxKm ? translate('max_distance') : `${translate('up_to')} ${localValue} km`}
                 </ThemedText>
             </View>
             <Slider
                 minimumValue={1}
                 maximumValue={maxKm + 5}
                 step={1}
-                value={sliderValue}
+                value={localValue}
                 onValueChange={(val: number) => {
+                    setLocalValue(val);
+                }}
+                onSlidingComplete={(val: number) => {
                     if (val > maxKm) {
                         onChange(null);
                     } else {
