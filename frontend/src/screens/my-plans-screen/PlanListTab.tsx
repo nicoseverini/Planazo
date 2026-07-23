@@ -17,6 +17,7 @@ import { useProximityFilter } from '@/hooks/use-proximity-filter';
 import { PlanSummary, PlanVisibility } from '@/services/plan';
 import { formatLocalizedDate } from '@/utils/date';
 import { formatInterest } from '@/utils/interests';
+import { haversineKm } from '@/utils/distance';
 import {
     EMPTY_PLAN_FILTERS, ParticipationStatus, PlanClientFilters,
     filterPlans, hasActivePlanFilters,
@@ -74,9 +75,10 @@ export function PlanListTab({
     const { radius, userLocation, handleRadiusChange, clearRadius } = useProximityFilter();
     // Everything else lives here; combined into PlanClientFilters at filter time.
     const [filters, setFilters] = useState<Omit<PlanClientFilters, 'radius'>>(EMPTY_PLAN_FILTERS);
+    const [sortBy, setSortBy] = useState<'nearest' | 'date' | 'title'>('nearest');
 
     const fullFilters: PlanClientFilters = useMemo(() => ({ ...filters, radius }), [filters, radius]);
-    const hasFilters = hasActivePlanFilters(fullFilters);
+    const hasFilters = hasActivePlanFilters(fullFilters) || sortBy !== 'nearest';
 
     const loadPlans = useCallback(async () => {
         try {
@@ -86,7 +88,7 @@ export function PlanListTab({
         } finally {
             setLoading(false);
         }
-    }, [load, errorMessage]);
+    }, [load, errorMessage, t]);
 
     useFocusEffect(
         useCallback(() => {
@@ -100,13 +102,39 @@ export function PlanListTab({
         setRefreshing(false);
     }, [loadPlans]);
 
-    const visiblePlans = useMemo(
-        () => filterPlans(plans, fullFilters, userLocation),
-        [plans, fullFilters, userLocation],
-    );
+    const visiblePlans = useMemo(() => {
+        const filtered = filterPlans(plans, fullFilters, userLocation);
+        
+        if (sortBy === 'nearest' && userLocation) {
+            filtered.sort((a, b) => {
+                const latA = a.latitude;
+                const lonA = a.longitude;
+                const latB = b.latitude;
+                const lonB = b.longitude;
+
+                if (latA == null || lonA == null) return 1;
+                if (latB == null || lonB == null) return -1;
+
+                const distA = haversineKm(userLocation.lat, userLocation.lng, latA, lonA);
+                const distB = haversineKm(userLocation.lat, userLocation.lng, latB, lonB);
+                return distA - distB;
+            });
+        } else if (sortBy === 'date') {
+            filtered.sort((a, b) => {
+                const dateA = a.startDate ? new Date(a.startDate).getTime() : Infinity;
+                const dateB = b.startDate ? new Date(b.startDate).getTime() : Infinity;
+                return dateA - dateB;
+            });
+        } else if (sortBy === 'title') {
+            filtered.sort((a, b) => a.title.localeCompare(b.title));
+        }
+
+        return filtered;
+    }, [plans, fullFilters, userLocation, sortBy]);
 
     const clearFilters = () => {
         setFilters(EMPTY_PLAN_FILTERS);
+        setSortBy('nearest');
         clearRadius();
     };
 
@@ -168,6 +196,13 @@ export function PlanListTab({
                             <ThemedText type="label" style={{ color: tintText }}>{t('distance_km', { radius })}</ThemedText>
                         </View>
                     )}
+                    {sortBy !== 'nearest' && (
+                        <View style={activeChipStyle}>
+                            <ThemedText type="label" style={{ color: tintText }}>
+                                {sortBy === 'date' ? `📅 ${t('sort_date')}` : `🔤 ${t('sort_title')}`}
+                            </ThemedText>
+                        </View>
+                    )}
                     <Pressable onPress={clearFilters} style={{ justifyContent: 'center' }}>
                         <ThemedText type="label" style={{ color: mutedText }}>✕ {t('clear_all')}</ThemedText>
                     </Pressable>
@@ -227,6 +262,29 @@ export function PlanListTab({
                         <Pressable onPress={() => setShowFilters(false)}>
                             <Ionicons name="close" size={24} color={textColor} />
                         </Pressable>
+                    </View>
+
+                    {/* Sort By */}
+                    <ThemedText type="subtitle" style={styles.modalLabel}>{t('sort_by')}</ThemedText>
+                    <View style={[styles.chipRow, { marginBottom: 24 }]}>
+                        {([
+                            { labelKey: 'sort_nearest', value: 'nearest' },
+                            { labelKey: 'sort_date', value: 'date' },
+                            { labelKey: 'sort_title', value: 'title' },
+                        ] as const).map((opt) => {
+                            const active = sortBy === opt.value;
+                            return (
+                                <Pressable
+                                    key={opt.value}
+                                    onPress={() => setSortBy(opt.value)}
+                                    style={[styles.choiceChip, { backgroundColor: active ? tint : 'transparent', borderColor: active ? tint : border }]}
+                                >
+                                    <ThemedText type="label" style={{ color: active ? tintText : textColor }}>
+                                        {t(opt.labelKey)}
+                                    </ThemedText>
+                                </Pressable>
+                            );
+                        })}
                     </View>
 
                     {/* Category */}

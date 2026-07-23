@@ -11,6 +11,7 @@ import { formatDateInTimezone, formatTimeInTimezone } from '@/utils/date';
 import { formatInterest } from '@/utils/interests';
 import { planParticipationStatus } from '@/utils/plan-filters';
 import { VisibilityBadge } from '@/components/VisibilityBadge';
+import { ParticipationBadge } from '@/components/ParticipationBadge';
 
 import { styles } from './styles';
 
@@ -25,17 +26,10 @@ export type PlanCardProps = {
 };
 
 function StatusBadge({ plan }: { plan: PlanSummary }) {
-    const { t } = useTranslation();
+    if (plan.visibility !== 'PRIVATE') return null;
     const status = planParticipationStatus(plan);
     if (status === null) return null;
-    const color = status === 'ACCEPTED' ? ParticipationBadgeColors.accepted : ParticipationBadgeColors.pending;
-    return (
-        <View style={[styles.statusBadge, { borderColor: color, backgroundColor: color + '1A' }]}>
-            <ThemedText type="label" style={[styles.statusBadgeText, { color }]}>
-                {status === 'ACCEPTED' ? t('accepted') : t('pending')}
-            </ThemedText>
-        </View>
-    );
+    return <ParticipationBadge status={status} />;
 }
 
 export function PlanCard({ plan, onPress, showStatus = false }: PlanCardProps) {

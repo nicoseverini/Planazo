@@ -105,7 +105,7 @@
   "category": "Categoría",
   "location_placeholder_places": "Ej.: Buenos Aires, Argentina...",
   "location_placeholder_plans": "Ej.: Buenos Aires, Obelisco...",
-  "proximity_distance": "Distancia máxima",
+  "proximity_distance": "Distancia",
   "apply_filters": "Aplicar filtros",
   "clear_all": "Limpiar todo",
   "visibility": "Visibilidad",
@@ -199,7 +199,7 @@
   "tourist_places_only": "Solo lugares turísticos",
   "plan_visibility": "Visibilidad del plan",
   "visibility_hint": "No afecta a los lugares turísticos.",
-  "proximity": "Proximidad",
+  "proximity": "Distancia",
   "apply": "Aplicar",
   "reset_filters": "Restablecer filtros",
   "success": "Éxito",
@@ -454,5 +454,10 @@
   "unexpected_auth_error": "Ocurrió un error inesperado al iniciar sesión.",
   "unexpected_error": "Ocurrió un error inesperado. Intenta de nuevo.",
   "error_session_verification": "No se pudo verificar tu sesión.",
-  "label_state": "Estado / Provincia"
+  "label_state": "Estado / Provincia",
+  "max_distance": "Máximo",
+  "sort_by": "Ordenar por",
+  "sort_nearest": "Más cercano primero",
+  "sort_date": "Fecha de inicio",
+  "sort_title": "Alfabético"
 }
