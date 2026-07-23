@@ -4,12 +4,13 @@ import { useTranslation } from 'react-i18next';
 import React from 'react';
 
 import { ThemedText } from '@/components/ThemedText';
-import { ParticipationBadgeColors, StatusBadgeColors } from '@/constants/theme';
+import { ParticipationBadgeColors } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { PlanSummary } from '@/services/plan';
 import { formatDateInTimezone, formatTimeInTimezone } from '@/utils/date';
 import { formatInterest } from '@/utils/interests';
 import { planParticipationStatus } from '@/utils/plan-filters';
+import { VisibilityBadge } from '@/components/VisibilityBadge';
 
 import { styles } from './styles';
 
@@ -22,19 +23,6 @@ export type PlanCardProps = {
      */
      showStatus?: boolean;
 };
-
-function VisibilityBadge({ plan }: { plan: PlanSummary }) {
-    const { t } = useTranslation();
-    const isPublic = plan.visibility === 'PUBLIC';
-    const palette = isPublic ? StatusBadgeColors.public : StatusBadgeColors.private;
-    return (
-        <View style={[styles.visibilityBadge, { backgroundColor: palette.background }]}>
-            <ThemedText type="label" style={[styles.visibilityBadgeText, { color: palette.text }]}>
-                {isPublic ? t('public') : t('private')}
-            </ThemedText>
-        </View>
-    );
-}
 
 function StatusBadge({ plan }: { plan: PlanSummary }) {
     const { t } = useTranslation();
@@ -77,7 +65,7 @@ export function PlanCard({ plan, onPress, showStatus = false }: PlanCardProps) {
                 />
                 <View style={styles.badgeOverlay}>
                     {showStatus && <StatusBadge plan={plan} />}
-                    <VisibilityBadge plan={plan} />
+                    <VisibilityBadge type={plan.visibility} />
                 </View>
             </View>
 

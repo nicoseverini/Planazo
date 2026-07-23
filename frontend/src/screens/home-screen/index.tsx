@@ -28,6 +28,7 @@ import { useGeocoding } from '@/services/geocoding';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { formatInterest } from '@/utils/interests';
 import i18n from '@/config/i18n';
+import { useLocation } from '@/context/location-context';
 
 import { styles } from './styles';
 
@@ -42,6 +43,18 @@ const DEFAULT_COORDS = {
   latitude: -34.6037, // Buenos Aires Center / FIUBA fallback
   longitude: -58.3816,
 };
+
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Radius of the earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
 const FALLBACK_IMAGES: Record<string, string> = {
   FOOD: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600',
@@ -78,20 +91,19 @@ export default function HomeScreen() {
   const { fetchFilteredPlans, fetchPublicPlans, fetchMyJoinedPlans } = usePlans();
   const { fetchAll: fetchAllTouristPlaces } = useTouristPlaces();
   const { reverse: reverseGeocode } = useGeocoding();
+  const { coords, locationPermission, requestPermission: requestLocationCtxPermission, refreshLocation, loading: locationContextLoading } = useLocation();
 
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
-  const [locationPermission, setLocationPermission] = useState<Location.PermissionStatus | null>(null);
-  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [userCountry, setUserCountry] = useState<string | null>(null);
   const [userCountryCode, setUserCountryCode] = useState<string | null>(null);
   const [plans, setPlans] = useState<PlanSummary[]>([]);
   const [fomoPlans, setFomoPlans] = useState<PlanSummary[]>([]);
   const [touristPlaces, setTouristPlaces] = useState<TouristPlaceSummary[]>([]);
-  const [secondaryPlans, setSecondaryPlans] = useState<PlanSummary[]>([]);
   const [joinedIds, setJoinedIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [myUserId, setMyUserId] = useState<number | null>(null);
+  const [hasLoadedInitially, setHasLoadedInitially] = useState(false);
 
   // Business logic fallback labels
   const [listLabelKey, setListLabelKey] = useState('recommended_plans');
@@ -152,7 +164,6 @@ export default function HomeScreen() {
 
         const interests = userProfile.interests || [];
         let fetchedPlans: PlanSummary[] = [];
-        let fetchedSecondary: PlanSummary[] = [];
         let labelKey = 'recommended_plans';
         let activeCase = 'CASE_4';
 
@@ -174,19 +185,72 @@ export default function HomeScreen() {
           // Non-critical: silently skip
         }
 
+        // Resolve user country if location is granted
+        let currentCountryName: string | null = null;
+        if (currentPermStatus === 'granted' && currentCoords) {
+          try {
+            const localResults = await Location.reverseGeocodeAsync({
+              latitude: currentCoords.latitude,
+              longitude: currentCoords.longitude,
+            });
+            if (localResults && localResults.length > 0) {
+              const first = localResults[0];
+              if (first.country) {
+                currentCountryName = first.country;
+                setUserCountry(first.country);
+                setUserCountryCode(first.isoCountryCode || null);
+              }
+            }
+          } catch (err) {
+            console.warn('[HomeScreen] Expo Location reverse geocoding failed, trying backend fallback...', err);
+          }
+
+          if (!currentCountryName) {
+            try {
+              const result = await reverseGeocode(currentCoords);
+              currentCountryName = result.country || null;
+              setUserCountry(result.country || null);
+              setUserCountryCode(result.countryCode || null);
+            } catch (err) {
+              console.warn('[HomeScreen] Backend reverse geocoding failed:', err);
+            }
+          }
+
+          if (!currentCountryName) {
+            // Geocoding fallback: Find nearest plan country or default to Argentina
+            let nearestPlan: PlanSummary | null = null;
+            let minDistance = Infinity;
+            for (const p of allPublicList) {
+              if (p.latitude != null && p.longitude != null) {
+                const d = getDistance(currentCoords.latitude, currentCoords.longitude, p.latitude, p.longitude);
+                if (d < minDistance) {
+                  minDistance = d;
+                  nearestPlan = p;
+                }
+              }
+            }
+            if (nearestPlan && nearestPlan.country) {
+              currentCountryName = nearestPlan.country;
+            } else {
+              currentCountryName = 'Argentina';
+            }
+            setUserCountry(currentCountryName);
+          }
+        }
+
         // Fetch tourist places only if location is granted
         if (currentPermStatus === 'granted' && currentCoords) {
           try {
             const allPlaces = await fetchAllTouristPlaces();
-            const sortedByDistance = [...allPlaces].sort((a, b) => {
+            const countryNormalized = currentCountryName ? currentCountryName.trim().toLowerCase() : '';
+            const countryPlaces = allPlaces.filter((p) => {
+              return p.country && p.country.trim().toLowerCase() === countryNormalized;
+            });
+            const sortedByDistance = [...countryPlaces].sort((a, b) => {
               if (a.latitude == null || a.longitude == null) return 1;
               if (b.latitude == null || b.longitude == null) return -1;
-              const distA =
-                Math.pow(a.latitude - currentCoords.latitude, 2) +
-                Math.pow(a.longitude - currentCoords.longitude, 2);
-              const distB =
-                Math.pow(b.latitude - currentCoords.latitude, 2) +
-                Math.pow(b.longitude - currentCoords.longitude, 2);
+              const distA = getDistance(currentCoords.latitude, currentCoords.longitude, a.latitude, a.longitude);
+              const distB = getDistance(currentCoords.latitude, currentCoords.longitude, b.latitude, b.longitude);
               return distA - distB;
             });
             setTouristPlaces(sortedByDistance.slice(0, 5));
@@ -201,34 +265,43 @@ export default function HomeScreen() {
         if (currentPermStatus === 'granted' && currentCoords) {
           if (interests.length > 0) {
             // Case 1: Permission GRANTED + Interests Configured
-            try {
-              fetchedPlans = await fetchFilteredPlans({
-                lat: currentCoords.latitude,
-                lng: currentCoords.longitude,
-                radius: 50,
-                interests: interests,
-              });
+            const countryNormalized = currentCountryName ? currentCountryName.trim().toLowerCase() : '';
+            fetchedPlans = allPublicList.filter((p) => {
+              const countryMatch = p.country && p.country.trim().toLowerCase() === countryNormalized;
+              const interestMatch = p.interests?.some((i) => interests.includes(i));
+              return countryMatch && interestMatch;
+            });
+
+            // Sort by distance (nearest to farthest)
+            fetchedPlans.sort((a, b) => {
+              const distA = getDistance(currentCoords.latitude, currentCoords.longitude, a.latitude, a.longitude);
+              const distB = getDistance(currentCoords.latitude, currentCoords.longitude, b.latitude, b.longitude);
+              return distA - distB;
+            });
+
+            if (fetchedPlans.length > 0) {
               activeCase = 'CASE_1';
-              labelKey = 'recommended_near_you';
-            } catch (err) {
-              Alert.alert(t('error'), t('unable_load_recommendations'));
+              labelKey = 'matching_your_interests';
             }
           }
 
           // Fallback to Case 2 if Case 1 has no results, or if user has no interests configured
           if (fetchedPlans.length === 0) {
             // Case 2: Permission GRANTED + NO Interests
-            try {
-              fetchedPlans = await fetchFilteredPlans({
-                lat: currentCoords.latitude,
-                lng: currentCoords.longitude,
-                radius: 50,
-              });
-              activeCase = 'CASE_2';
-              labelKey = 'popular_near_you';
-            } catch (err) {
-              Alert.alert(t('error'), t('unable_load_nearby'));
-            }
+            const countryNormalized = currentCountryName ? currentCountryName.trim().toLowerCase() : '';
+            fetchedPlans = allPublicList.filter((p) => {
+              return p.country && p.country.trim().toLowerCase() === countryNormalized;
+            });
+
+            // Sort by distance (nearest to farthest)
+            fetchedPlans.sort((a, b) => {
+              const distA = getDistance(currentCoords.latitude, currentCoords.longitude, a.latitude, a.longitude);
+              const distB = getDistance(currentCoords.latitude, currentCoords.longitude, b.latitude, b.longitude);
+              return distA - distB;
+            });
+
+            activeCase = 'CASE_2';
+            labelKey = 'popular_near_you';
           }
         } else {
           // Permission DENIED (or unavailable)
@@ -249,8 +322,11 @@ export default function HomeScreen() {
                   p.interests?.some((i) => interests.includes(i))
                 );
               }
-              activeCase = 'CASE_3';
-              labelKey = 'matching_your_interests';
+
+              if (fetchedPlans.length > 0) {
+                activeCase = 'CASE_3';
+                labelKey = 'matching_your_interests';
+              }
             } catch (err) {
               Alert.alert(t('error'), t('unable_load_interest_plans'));
             }
@@ -270,6 +346,7 @@ export default function HomeScreen() {
         let fomoList: PlanSummary[] = [];
         if (currentPermStatus === 'granted' && currentCoords) {
           const now = new Date();
+          const countryNormalized = currentCountryName ? currentCountryName.trim().toLowerCase() : '';
           fomoList = allPublicList
             .filter((p) => {
               if (!p.startDateTime) return false;
@@ -278,23 +355,12 @@ export default function HomeScreen() {
               if (joinedSet.has(p.id)) return false; // Not already joined
               if (currentUserId !== null && p.creatorId === currentUserId) return false; // Not created by me
 
-              // Proximity check
-              if (p.latitude != null && p.longitude != null) {
-                const distanceSq =
-                  Math.pow(p.latitude - currentCoords.latitude, 2) +
-                  Math.pow(p.longitude - currentCoords.longitude, 2);
-                return distanceSq < 0.25; // within ~50km
-              }
-              return false;
+              // Country check
+              return p.country && p.country.trim().toLowerCase() === countryNormalized;
             })
             .sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime())
             .slice(0, 6);
         }
-
-        // Setup secondary lists (Grid)
-        fetchedSecondary = allPublicList.filter(
-          (p) => !fetchedPlans.some((f) => f.id === p.id)
-        );
 
         // Filter out plans where the user is creator or already subscribed
         const filterPlans = (list: PlanSummary[]) =>
@@ -306,7 +372,6 @@ export default function HomeScreen() {
 
         setPlans(filterPlans(fetchedPlans));
         setFomoPlans(fomoList);
-        setSecondaryPlans(filterPlans(fetchedSecondary).slice(0, 8));
         setListLabelKey(labelKey);
         setBusinessCase(activeCase);
       } catch (err) {
@@ -330,65 +395,69 @@ export default function HomeScreen() {
   // Resolve the user's country from coordinates via the unified geocoding service.
   const applyUserCountry = async (currentCoords: { latitude: number; longitude: number }) => {
     try {
-      const result = await reverseGeocode(currentCoords);
-      setUserCountry(result.country?.toUpperCase() || null);
-      setUserCountryCode(result.countryCode || null);
-    } catch {
-      Alert.alert(t('error'), t('unable_determine_location'));
-    }
-  };
-
-  // Initialize and check permissions
-  const checkLocationPermissionAndLoad = async () => {
-    try {
-      const { status } = await Location.getForegroundPermissionsAsync();
-      setLocationPermission(status);
-
-      if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({});
-        const currentCoords = {
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude,
-        };
-        setCoords(currentCoords);
-
-        await applyUserCountry(currentCoords);
-
-        await loadData(status, currentCoords);
-      } else {
-        await loadData(status, null);
+      const localResults = await Location.reverseGeocodeAsync({
+        latitude: currentCoords.latitude,
+        longitude: currentCoords.longitude,
+      });
+      if (localResults && localResults.length > 0) {
+        const first = localResults[0];
+        if (first.country) {
+          setUserCountry(first.country);
+          setUserCountryCode(first.isoCountryCode || null);
+          return;
+        }
       }
     } catch (err) {
-      Alert.alert(t('error'), t('error_loading_recommendations'));
-      await loadData(null, null);
+      console.warn('[HomeScreen] Expo Location reverse geocoding failed, trying backend fallback...', err);
+    }
+
+    try {
+      const result = await reverseGeocode(currentCoords);
+      setUserCountry(result.country || null);
+      setUserCountryCode(result.countryCode || null);
+    } catch (err) {
+      console.warn('[HomeScreen] Backend reverse geocoding failed:', err);
     }
   };
 
+  // Trigger loadData when location context is loaded and token is logged in
   useEffect(() => {
-    if (tokenData.state === 'LOGGED_IN') {
-      checkLocationPermissionAndLoad();
-    } else {
-      setLoading(false);
+    if (tokenData.state !== 'LOGGED_IN' || locationContextLoading) {
+      if (tokenData.state !== 'LOGGED_IN') {
+        setLoading(false);
+      }
+      return;
     }
-  }, [tokenData.state]);
+
+    if (!hasLoadedInitially) {
+      const initLoad = async () => {
+        if (locationPermission === 'granted' && coords) {
+          await applyUserCountry(coords);
+          await loadData(locationPermission, coords);
+        } else {
+          await loadData(locationPermission, null);
+        }
+        setHasLoadedInitially(true);
+      };
+      void initLoad();
+    }
+  }, [tokenData.state, locationContextLoading, locationPermission, coords, hasLoadedInitially, loadData]);
 
   const requestLocationPermission = async () => {
     try {
-      const { status, canAskAgain } = await Location.requestForegroundPermissionsAsync();
-      setLocationPermission(status);
+      const status = await requestLocationCtxPermission();
       if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({});
-        const currentCoords = {
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude,
-        };
-        setCoords(currentCoords);
-
-        await applyUserCountry(currentCoords);
-
-        setLoading(true);
-        await loadData(status, currentCoords);
+        const newCoords = await refreshLocation();
+        if (newCoords) {
+          await applyUserCountry(newCoords);
+          setLoading(true);
+          await loadData(status, newCoords);
+        } else {
+          setLoading(true);
+          await loadData(status, null);
+        }
       } else {
+        const { canAskAgain } = await Location.getForegroundPermissionsAsync();
         if (!canAskAgain) {
           Alert.alert(
             t('location_disabled'),
@@ -406,23 +475,15 @@ export default function HomeScreen() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      const { status } = await Location.getForegroundPermissionsAsync();
-      setLocationPermission(status);
-      let currentCoords = null;
-      if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({});
-        currentCoords = {
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude,
-        };
-        setCoords(currentCoords);
-
-        await applyUserCountry(currentCoords);
+      const newCoords = await refreshLocation();
+      if (locationPermission === 'granted' && newCoords) {
+        await applyUserCountry(newCoords);
+        await loadData(locationPermission, newCoords);
       } else {
         setUserCountry(null);
         setUserCountryCode(null);
+        await loadData(locationPermission, null);
       }
-      await loadData(status, currentCoords);
     } catch (e) {
       Alert.alert(t('error'), t('unable_refresh_try'));
     } finally {
@@ -520,7 +581,7 @@ export default function HomeScreen() {
 
       {/* Subtle Location Permission Fallback Banner */}
       {(businessCase === 'CASE_3' || businessCase === 'CASE_4') && (
-        <View style={[styles.locationBanner, { backgroundColor: surface, borderColor: '#FF9500' }]}>
+        <View style={[styles.locationBanner, { backgroundColor: surface, borderColor: '#FF9500', marginBottom: 24 }]}>
           <View style={styles.bannerIconContainer}>
             <Ionicons name="location-outline" size={22} color="#FF9500" />
           </View>
@@ -546,8 +607,6 @@ export default function HomeScreen() {
           </View>
         </View>
       )}
-
-      {/* Case 1 or 2 location active indicator (Non-blocking pill header) */}
 
       {/* Horizontal Airbnb Slider for Featured Plans */}
       <View style={styles.sectionHeader}>
@@ -591,6 +650,8 @@ export default function HomeScreen() {
           </Pressable>
         </View>
       )}
+
+      {/* Case 1 or 2 location active indicator (Non-blocking pill header) */}
 
       {/* FOMO Section - Plans starting soon */}
       {fomoPlans.length > 0 && (
@@ -644,34 +705,6 @@ export default function HomeScreen() {
                 <TouristPlaceCard 
                   place={item} 
                   onPress={(id) => router.push(`/tourist-place/${id}` as any)} 
-                />
-              </View>
-            )}
-          />
-        </View>
-      )}
-
-      {/* Secondary list of plans */}
-      {secondaryPlans.length > 0 && (
-        <View style={{ marginBottom: 24 }}>
-          <View style={styles.sectionHeader}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              {t('discover_more_adventures')}
-            </ThemedText>
-          </View>
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={secondaryPlans}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.carouselContainer}
-            snapToInterval={CARD_WIDTH + 16}
-            decelerationRate="fast"
-            renderItem={({ item }) => (
-              <View style={{ width: CARD_WIDTH, marginRight: 16 }}>
-                <PlanCard
-                  plan={item}
-                  onPress={(id) => router.push(`/plan/${id}` as any)}
                 />
               </View>
             )}
