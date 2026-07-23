@@ -23,6 +23,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { StatusBadgeColors } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { PendingSubscriber, PlanDetail, PlanMember, usePlans } from '@/services/plan';
+import { VisibilityBadge } from '@/components/VisibilityBadge';
 import { formatAgeRestriction } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
 import { formatDateTimeInTimezone } from '@/utils/date';
@@ -397,11 +398,7 @@ export default function PlanDetailScreen() {
                         <ThemedText type="title" style={[styles.headerTitle, { flex: 1 }]}>
                             {plan.title}
                         </ThemedText>
-                        <View style={[styles.visibilityBadge, { backgroundColor: isPublic ? StatusBadgeColors.public.background : StatusBadgeColors.private.background, marginTop: 4 }]}>
-                            <ThemedText type="label" style={{ color: isPublic ? StatusBadgeColors.public.text : StatusBadgeColors.private.text, fontSize: 11 }}>
-                                {isPublic ? t('public') : t('private')}
-                            </ThemedText>
-                        </View>
+                        <VisibilityBadge type={plan.visibility} />
                         {isExpired && (
                             <View style={[styles.visibilityBadge, { backgroundColor: '#fef2f2', marginTop: 4 }]}>
                                 <ThemedText type="label" style={{ color: '#ef4444', fontSize: 11 }}>
