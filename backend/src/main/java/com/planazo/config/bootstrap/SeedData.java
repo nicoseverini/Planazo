@@ -2,11 +2,22 @@ package com.planazo.config.bootstrap;
 
 import com.planazo.common.constants.Interest;
 import com.planazo.common.constants.TravelType;
+import com.planazo.tourist_place.OpeningHours;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import static java.time.DayOfWeek.FRIDAY;
+import static java.time.DayOfWeek.MONDAY;
+import static java.time.DayOfWeek.SATURDAY;
+import static java.time.DayOfWeek.SUNDAY;
+import static java.time.DayOfWeek.THURSDAY;
+import static java.time.DayOfWeek.TUESDAY;
+import static java.time.DayOfWeek.WEDNESDAY;
 
 /**
  * Static, reusable catalogs and text generators for the demo-data expansion.
@@ -212,6 +223,127 @@ final class SeedData {
         l.add(p("Blue Lagoon", "Grindavík", "Southern Peninsula", "Iceland", 63.8804, -22.4495, 50.0, List.of(Interest.NATURE), "Milky-blue geothermal waters amid black lava fields.", List.of("https://res.cloudinary.com/p5hffsjm/image/upload/v1782408808/blue_ni7zkq.jpg")));
 
         return l;
+    }
+
+    // =====================================================================
+    // Weekly opening hours per place (keyed by name, so both the core and the
+    // catalog places resolve their schedule at creation time).
+    //
+    // Only open days are emitted; a missing day means closed. Hours reflect the
+    // typical published schedule for real venues, and a coherent day/night
+    // pattern for the type of place otherwise (monuments and open public spaces
+    // stay open around the clock, parks and reserves keep daytime hours, museums
+    // and cultural centres take a weekly closing day, shops and markets run
+    // commercial hours). Any place not listed falls back to a sensible daytime
+    // default, so newly added places are never left without a schedule.
+    // =====================================================================
+
+    static List<OpeningHours> openingHoursFor(String name) {
+        return switch (name) {
+            // --- Open around the clock: monuments, plazas, avenues, promenades,
+            //     open squares, scenic routes and public beaches ---
+            case "Obelisco de Buenos Aires", "Quebrada de Humahuaca",
+                 "Bosques de Palermo", "Puerto Madero", "Floralis Genérica",
+                 "Plaza de Mayo", "Avenida Corrientes", "Congreso de la Nación",
+                 "Palermo Soho", "Parque Centenario", "Plaza Dorrego",
+                 "Barrancas de Belgrano", "Calle Florida",
+                 "Quebrada de Cafayate", "Cerro de los Siete Colores",
+                 "Villa Carlos Paz", "La Cumbrecita", "Puerto Madryn Costanera",
+                 "Circuito Chico", "Villa La Angostura", "San Martín de los Andes",
+                 "Torreón del Monje", "El Chaltén",
+                 "Desierto de Atacama", "Rambla de Montevideo", "Punta del Este",
+                 "Cartagena Old Town", "Playas de Cancún", "Times Square",
+                 "Golden Gate Bridge", "Grand Canyon", "Niagara Falls",
+                 "Banff National Park", "Canales de Venecia", "Puerta del Sol",
+                 "Big Ben & Westminster", "Brandenburger Tor", "Santorini",
+                 "Cruce de Shibuya", "Monte Fuji", "Bondi Beach" -> open24h();
+
+            // --- Parks, reserves and natural areas: daytime hours ---
+            case "Cataratas del Iguazú", "Glaciar Perito Moreno", "Cerro Aconcagua",
+                 "Cementerio de la Recoleta", "Salinas Grandes", "Salar de Uyuni",
+                 "Torres del Paine", "Jardín Botánico Carlos Thays" -> everyDay("08:00", "18:00");
+            case "Valle de la Luna (Ischigualasto)", "Chichén Itzá",
+                 "Pirámides de Giza", "Table Mountain" -> everyDay("08:00", "17:00");
+            case "Parque Nacional Tierra del Fuego", "Península Valdés",
+                 "Termas de Río Hondo", "Dique Cabra Corral",
+                 "Acrópolis de Atenas" -> everyDay("08:00", "20:00");
+            case "Cristo Redentor", "Pão de Açúcar" -> everyDay("08:00", "19:00");
+            case "Blue Lagoon" -> everyDay("08:00", "21:00");
+            case "Machu Picchu" -> everyDay("06:00", "17:00");
+            case "Gran Muralla China" -> everyDay("07:30", "17:30");
+
+            // --- Guided-visit venues: tours, trains, theatres, cableways ---
+            case "Cerro Catedral, Bariloche", "Tren del Fin del Mundo",
+                 "Teatro Colón", "Sydney Opera House" -> everyDay("09:00", "17:00");
+            case "Colosseo", "Park Güell", "Monumento a la Bandera" -> everyDay("09:00", "19:00");
+            case "Sagrada Família" -> everyDay("09:00", "20:00");
+            case "Tour Eiffel" -> everyDay("09:00", "23:45");
+            case "Tower Bridge" -> everyDay("09:30", "18:00");
+            case "Bodega en Luján de Cuyo" -> everyDay("10:00", "17:00");
+            case "Caminito, La Boca", "La Bombonera", "Jardín Japonés" -> everyDay("10:00", "18:00");
+            case "Estadio Monumental" -> everyDay("10:00", "19:00");
+            case "Marina Bay Sands" -> everyDay("11:00", "21:00");
+            case "Burj Khalifa", "Mercado de Abasto" -> everyDay("10:00", "22:00");
+
+            // --- Shops, malls, markets, food ---
+            case "El Ateneo Grand Splendid" -> everyDay("09:00", "21:00");
+            case "Mercado de San Telmo", "Luna Park" -> everyDay("10:00", "20:00");
+            case "Galerías Pacífico", "Distrito Arcos" -> everyDay("10:00", "21:00");
+            case "Barrio Chino de Belgrano" -> everyDay("11:00", "22:00");
+            case "Café Tortoni" -> everyDay("08:00", "23:00");
+            case "Casa de Ana Frank" -> everyDay("09:00", "22:00");
+
+            // --- Museums and cultural venues with a weekly closing day ---
+            case "MALBA" -> everyDayExcept("12:00", "20:00", TUESDAY);
+            case "Musée du Louvre" -> everyDayExcept("09:00", "18:00", TUESDAY);
+            case "Museo Nacional de Bellas Artes" -> everyDayExcept("11:00", "20:00", MONDAY);
+            case "Planetario Galileo Galilei" -> everyDayExcept("12:00", "20:00", MONDAY);
+            case "Usina del Arte" -> everyDayExcept("11:00", "19:00", MONDAY);
+            case "Reserva Ecológica Costanera Sur" -> everyDayExcept("08:00", "18:00", MONDAY);
+            case "Taj Mahal" -> everyDayExcept("06:00", "18:30", FRIDAY); // closed Fridays
+
+            // --- Venues open only on specific days ---
+            case "Casa Rosada" -> onDays("10:00", "18:00", SATURDAY, SUNDAY);
+            case "Feria de Mataderos" -> onDays("11:00", "20:00", SATURDAY, SUNDAY);
+            case "Centro Cultural Kirchner" ->
+                    onDays("14:00", "20:00", WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY);
+            case "Ciudad Cultural Konex" -> onDays("19:00", "23:59", MONDAY, FRIDAY, SATURDAY);
+
+            default -> everyDay("09:00", "18:00");
+        };
+    }
+
+    /** Same hours every day of the week. */
+    static List<OpeningHours> everyDay(String open, String close) {
+        List<OpeningHours> hours = new ArrayList<>();
+        for (DayOfWeek day : DayOfWeek.values()) hours.add(slot(day, open, close));
+        return hours;
+    }
+
+    /** Open around the clock, every day (00:00–23:59 keeps the required open&lt;close ordering). */
+    static List<OpeningHours> open24h() {
+        return everyDay("00:00", "23:59");
+    }
+
+    /** Same hours on the given days only; every other day is closed. */
+    static List<OpeningHours> onDays(String open, String close, DayOfWeek... days) {
+        List<OpeningHours> hours = new ArrayList<>();
+        for (DayOfWeek day : days) hours.add(slot(day, open, close));
+        return hours;
+    }
+
+    /** Same hours every day except the listed closing days. */
+    static List<OpeningHours> everyDayExcept(String open, String close, DayOfWeek... closedDays) {
+        List<DayOfWeek> closed = List.of(closedDays);
+        List<OpeningHours> hours = new ArrayList<>();
+        for (DayOfWeek day : DayOfWeek.values()) {
+            if (!closed.contains(day)) hours.add(slot(day, open, close));
+        }
+        return hours;
+    }
+
+    private static OpeningHours slot(DayOfWeek day, String open, String close) {
+        return new OpeningHours(day, LocalTime.parse(open), LocalTime.parse(close));
     }
 
     // =====================================================================

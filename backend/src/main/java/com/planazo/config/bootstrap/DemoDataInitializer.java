@@ -229,6 +229,7 @@ public class DemoDataInitializer {
         TouristPlace place = new TouristPlace(name, cost, minAge, maxAge, interests,
                 country, state, city, address, lat, lng, images);
         place.setDescription(description);
+        place.setOpeningHours(SeedData.openingHoursFor(name));
         place.setCreator(creator);
         return touristPlaceRepository.save(place);
     }
@@ -630,6 +631,7 @@ public class DemoDataInitializer {
         TouristPlace place = new TouristPlace(s.name(), s.cost(), null, null, s.interests(),
                 s.country(), s.state(), s.city(), s.address(), s.lat(), s.lng(), s.images());
         place.setDescription(s.description());
+        place.setOpeningHours(SeedData.openingHoursFor(s.name()));
         place.setCreator(creator);
         return touristPlaceRepository.save(place);
     }
