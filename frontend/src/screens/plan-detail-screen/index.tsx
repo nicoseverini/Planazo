@@ -80,6 +80,7 @@ export default function PlanDetailScreen() {
     const { t, i18n } = useTranslation();
     const { showToast } = useToast();
     const [translatedDescription, setTranslatedDescription] = useState<string | null>(null);
+    const [translatedTitle, setTranslatedTitle] = useState<string | null>(null);
 
     const interestLabel = (plan?.interests ?? [])
         .map(formatInterest)
@@ -97,6 +98,7 @@ export default function PlanDetailScreen() {
             const data = await fetchPlanDetail(planId);
             setPlan(data);
             setTranslatedDescription(null);
+            setTranslatedTitle(null);
 
             const token = getAccessToken();
             if (token) {
@@ -133,6 +135,7 @@ export default function PlanDetailScreen() {
             const data = await fetchPlanDetail(planId);
             setPlan(data);
             setTranslatedDescription(null);
+            setTranslatedTitle(null);
 
             const token = getAccessToken();
             if (token) {
@@ -410,20 +413,24 @@ export default function PlanDetailScreen() {
                 >
                     <Ionicons name="arrow-back" size={24} color={text} />
                 </Pressable>
-                <View style={styles.headerTitleContainer}>
-                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+                <View style={[styles.headerTitleContainer, { flexDirection: 'column', alignItems: 'flex-start', gap: 4 }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8, width: '100%' }}>
                         <ThemedText type="title" style={[styles.headerTitle, { flex: 1 }]}>
-                            {plan.title}
+                            {translatedTitle || plan.title}
                         </ThemedText>
                         <VisibilityBadge type={plan.visibility} />
                         {isExpired && (
-                            <View style={[styles.visibilityBadge, { backgroundColor: '#fef2f2', marginTop: 4 }]}>
+                            <View style={[styles.visibilityBadge, { backgroundColor: '#fef2f2' }]}>
                                 <ThemedText type="label" style={{ color: '#ef4444', fontSize: 11 }}>
                                     {t('ended').toUpperCase()}
                                 </ThemedText>
                             </View>
                         )}
                     </View>
+                    <TranslationButton
+                        originalText={plan.title}
+                        onTranslationRowReceived={setTranslatedTitle}
+                    />
                 </View>
                 {!isCreator && (
                     <View style={{ position: 'relative' }}>

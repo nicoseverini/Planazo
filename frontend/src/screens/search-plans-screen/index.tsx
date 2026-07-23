@@ -21,6 +21,7 @@ import { PlanFilters, PlanSummary, PlanVisibility, usePlans } from '@/services/p
 import { formatLocalizedDate, toISODate } from '@/utils/date';
 import { normalizeSearch } from '@/utils/search';
 import { formatInterest } from '@/utils/interests';
+import { haversineKm } from '@/utils/distance';
 import { styles } from './styles';
 
 const VISIBILITY_OPTIONS: { labelKey: string; value: PlanVisibility | null }[] = [
@@ -35,24 +36,23 @@ export function SearchPlansScreen() {
     const { fetchPublicPlans, fetchMyJoinedPlans, fetchFilteredPlans, loading } = usePlans();
 
     const [plans, setPlans] = useState<PlanSummary[]>([]);
-    const [filteredPlans, setFilteredPlans] = useState<PlanSummary[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [joinedIds, setJoinedIds] = useState<Set<number>>(new Set());
     const [showFilters, setShowFilters] = useState(false);
 
-    // Filters
+    // Filters & Sorting
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [locationFilter, setLocationFilter] = useState('');
     const [dateFrom, setDateFrom] = useState<Date | null>(null);
     const [dateTo, setDateTo] = useState<Date | null>(null);
     const [visibility, setVisibility] = useState<PlanVisibility | null>(null);
+    const [sortBy, setSortBy] = useState<'nearest' | 'date' | 'title'>('nearest');
 
     const { radius, userLocation, handleRadiusChange, clearRadius } = useProximityFilter();
 
     const { surface, border, tint, tintText, mutedText, text: textColor } = useAppTheme();
 
     const hasActiveFilters = !!(
-        selectedCategories.length > 0 || locationFilter || dateFrom || dateTo || radius || visibility
+        selectedCategories.length > 0 || locationFilter || dateFrom || dateTo || radius || visibility || sortBy !== 'nearest'
     );
 
     const buildFilters = useCallback((): PlanFilters => {
@@ -82,7 +82,6 @@ export function SearchPlansScreen() {
             ]);
 
             const myJoinedSet = new Set(joinedPlans.map((p) => p.id));
-            setJoinedIds(myJoinedSet);
 
             let myUserId: number | null = null;
             if (tokenData.state === 'LOGGED_IN') {
@@ -100,7 +99,6 @@ export function SearchPlansScreen() {
             });
 
             setPlans(visiblePlans);
-            setFilteredPlans(visiblePlans);
         } catch {
             Alert.alert(
                 t('error'),
@@ -109,21 +107,52 @@ export function SearchPlansScreen() {
                     : t('unable_load_plans_try'),
             );
         }
-    }, [fetchPublicPlans, fetchFilteredPlans, fetchMyJoinedPlans, hasActiveFilters, buildFilters, tokenData.state, t]);
+    }, [fetchPublicPlans, fetchFilteredPlans, fetchMyJoinedPlans, hasActiveFilters, buildFilters, tokenData.state, getAccessToken, t]);
 
     const { refreshing, onRefresh } = useRefreshControl(loadPlans);
 
     useEffect(() => { loadPlans(); }, [loadPlans]);
 
-    useEffect(() => {
-        if (!searchQuery.trim()) { setFilteredPlans(plans); return; }
-        const q = normalizeSearch(searchQuery);
-        setFilteredPlans(plans.filter((p) =>
-            normalizeSearch(p.title).includes(q) ||
-            (p.location ? normalizeSearch(p.location).includes(q) : false) ||
-            (p.interests ?? []).some((interest) => normalizeSearch(interest).includes(q))
-        ));
-    }, [searchQuery, plans]);
+    const processedPlans = React.useMemo(() => {
+        let list = [...plans];
+
+        // 1. Search Query filter
+        if (searchQuery.trim()) {
+            const q = normalizeSearch(searchQuery);
+            list = list.filter((p) =>
+                normalizeSearch(p.title).includes(q) ||
+                (p.location ? normalizeSearch(p.location).includes(q) : false) ||
+                (p.interests ?? []).some((interest) => normalizeSearch(interest).includes(q))
+            );
+        }
+
+        // 2. Sorting logic
+        if (sortBy === 'nearest' && userLocation) {
+            list.sort((a, b) => {
+                const latA = a.latitude;
+                const lonA = a.longitude;
+                const latB = b.latitude;
+                const lonB = b.longitude;
+
+                if (latA == null || lonA == null) return 1;
+                if (latB == null || lonB == null) return -1;
+
+                const distA = haversineKm(userLocation.lat, userLocation.lng, latA, lonA);
+                const distB = haversineKm(userLocation.lat, userLocation.lng, latB, lonB);
+                return distA - distB;
+            });
+        } else if (sortBy === 'date') {
+            list.sort((a, b) => {
+                const dateA = a.startDate ? new Date(a.startDate).getTime() : Infinity;
+                const dateB = b.startDate ? new Date(b.startDate).getTime() : Infinity;
+                return dateA - dateB;
+            });
+        } else if (sortBy === 'title') {
+            list.sort((a, b) => a.title.localeCompare(b.title));
+        }
+
+        return list;
+    }, [plans, searchQuery, sortBy, userLocation]);
 
     const clearFilters = () => {
         setSelectedCategories([]);
@@ -131,6 +160,7 @@ export function SearchPlansScreen() {
         setDateFrom(null);
         setDateTo(null);
         setVisibility(null);
+        setSortBy('nearest');
         clearRadius();
     };
 
@@ -183,6 +213,13 @@ export function SearchPlansScreen() {
                             </ThemedText>
                         </View>
                     )}
+                    {sortBy !== 'nearest' && (
+                        <View style={[styles.activeChip, { backgroundColor: tint }]}>
+                            <ThemedText type="label" style={{ color: tintText }}>
+                                {sortBy === 'date' ? `📅 ${t('sort_date')}` : `🔤 ${t('sort_title')}`}
+                            </ThemedText>
+                        </View>
+                    )}
                     <Pressable onPress={clearFilters} style={styles.clearAllButton}>
                         <ThemedText type="label" style={{ color: mutedText }}>✕ {t('clear_all')}</ThemedText>
                     </Pressable>
@@ -213,7 +250,7 @@ export function SearchPlansScreen() {
                 </View>
             ) : (
                 <FlatList
-                    data={filteredPlans}
+                    data={processedPlans}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => (
                         <PlanCard
@@ -255,6 +292,35 @@ export function SearchPlansScreen() {
                         <Pressable onPress={() => setShowFilters(false)}>
                             <Ionicons name="close" size={24} color={textColor} />
                         </Pressable>
+                    </View>
+
+                    {/* Sort By */}
+                    <ThemedText type="subtitle" style={styles.modalSectionTitle}>{t('sort_by')}</ThemedText>
+                    <View style={styles.visibilityContainer}>
+                        {([
+                            { labelKey: 'sort_nearest', value: 'nearest' },
+                            { labelKey: 'sort_date', value: 'date' },
+                            { labelKey: 'sort_title', value: 'title' },
+                        ] as const).map((opt) => {
+                            const active = sortBy === opt.value;
+                            return (
+                                <Pressable
+                                    key={opt.value}
+                                    onPress={() => setSortBy(opt.value)}
+                                    style={[
+                                        styles.visibilityOption,
+                                        {
+                                            backgroundColor: active ? tint : 'transparent',
+                                            borderColor: active ? tint : border,
+                                        },
+                                    ]}
+                                >
+                                    <ThemedText type="label" style={{ color: active ? tintText : textColor }}>
+                                        {t(opt.labelKey)}
+                                    </ThemedText>
+                                </Pressable>
+                            );
+                        })}
                     </View>
 
                     {/* Category */}

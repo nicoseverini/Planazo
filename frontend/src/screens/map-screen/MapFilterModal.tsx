@@ -22,7 +22,7 @@ export const DEFAULT_MAP_FILTERS: MapFilters = {
     activity: 'ALL',
     categories: [],
     visibility: 'ANY',
-    radius: null,
+    radius: 10,
 };
 
 const ACTIVITY_OPTIONS: { translationKey: string; value: ActivityFilter }[] = [

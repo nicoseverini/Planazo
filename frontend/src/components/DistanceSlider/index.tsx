@@ -32,7 +32,7 @@ export function DistanceSlider({ radius, onChange, maxKm = DISTANCE_SLIDER_MAX_K
             <View style={styles.header}>
                 <ThemedText type="label" style={{ color: text }}>{translate('distance_range')}</ThemedText>
                 <ThemedText type="label" style={{ color: tint, fontWeight: 'bold' }}>
-                    {isAny ? translate('proximity_distance') : `${translate('up_to')} ${radius} km`}
+                    {isAny ? translate('max_distance') : `${translate('up_to')} ${radius} km`}
                 </ThemedText>
             </View>
             <Slider
