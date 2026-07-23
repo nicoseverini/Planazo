@@ -100,17 +100,22 @@ export default function PlanDetailScreen() {
 
             const token = getAccessToken();
             if (token) {
-                const joinedPlans = await fetchMyJoinedPlans();
+                const [joinedPlans, planMembers] = await Promise.all([
+                    fetchMyJoinedPlans(),
+                    fetchPlanMembers(planId)
+                ]);
                 setIsSubscribed(joinedPlans.some((joinedPlan) => joinedPlan.id === planId));
+                setMembers(planMembers);
             } else {
                 setIsSubscribed(false);
+                setMembers([]);
             }
         } catch (err) {
             Alert.alert(t('error'), t('unable_load_plan'));
         } finally {
             setLoading(false);
         }
-    }, [id, fetchMyJoinedPlans, fetchPlanDetail, getAccessToken, t]);
+    }, [id, fetchMyJoinedPlans, fetchPlanDetail, fetchPlanMembers, getAccessToken, t]);
 
     const handleRefresh = useCallback(async () => {
         if (refreshingRef.current) return;
@@ -131,10 +136,15 @@ export default function PlanDetailScreen() {
 
             const token = getAccessToken();
             if (token) {
-                const joinedPlans = await fetchMyJoinedPlans();
+                const [joinedPlans, planMembers] = await Promise.all([
+                    fetchMyJoinedPlans(),
+                    fetchPlanMembers(planId)
+                ]);
                 setIsSubscribed(joinedPlans.some((jp) => jp.id === planId));
+                setMembers(planMembers);
             } else {
                 setIsSubscribed(false);
+                setMembers([]);
             }
         } catch (err) {
             const message = err instanceof Error ? t(err.message) : t('unable_refresh_plan');
@@ -143,7 +153,7 @@ export default function PlanDetailScreen() {
             setRefreshing(false);
             refreshingRef.current = false;
         }
-    }, [id, fetchPlanDetail, fetchMyJoinedPlans, getAccessToken, t]);
+    }, [id, fetchPlanDetail, fetchMyJoinedPlans, fetchPlanMembers, getAccessToken, t]);
 
 
 
@@ -156,10 +166,13 @@ export default function PlanDetailScreen() {
     const token = getAccessToken();
     let isCreator = false;
     let isPrivatePlan = plan?.visibility === 'PRIVATE';
+    let currentUserId: number | null = null;
     if (token && plan) {
         const decoded = decodeJwt(token) as any;
-        isCreator = Number(decoded.id) === Number(plan.creatorId);
+        currentUserId = decoded?.id ? Number(decoded.id) : null;
+        isCreator = currentUserId === Number(plan.creatorId);
     }
+    const isMember = isCreator || (currentUserId !== null && members.some((m) => m.id === currentUserId && (m.accepted === null || m.accepted === true)));
 
     const loadPendingSubscribers = useCallback(async () => {
         if (!plan || !isCreator || !isPrivatePlan) return;
@@ -342,6 +355,10 @@ export default function PlanDetailScreen() {
         ? `$${plan.budget.toLocaleString()}`
         : t('free');
     const canUseSubscriptionButton = !isExpired && (!plan.isFull || isSubscribed);
+    const showExactLocation = !isPrivatePlan || isMember;
+    const displayedLocation = showExactLocation
+        ? plan.location
+        : ([plan.city, plan.state, plan.country].filter(Boolean).join(', ') || t('location_private', 'Private Plan Area'));
 
     const handleDelete = () => {
         Alert.alert(
@@ -507,9 +524,9 @@ export default function PlanDetailScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12, gap: 8 }}>
                     <Ionicons name="location-outline" size={20} color={tint} />
                     <ThemedText type="body" style={{ flex: 1, fontWeight: '500' }}>
-                        {plan.location}
+                        {displayedLocation}
                     </ThemedText>
-                    {plan.latitude != null && plan.longitude != null ? (
+                    {showExactLocation && plan.latitude != null && plan.longitude != null ? (
                         <Pressable
                             onPress={() => openInMaps(plan.latitude, plan.longitude, plan.title)}
                             style={({ pressed }) => [
@@ -533,31 +550,40 @@ export default function PlanDetailScreen() {
                     ) : null}
                 </View>
 
-                {plan.latitude && plan.longitude ? (
-                    <Pressable
-                        onPress={() => openInMaps(plan.latitude, plan.longitude, plan.title)}
-                        style={{ height: 160, width: '100%', borderTopWidth: 1, borderColor: border }}
-                    >
-                        <MapView
-                            style={{ ...StyleSheet.absoluteFillObject }}
-                            initialRegion={{
-                                latitude: plan.latitude,
-                                longitude: plan.longitude,
-                                latitudeDelta: 0.012,
-                                longitudeDelta: 0.012,
-                            }}
-                            scrollEnabled={false}
-                            zoomEnabled={false}
-                            pitchEnabled={false}
-                            rotateEnabled={false}
+                {showExactLocation ? (
+                    plan.latitude && plan.longitude ? (
+                        <Pressable
+                            onPress={() => openInMaps(plan.latitude, plan.longitude, plan.title)}
+                            style={{ height: 160, width: '100%', borderTopWidth: 1, borderColor: border }}
                         >
-                            <Marker
-                                coordinate={{ latitude: plan.latitude, longitude: plan.longitude }}
-                                pinColor={tint}
-                            />
-                        </MapView>
-                    </Pressable>
-                ) : null}
+                            <MapView
+                                style={{ ...StyleSheet.absoluteFillObject }}
+                                initialRegion={{
+                                    latitude: plan.latitude,
+                                    longitude: plan.longitude,
+                                    latitudeDelta: 0.012,
+                                    longitudeDelta: 0.012,
+                                }}
+                                scrollEnabled={false}
+                                zoomEnabled={false}
+                                pitchEnabled={false}
+                                rotateEnabled={false}
+                            >
+                                <Marker
+                                    coordinate={{ latitude: plan.latitude, longitude: plan.longitude }}
+                                    pinColor={tint}
+                                />
+                            </MapView>
+                        </Pressable>
+                    ) : null
+                ) : (
+                    <View style={{ height: 160, width: '100%', borderTopWidth: 1, borderColor: border, backgroundColor: surface, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+                        <Ionicons name="lock-closed" size={32} color={mutedText} style={{ marginBottom: 8 }} />
+                        <ThemedText type="body" style={{ color: mutedText, textAlign: 'center', fontSize: 13, lineHeight: 18 }}>
+                            {t('location_revealed_on_join', 'Exact location will be revealed once you join this private plan.')}
+                        </ThemedText>
+                    </View>
+                )}
             </View>
 
             {images.length > 0 && (

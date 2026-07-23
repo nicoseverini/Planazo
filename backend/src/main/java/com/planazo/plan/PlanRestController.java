@@ -90,8 +90,11 @@ class PlanRestController {
     @GetMapping(value = "/{id}", produces = "application/json")
     @Operation(summary = "Get a plan by ID")
     @ApiResponse(responseCode = "404", description = "Plan not found", content = @Content)
-    ResponseEntity<PlanDetailDTO> getPlan(@PathVariable Long id) {
-        return planService.getPlanById(id)
+    ResponseEntity<PlanDetailDTO> getPlan(
+            @PathVariable Long id,
+            @AuthenticationPrincipal(expression = "username") String email
+    ) {
+        return planService.getPlanById(id, email)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
