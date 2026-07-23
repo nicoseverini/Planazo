@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request update ✉️</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f4f5;
+            color: #18181b;
+            -webkit-font-smoothing: antialiased;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #f4f4f5;
+            padding: 40px 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e4e4e7;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .header {
+            background-color: #ef4444;
+            padding: 32px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .content {
+            padding: 40px 32px;
+            text-align: left;
+            line-height: 1.6;
+        }
+        .content p {
+            margin: 0 0 16px 0;
+            font-size: 16px;
+            color: #3f3f46;
+        }
+        .plan-card {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .plan-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #991b1b;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .plan-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #7f1d1d;
+            margin: 0;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 32px;
+            margin-bottom: 16px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #71717a;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+        .footer {
+            padding: 24px 32px;
+            background-color: #fafafa;
+            border-top: 1px solid #e4e4e7;
+            text-align: center;
+        }
+        .footer p {
+            margin: 0;
+            font-size: 13px;
+            color: #a1a1aa;
+        }
+    </style>
+</head>
+<body>
+    <table role="presentation" class="wrapper">
+        <tr>
+            <td align="center">
+                <div class="container">
+                    <div class="header">
+                        <h1>Request update ✉️</h1>
+                    </div>
+
+                    <div class="content">
+                        <p>Thank you for your interest in joining the activity.</p>
+                        <p>We wanted to let you know that the event organizer has reviewed the requests and, unfortunately, hasn't accepted your subscription for this specific instance.</p>
+                        
+                        <div class="plan-card">
+                            <div class="plan-label">Plan</div>
+                            <h2 class="plan-title">${planTitle}</h2>
+                        </div>
+
+                        <p>Don't worry, there are plenty of other activities waiting for you!</p>
+                    </div>
+
+                    <div class="footer">
+                        <p>You received this automatic email because you are registered on our plans platform.</p>
+                        <p style="margin-top: 4px;">&copy; 2026 Planazo.</p>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

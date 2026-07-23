@@ -1,0 +1,130 @@
+import { StyleSheet } from 'react-native';
+
+import { Layout } from '@/constants/theme';
+
+export const styles = StyleSheet.create({
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 300,
+    height: 300,
+    marginBottom: 2,
+  },
+  titleContainer: {
+    marginBottom: 8,
+  },
+  subtitle: {
+    textAlign: 'center',
+    maxWidth: 260,
+  },
+  bottom: {
+    paddingBottom: 100,
+    gap: 12,
+  },
+  buttonPrimary: {
+    paddingVertical: 14,
+    borderRadius: Layout.buttonRadius,
+  },
+  buttonSecondary: {
+    paddingVertical: 14,
+    borderRadius: Layout.buttonRadius,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  buttonPrimaryText: {
+    textAlign: 'center',
+  },
+  buttonSecondaryText: {
+    textAlign: 'center',
+  },
+  pressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.98 }],
+  },
+  topHeader: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    zIndex: 10,
+    gap: 12,
+  },
+  iconButtonLeft: {
+    position: 'absolute',
+    left: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    zIndex: 10,
+  },
+  iconButtonRight: {
+    position: 'absolute',
+    right: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    zIndex: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 320,
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 24,
+    gap: 16,
+    alignItems: 'stretch',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+  },
+  modalTitle: {
+    textAlign: 'center',
+    marginBottom: 8,
+    fontWeight: '700',
+  },
+  langOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    gap: 12,
+  },
+  langEmoji: {
+    fontSize: 22,
+  },
+  langLabel: {
+    flex: 1,
+    fontWeight: '600',
+  },
+});

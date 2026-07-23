@@ -1,0 +1,15 @@
+.docker/
+.DS_Store
+Thumbs.db
+.env
+*.log
+.vscode/
+.idea/
+*.iml
+.docker
+docker-compose.override.yml
+.env
+CLAUDE.md
+.devin
+**/*.structurizr
+dev-notes/

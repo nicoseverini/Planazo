@@ -1,6 +1,7 @@
 package com.planazo.user;
 
 import com.planazo.user.dto.*;
+import com.planazo.config.security.JwtUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -26,6 +27,19 @@ class UserRestController {
         }
 
         @PreAuthorize("isAuthenticated()")
+        @GetMapping(value = "/profile/me", produces = "application/json")
+        @Operation(summary = "View your profile")
+        @ResponseStatus(HttpStatus.OK)
+        @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
+        @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+        ResponseEntity<UserProfileDTO> viewMyProfile(
+                        @AuthenticationPrincipal(expression = "username") String email) {
+                return userService.getUserProfileByEmail(email)
+                                .map(ResponseEntity::ok)
+                                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        }
+
+        @PreAuthorize("isAuthenticated()")
         @GetMapping(value = "/profile/{id}", produces = "application/json")
         @Operation(summary = "View a user's profile by ID")
         @ResponseStatus(HttpStatus.OK)
@@ -47,7 +61,7 @@ class UserRestController {
         ResponseEntity<StatusResponseDTO> deleteUser(
                         @AuthenticationPrincipal(expression = "username") String email) {
                 var currentUser = userService.getUserByEmail(email);
-                return userService.deleteUser(currentUser.getId())
+                return userService.deleteUser(currentUser.getId(), null)
                                 .map(user -> ResponseEntity.ok(new StatusResponseDTO("success", "User deleted")))
                                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                                                 .body(new StatusResponseDTO("error", "User not found")));
@@ -71,12 +85,12 @@ class UserRestController {
         @ResponseStatus(HttpStatus.OK)
         @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
         @ApiResponse(responseCode = "409", description = "Email already register", content = @Content)
-        ResponseEntity<TokenDTO> createAdmin(
-                        @PathVariable Long id,
+        ResponseEntity<StatusResponseDTO> createAdmin(
                         @RequestBody UserCreateDTO userDTO) {
                 return userService.createUser(userDTO)
-                                .map(tk -> ResponseEntity.status(HttpStatus.CREATED).body(tk))
-                                .orElse(ResponseEntity.status(HttpStatus.CONFLICT).build());
+                                .map(status -> ResponseEntity.status(HttpStatus.CREATED).body(status))
+                                .orElse(ResponseEntity.status(HttpStatus.CONFLICT)
+                                                .body(new StatusResponseDTO("error", "Email already in use")));
         }
 
         @PreAuthorize("isAuthenticated()")
@@ -92,6 +106,20 @@ class UserRestController {
                 return userService.updateUser(userDTO, currentUser.getId());
         }
 
+        @PreAuthorize("isAuthenticated()")
+        @PatchMapping(value = "/me/language", produces = "application/json")
+        @Operation(summary = "Update your preferred language")
+        @ResponseStatus(HttpStatus.OK)
+        @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+        @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
+        Optional<ResponseEntity<StatusResponseDTO>> updateUserLanguage(
+                        @RequestBody UserLanguageUpdateDTO languageDTO,
+                        @AuthenticationPrincipal(expression = "username") String email) {
+                var currentUser = userService.getUserByEmail(email);
+                return userService.updateUserLanguage(languageDTO, currentUser.getId());
+        }
+
+
         @PreAuthorize("hasRole('ADMIN')")
         @DeleteMapping(value = "/admin/delete/{id}", produces = "application/json")
         @Operation(summary = "Delete a user or admin (admin only)")
@@ -99,8 +127,9 @@ class UserRestController {
         @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
         @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
         ResponseEntity<StatusResponseDTO> deleteUser(
-                        @PathVariable Long id) {
-                return userService.deleteUser(id)
+                        @PathVariable Long id,
+                        @RequestBody(required = false) UserAdminDeleteDTO data) {
+                return userService.deleteUser(id, data != null ? data.reason() : null)
                                 .map(user -> ResponseEntity.ok(new StatusResponseDTO("success", "User deleted")))
                                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                                                 .body(new StatusResponseDTO("error", "User not found")));

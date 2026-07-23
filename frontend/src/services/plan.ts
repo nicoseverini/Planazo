@@ -1,0 +1,616 @@
+import { getBackendUrl } from './auth';
+import { useToken } from '@/context/token-context';
+import { apiFetch } from '@/utils/api';
+import { useCallback, useState } from 'react';
+
+export type PlanVisibility = 'PUBLIC' | 'PRIVATE';
+
+export type PlanSummary = {
+    id: number;
+    title: string;
+    startDateTime: string;
+    location: string;
+    country?: string;
+    city?: string;
+    address?: string;
+    latitude: number;
+    longitude: number;
+    interests: string[];
+    visibility: PlanVisibility;
+    subscriberCount: number;
+    maxSubscribers: number;
+    minAge: number | null;
+    creatorName: string;
+    creatorId: number;
+    images: string[];
+    accepted: null | boolean;
+    budget: number;
+    timezone: string;
+};
+
+export type PlanDetail = {
+    id: number;
+    title: string;
+    description: string;
+    startDateTime: string;
+    endDateTime: string;
+    durationMinutes: number;
+    visibility: PlanVisibility;
+    maxSubscribers: number;
+    minAge: number | null;
+    maxAge: number | null;
+    interests: string[];
+    location: string;
+    country?: string;
+    city?: string;
+    address?: string;
+    latitude: number;
+    longitude: number;
+    images: string[];
+    creatorId: number;
+    creatorName: string;
+    subscriberCount: number;
+    isFull: boolean;
+    budget: number;
+    timezone: string;
+};
+
+export type PendingSubscriber = {
+    id: number;
+    name: string;
+    lastname: string;
+    photo?: string | null;
+};
+
+export type PlanMember = {
+    id: number;
+    name: string;
+    lastname: string;
+    photo?: string | null;
+    accepted: boolean | null;
+};
+
+export type PlanCreateRequest = {
+    title: string;
+    description: string;
+    startDateTime: string;
+    endDateTime: string;
+    visibility: PlanVisibility;
+    maxSubscribers: number;
+    minAge?: number;
+    maxAge?: number;
+    interests: string[];
+    country: string;
+    city: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    images?: string[];
+    budget?: number;
+    timezone: string;
+};
+
+export type PlanUpdateRequest = Partial<PlanCreateRequest>;
+
+// ============================================
+// API Functions
+// ============================================
+
+const JSON_HEADERS = { Accept: 'application/json', 'Content-Type': 'application/json' };
+const authHeaders = (token: string) => ({ ...JSON_HEADERS, Authorization: `Bearer ${token}` });
+
+// Get all public plans
+export async function getPublicPlans(): Promise<PlanSummary[]> {
+    const url = `${getBackendUrl()}/api/v1/plans`;
+    return apiFetch<PlanSummary[]>(url, { headers: JSON_HEADERS });
+}
+
+// Get plan by ID
+export async function getPlanById(id: number, accessToken: string): Promise<PlanDetail> {
+    const url = `${getBackendUrl()}/api/v1/plans/${id}`;
+    return apiFetch<PlanDetail>(url, { headers: authHeaders(accessToken) });
+}
+
+// Get my created plans
+export async function getMyCreatedPlans(accessToken: string): Promise<PlanSummary[]> {
+    const url = `${getBackendUrl()}/api/v1/plans/me/created`;
+    return apiFetch<PlanSummary[]>(url, { headers: authHeaders(accessToken) });
+}
+
+// Get plans I joined (subscribed)
+export async function getMyJoinedPlans(accessToken: string): Promise<PlanSummary[]> {
+    const url = `${getBackendUrl()}/api/v1/plans/me/joined-all`;
+    return apiFetch<PlanSummary[]>(url, { headers: authHeaders(accessToken) });
+}
+
+export async function getMyJoinedPlansButNotMine(accessToken: string): Promise<PlanSummary[]> {
+    const url = `${getBackendUrl()}/api/v1/plans/me/joined-not-mine`;
+    return apiFetch<PlanSummary[]>(url, { headers: authHeaders(accessToken) });
+}
+
+export async function getPendingSubscribers(planId: number, accessToken: string): Promise<PendingSubscriber[]> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/pending-subscribers`;
+    return apiFetch<PendingSubscriber[]>(url, { headers: authHeaders(accessToken) });
+}
+
+// Get the accepted members of a plan
+export async function getPlanMembers(planId: number, accessToken: string): Promise<PlanMember[]> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/members`;
+    return apiFetch<PlanMember[]>(url, { headers: authHeaders(accessToken) });
+}
+
+// Create a new plan
+export async function createPlan(data: PlanCreateRequest, accessToken: string): Promise<PlanDetail> {
+    const url = `${getBackendUrl()}/api/v1/plans`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Could not create the plan. Please try again.');
+    }
+
+    return response.json();
+}
+
+// Update a plan
+export async function updatePlan(
+    id: number,
+    data: PlanUpdateRequest,
+    accessToken: string
+): Promise<PlanDetail> {
+    const url = `${getBackendUrl()}/api/v1/plans/${id}`;
+    const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Could not update the plan. Please try again.');
+    }
+
+    return response.json();
+}
+
+// Permanently delete a plan and everything that belongs to it
+export async function deletePlan(id: number, accessToken: string): Promise<void> {
+    const url = `${getBackendUrl()}/api/v1/plans/${id}`;
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        if (response.status === 403) throw new Error('You are not allowed to delete this plan.');
+        if (response.status === 404) throw new Error('Plan not found.');
+        throw new Error("Couldn't delete the plan. Please try again.");
+    }
+}
+
+export async function acceptSubscriber(planId: number, userId: number, accessToken: string): Promise<void> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/accept/${userId}`;
+    const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        if (response.status === 403) throw new Error('error_manage_request_forbidden');
+        if (response.status === 404) throw new Error('error_join_request_not_found');
+        if (response.status === 409) throw new Error('error_plan_member_limit');
+        if (response.status === 410) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'error_plan_already_ended');
+        }
+        throw new Error('error_something_went_wrong_try');
+    }
+}
+
+export async function rejectSubscriber(planId: number, userId: number, accessToken: string): Promise<void> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/reject/${userId}`;
+    const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        if (response.status === 403) throw new Error('error_manage_request_forbidden');
+        if (response.status === 404) throw new Error('error_join_request_not_found');
+        if (response.status === 410) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'error_plan_already_ended');
+        }
+        throw new Error('error_something_went_wrong_try');
+    }
+}
+// Organizer removes a member from a plan
+export async function removeMember(planId: number, userId: number, accessToken: string): Promise<void> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/members/${userId}`;
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: { Accept: 'application/json', Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        if (response.status === 403) throw new Error(errorText || 'error_remove_member_forbidden');
+        if (response.status === 404) throw new Error(errorText || 'error_member_not_found');
+        if (response.status === 409) throw new Error(errorText || 'error_organizer_remove_forbidden');
+        if (response.status === 410) throw new Error(errorText || 'error_activity_not_found');
+        throw new Error(errorText || 'error_remove_member_failed');
+    }
+}
+
+// Join a plan
+export async function joinPlan(planId: number, accessToken: string): Promise<void> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/join`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { Accept: 'application/json', Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        if (response.status === 410) throw new Error(errorText || 'error_plan_already_ended');
+        if (response.status === 422) throw new Error(errorText || 'error_age_restriction_plan');
+        if (response.status === 409) throw new Error(errorText || 'error_already_member_or_full');
+        if (response.status === 404) throw new Error(errorText || 'error_plan_not_found');
+        if (response.status === 403) throw new Error(errorText || 'error_join_forbidden');
+        throw new Error(errorText || 'error_join_failed');
+    }
+}
+
+// Leave a plan
+export async function leavePlan(planId: number, accessToken: string): Promise<void> {
+    const url = `${getBackendUrl()}/api/v1/plans/${planId}/leave`;
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: { Accept: 'application/json', Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        if (response.status === 410) throw new Error(errorText || 'error_plan_already_ended');
+        if (response.status === 409) throw new Error(errorText || 'error_not_member');
+        throw new Error(errorText || 'error_leave_failed');
+    }
+}
+
+// Get nearby public plans
+export async function getNearbyPlans(lat: number, lng: number, radius: number = 50): Promise<PlanSummary[]> {
+    const url = `${getBackendUrl()}/api/v1/plans/nearby?lat=${lat}&lng=${lng}&radius=${radius}`;
+    return apiFetch<PlanSummary[]>(url, { headers: JSON_HEADERS });
+}
+
+export type PlanFilters = {
+    interests?: string[];
+    dateFrom?: string;
+    dateTo?: string;
+    location?: string;
+    lat?: number;
+    lng?: number;
+    radius?: number;
+    visibility?: PlanVisibility;
+};
+
+export async function getFilteredPlans(filters: PlanFilters): Promise<PlanSummary[]> {
+    const params = new URLSearchParams();
+    if (filters.interests && filters.interests.length > 0) {
+        filters.interests.forEach((i) => params.append('interests', i));
+    }
+    if (filters.dateFrom)  params.append('dateFrom', filters.dateFrom);
+    if (filters.dateTo)    params.append('dateTo', filters.dateTo);
+    if (filters.location)  params.append('location', filters.location);
+    if (filters.lat !== undefined) params.append('lat', filters.lat.toString());
+    if (filters.lng !== undefined) params.append('lng', filters.lng.toString());
+    if (filters.radius !== undefined) params.append('radius', filters.radius.toString());
+    if (filters.visibility) params.append('visibility', filters.visibility);
+
+    const url = `${getBackendUrl()}/api/v1/plans/filter?${params.toString()}`;
+    return apiFetch<PlanSummary[]>(url, { headers: { Accept: 'application/json' } });
+}
+
+// ============================================
+// Hooks (using TokenContext)
+// ============================================
+
+
+export function usePlans() {
+    const { getAccessToken } = useToken();
+    const [loadingCount, setLoadingCount] = useState(0);
+    const loading = loadingCount > 0;
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchPublicPlans = useCallback(async () => {
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            return await getPublicPlans();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, []);
+    const fetchMyCreatedPlans = useCallback(async () => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            return await getMyCreatedPlans(token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    const fetchMyJoinedPlansButNotMine = useCallback(async () => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            return await getMyJoinedPlansButNotMine(token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+        const fetchMyJoinedPlans = useCallback(async () => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            return await getMyJoinedPlans(token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    const fetchPlanDetail = useCallback(async (id: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            return await getPlanById(id, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    const fetchPendingSubscribers = useCallback(async (planId: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            return await getPendingSubscribers(planId, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    const fetchPlanMembers = useCallback(async (planId: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            return await getPlanMembers(planId, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    const fetchNearbyPlans = useCallback(async (lat: number, lng: number, radius?: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            return await getNearbyPlans(lat, lng, radius);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_fetch_nearby_failed');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    const fetchFilteredPlans = useCallback(async (filters: PlanFilters) => {
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            return await getFilteredPlans(filters);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, []);
+
+    const join = useCallback(async (planId: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            await joinPlan(planId, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    const leave = useCallback(async (planId: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            await leavePlan(planId, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    const create = useCallback(async (data: PlanCreateRequest) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            return await createPlan(data, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    const update = useCallback(async (id: number, data: PlanUpdateRequest) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {            return await updatePlan(id, data, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    const remove = useCallback(async (id: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            await deletePlan(id, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    const accept = useCallback(async (planId: number, userId: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            await acceptSubscriber(planId, userId, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    const reject = useCallback(async (planId: number, userId: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            await rejectSubscriber(planId, userId, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    const removeMemberFromPlan = useCallback(async (planId: number, userId: number) => {
+        const token = getAccessToken();
+        if (!token) throw new Error('error_no_access_token');
+        setLoadingCount(c => c + 1);
+        setError(null);
+        try {
+            await removeMember(planId, userId, token);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'error_unknown');
+            throw err;
+        } finally {
+            setLoadingCount(c => c - 1);
+        }
+    }, [getAccessToken]);
+
+    return {
+        loading,
+        error,
+        fetchPublicPlans,
+        fetchMyCreatedPlans,
+        fetchMyJoinedPlans,
+        fetchMyJoinedPlansButNotMine,
+        fetchPlanDetail,
+        fetchPendingSubscribers,
+        fetchPlanMembers,
+        fetchNearbyPlans,
+        fetchFilteredPlans,
+        join,
+        leave,
+        create,
+        update,
+        remove,
+        accept,
+        reject,
+        removeMember: removeMemberFromPlan,
+    };
+}

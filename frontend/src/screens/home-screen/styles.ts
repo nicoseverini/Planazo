@@ -1,0 +1,144 @@
+import { StyleSheet } from 'react-native';
+import { Layout } from '@/constants/theme';
+
+export const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Layout.pagePadding,
+    paddingTop: 24,
+    marginBottom: 16,
+  },
+  headerLeft: {
+    flex: 1,
+    marginRight: 16,
+  },
+  welcomeText: {
+    fontSize: 26,
+    fontWeight: '800',
+    lineHeight: 32,
+    letterSpacing: -0.5,
+  },
+  welcomeSubtext: {
+    fontSize: 14,
+    marginTop: 4,
+    lineHeight: 18,
+  },
+  interestsSection: {
+    paddingHorizontal: Layout.pagePadding,
+    marginBottom: 20,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chip: {
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  chipText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  locationBanner: {
+    flexDirection: 'row',
+    gap: 12,
+    marginHorizontal: Layout.pagePadding,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderLeftWidth: 5,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  bannerIconContainer: {
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingTop: 2,
+  },
+  bannerTextContainer: {
+    flex: 1,
+  },
+  activateButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+  },
+  sectionHeader: {
+    paddingHorizontal: Layout.pagePadding,
+    marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  carouselContainer: {
+    paddingLeft: Layout.pagePadding,
+    paddingRight: Layout.pagePadding - 16,
+    marginBottom: 24,
+  },
+  emptyContainer: {
+    marginHorizontal: Layout.pagePadding,
+    borderRadius: Layout.cardRadius,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    padding: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  createPlanButton: {
+    borderWidth: 1.5,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: Layout.buttonRadius,
+  },
+  primaryButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: Layout.buttonRadius,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.97 }],
+  },
+  bottomPadding: {
+    height: 100,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Layout.pagePadding,
+    gap: 16,
+  },
+  // Other styles can be added here if needed in the future
+});
