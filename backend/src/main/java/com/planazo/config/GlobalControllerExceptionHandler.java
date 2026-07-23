@@ -6,6 +6,7 @@ import com.planazo.common.exception.InvalidAgeRangeException;
 import com.planazo.common.exception.InvalidBudgetException;
 import com.planazo.common.exception.InvalidDateRangeException;
 import com.planazo.common.exception.InvalidMaxSubscribersException;
+import com.planazo.common.exception.InvalidOpeningHoursException;
 import com.planazo.common.exception.InvalidTimezoneException;
 import com.planazo.common.exception.ItemNotFoundException;
 import com.planazo.common.exception.LocationNotFoundException;
@@ -59,6 +60,12 @@ public class GlobalControllerExceptionHandler {
     @ExceptionHandler(InvalidDateRangeException.class)
     @ApiResponse(responseCode = "400", description = "Invalid date range", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
     public ResponseEntity<String> handleInvalidDateRange(InvalidDateRangeException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidOpeningHoursException.class)
+    @ApiResponse(responseCode = "400", description = "Invalid opening hours", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
+    public ResponseEntity<String> handleInvalidOpeningHours(InvalidOpeningHoursException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 

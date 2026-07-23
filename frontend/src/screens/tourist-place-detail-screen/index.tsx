@@ -26,6 +26,7 @@ import { TouristPlaceDetail, useTouristPlaces } from '@/services/tourist-place';
 import { formatAgeRestriction } from '@/utils/age-restriction';
 import { formatInterest } from '@/utils/interests';
 import { openInMaps } from '@/utils/navigation';
+import { buildWeekSchedule, currentWeekday, formatDayRange, WEEKDAY_LABEL_KEY } from '@/utils/schedule';
 import { ReportModal } from '@/components/ReportModal';
 import { TranslationButton } from '@/components/TranslationButton';
 
@@ -212,6 +213,8 @@ export default function TouristPlaceDetailScreen() {
     const lat = place.latitude;
     const lng = place.longitude;
     const hasCoords = lat != null && lng != null;
+    const weekSchedule = buildWeekSchedule(place.openingHours);
+    const todayWeekday = currentWeekday();
 
     // Handled by state via ReviewSection
 
@@ -482,9 +485,26 @@ export default function TouristPlaceDetailScreen() {
             {activeTab === 'hours' && (
                 <View style={styles.tabContent}>
                     <ThemedText type="subtitle" style={{ marginBottom: 12 }}>{t('opening_hours')}</ThemedText>
-                    <ThemedText type="body" style={{ color: mutedText }}>
-                        {t('hours_coming_soon')}
-                    </ThemedText>
+                    {weekSchedule.map((day) => {
+                        const range = formatDayRange(day);
+                        const isToday = day.day === todayWeekday;
+                        return (
+                            <View
+                                key={day.day}
+                                style={[
+                                    styles.hoursRow,
+                                    { borderColor: isToday ? tint : border, backgroundColor: isToday ? surface : 'transparent' },
+                                ]}
+                            >
+                                <ThemedText type="body" style={{ color: text, fontWeight: isToday ? '700' : '500' }}>
+                                    {t(WEEKDAY_LABEL_KEY[day.day])}
+                                </ThemedText>
+                                <ThemedText type="body" style={{ color: range ? text : mutedText }}>
+                                    {range ?? t('closed')}
+                                </ThemedText>
+                            </View>
+                        );
+                    })}
                 </View>
             )}
 

@@ -24,6 +24,7 @@ function toFormValues(place: TouristPlaceDetail): TouristPlaceFormValues {
         longitude: place.longitude?.toString() ?? '-58.3816',
         images: place.images,
         description: place.description ?? '',
+        openingHours: place.openingHours ?? [],
     };
 }
 

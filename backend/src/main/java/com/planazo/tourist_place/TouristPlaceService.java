@@ -2,6 +2,8 @@ package com.planazo.tourist_place;
 
 import com.planazo.common.exception.InvalidAgeRangeException;
 import com.planazo.common.exception.InvalidBudgetException;
+import com.planazo.common.exception.InvalidOpeningHoursException;
+import com.planazo.tourist_place.dto.OpeningHoursDTO;
 import com.planazo.tourist_place.dto.TouristPlaceCreateDTO;
 import com.planazo.tourist_place.dto.TouristPlaceDetailDTO;
 import com.planazo.tourist_place.dto.TouristPlaceSummaryDTO;
@@ -16,9 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.DayOfWeek;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -41,6 +47,7 @@ public class TouristPlaceService {
         Integer normalizedMax = normalizeAge(data.maxAge());
         validateAgeRange(normalizedMin, normalizedMax);
         validateCost(data.cost());
+        validateOpeningHours(data.openingHours());
 
         User creator = userRepository.findByEmail(creatorEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
@@ -61,6 +68,7 @@ public class TouristPlaceService {
         );
         String trimmedDesc = data.description() != null ? data.description().trim() : null;
         place.setDescription(trimmedDesc != null && !trimmedDesc.isBlank() ? trimmedDesc : null);
+        place.setOpeningHours(toOpeningHoursEntities(data.openingHours()));
         place.setCreator(creator);
         return toDetailDTO(touristPlaceRepository.save(place));
     }
@@ -181,6 +189,11 @@ public class TouristPlaceService {
             place.setDescription(trimmed.isBlank() ? null : trimmed);
         }
 
+        if (data.openingHours() != null) {
+            validateOpeningHours(data.openingHours());
+            place.setOpeningHours(toOpeningHoursEntities(data.openingHours()));
+        }
+
         return touristPlaceRepository.save(place);
     }
 
@@ -201,7 +214,8 @@ public class TouristPlaceService {
                 place.getLongitude(),
                 List.copyOf(place.getImages()),
                 place.getDescription(),
-                place.getCreator() != null ? place.getCreator().getId() : null
+                place.getCreator() != null ? place.getCreator().getId() : null,
+                toOpeningHoursDTO(place.getOpeningHours())
         );
     }
 
@@ -235,6 +249,36 @@ public class TouristPlaceService {
     private void validateCost(Double cost) {
         if (cost == null) return;
         if (cost < 0 || cost > 9_999_999) throw new InvalidBudgetException("Cost must be between 0 and 9,999,999.");
+    }
+
+    private void validateOpeningHours(List<OpeningHoursDTO> hours) {
+        if (hours == null || hours.isEmpty()) return;
+        Set<DayOfWeek> seenDays = EnumSet.noneOf(DayOfWeek.class);
+        for (OpeningHoursDTO slot : hours) {
+            if (slot == null || slot.dayOfWeek() == null || slot.openTime() == null || slot.closeTime() == null) {
+                throw new InvalidOpeningHoursException("Each open day requires a day, an opening time and a closing time.");
+            }
+            if (!slot.closeTime().isAfter(slot.openTime())) {
+                throw new InvalidOpeningHoursException("Closing time must be later than opening time.");
+            }
+            if (!seenDays.add(slot.dayOfWeek())) {
+                throw new InvalidOpeningHoursException("Each day can appear only once in the schedule.");
+            }
+        }
+    }
+
+    private List<OpeningHours> toOpeningHoursEntities(List<OpeningHoursDTO> hours) {
+        if (hours == null) return new ArrayList<>();
+        return hours.stream()
+                .map(slot -> new OpeningHours(slot.dayOfWeek(), slot.openTime(), slot.closeTime()))
+                .toList();
+    }
+
+    private List<OpeningHoursDTO> toOpeningHoursDTO(List<OpeningHours> hours) {
+        return hours.stream()
+                .sorted(Comparator.comparing(OpeningHours::getDayOfWeek))
+                .map(slot -> new OpeningHoursDTO(slot.getDayOfWeek(), slot.getOpenTime(), slot.getCloseTime()))
+                .toList();
     }
 
     private static Integer normalizeAge(Integer age) {

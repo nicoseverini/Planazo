@@ -87,6 +87,16 @@ export const styles = StyleSheet.create({
     tabContent: {
         marginBottom: 24,
     },
+    hoursRow: {
+        alignItems: 'center',
+        borderRadius: 10,
+        borderWidth: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+    },
     actionRow: {
         flexDirection: 'row',
         gap: 12,
