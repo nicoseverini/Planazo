@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import { getBackendUrl } from './config'
 import { PlanImagePicker } from './components/PlanImagePicker'
@@ -97,7 +96,7 @@ export function CreatePlanPage() {
 
 			if (end <= start) {
 				setStatus('error');
-				setMessage(t('error_end_after_start'));
+				setMessage('The end date and time must be after the start date and time.');
 				return;
 			}
 		}
