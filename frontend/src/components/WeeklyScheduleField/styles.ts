@@ -34,11 +34,7 @@ export const styles = StyleSheet.create({
         fontWeight: '600',
     },
     times: {
-        flexDirection: 'row',
         gap: 10,
-    },
-    timeField: {
-        flex: 1,
     },
     closedText: {
         fontStyle: 'italic',

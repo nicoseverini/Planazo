@@ -98,13 +98,11 @@ export function WeeklyScheduleField({ value, onChange }: Props) {
                                     label={t('opening_time')}
                                     value={row.openTime}
                                     onChange={(date) => updateDay(index, { openTime: date })}
-                                    containerStyle={styles.timeField}
                                 />
                                 <TimeField
                                     label={t('closing_time')}
                                     value={row.closeTime}
                                     onChange={(date) => updateDay(index, { closeTime: date })}
-                                    containerStyle={styles.timeField}
                                 />
                             </View>
                         ) : (
