@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 // Developer-configurable default maximum distance in km
 export const DISTANCE_SLIDER_MAX_KM = 100;
+export const DISTANCE_SLIDER_DEFAULT_KM = 10;
 
 type Props = {
     radius: number | null;

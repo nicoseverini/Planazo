@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 
 import i18n from '@/config/i18n';
 import { useLocation } from '@/context/location-context';
+import { DISTANCE_SLIDER_DEFAULT_KM } from '@/components/DistanceSlider';
 
 export type UserLocation = { lat: number; lng: number };
 
@@ -13,7 +14,7 @@ export type UserLocation = { lat: number; lng: number };
  * - Once coordinates are fetched globally, radius changes are applied instantly.
  */
 export function useProximityFilter() {
-    const [radius, setRadius] = useState<number | null>(null);
+    const [radius, setRadius] = useState<number | null>(DISTANCE_SLIDER_DEFAULT_KM);
     const { coords, requestPermission, refreshLocation } = useLocation();
 
     const handleRadiusChange = useCallback(
