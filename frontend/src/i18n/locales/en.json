@@ -189,7 +189,7 @@
   "leave": "Leave",
   "plan_full": "Plan Full",
   "join": "Join",
-  "hours_coming_soon": "Hours coming soon",
+  "today_hours": "Today: {{hours}}",
   "permission_denied": "Permission denied",
   "location_permission_required": "Location permission is required for proximity search.",
   "could_not_get_location": "Could not get current location.",

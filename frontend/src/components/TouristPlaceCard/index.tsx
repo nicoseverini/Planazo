@@ -7,6 +7,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { TouristPlaceSummary } from '@/services/tourist-place';
 import { formatInterest } from '@/utils/interests';
+import { formatDayRange, getTodaySchedule } from '@/utils/schedule';
 
 import { styles } from './styles';
 
@@ -22,6 +23,8 @@ export function TouristPlaceCard({ place, onPress }: TouristPlaceCardProps) {
     const categoryLabel = (place.interests ?? []).map(formatInterest).join(' · ');
     const locationLine = [place.address, place.city, place.country].filter(Boolean).join(', ') || place.location;
     const costLabel = place.cost == null ? null : place.cost === 0 ? t('free') : `$${place.cost.toLocaleString()}`;
+    const todayRange = formatDayRange(getTodaySchedule(place.openingHours));
+    const todayHoursLabel = t('today_hours', { hours: todayRange ?? t('closed') });
 
     const imageUrl = place.images && place.images.length > 0 && place.images[0]
         ? place.images[0]
@@ -59,7 +62,7 @@ export function TouristPlaceCard({ place, onPress }: TouristPlaceCardProps) {
                     <View style={styles.metaRow}>
                         <Ionicons name="time-outline" size={14} color={mutedText} />
                         <ThemedText type="label" style={[styles.metaText, { color: mutedText }]} numberOfLines={1}>
-                            {t('hours_coming_soon')}
+                            {todayHoursLabel}
                         </ThemedText>
                     </View>
 

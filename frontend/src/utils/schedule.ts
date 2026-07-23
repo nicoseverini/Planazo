@@ -85,6 +85,12 @@ export function currentWeekday(): Weekday {
     return JS_DAY_TO_WEEKDAY[new Date().getDay()];
 }
 
+/** The schedule row for today (always present; closed when no hours are set for today). */
+export function getTodaySchedule(hours?: OpeningHours[] | null): DaySchedule {
+    const today = currentWeekday();
+    return buildWeekSchedule(hours).find((row) => row.day === today) as DaySchedule;
+}
+
 /** Validates a single open day. Returns an i18n error key, or `null` when valid or closed. */
 export function dayRowError(row: DaySchedule): string | null {
     if (!row.open) return null;

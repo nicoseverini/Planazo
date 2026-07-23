@@ -236,7 +236,8 @@ public class TouristPlaceService {
                 place.getMaxAge(),
                 List.copyOf(place.getImages()),
                 place.getCreator() != null ? place.getCreator().getId() : null,
-                place.getCreatorName()
+                place.getCreatorName(),
+                toOpeningHoursDTO(place.getOpeningHours())
         );
     }
 

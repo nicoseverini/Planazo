@@ -188,7 +188,7 @@
   "leave": "Salir",
   "plan_full": "Plan Completo",
   "join": "Unirme",
-  "hours_coming_soon": "Horarios próximamente",
+  "today_hours": "Hoy: {{hours}}",
   "permission_denied": "Permiso denegado",
   "location_permission_required": "Se requiere permiso de ubicación para la búsqueda por proximidad.",
   "could_not_get_location": "No se pudo obtener la ubicación actual.",

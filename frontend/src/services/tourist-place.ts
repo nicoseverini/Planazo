@@ -38,11 +38,11 @@ export type TouristPlaceSummary = {
     maxAge: number | null;
     images: string[];
     creatorId: number | null;
+    openingHours: OpeningHours[];
 };
 
 export type TouristPlaceDetail = TouristPlaceSummary & {
     description: string | null;
-    openingHours: OpeningHours[];
 };
 
 export type TouristPlaceCreateRequest = {
