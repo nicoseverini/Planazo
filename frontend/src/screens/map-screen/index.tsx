@@ -10,7 +10,6 @@ import { ThemedText } from '@/components/ThemedText';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { usePlans, PlanSummary } from '@/services/plan';
 import { useTouristPlaces, TouristPlaceSummary } from '@/services/tourist-place';
-import * as Location from 'expo-location';
 import { matchesCategories } from '@/utils/category-filter';
 import { haversineKm } from '@/utils/distance';
 
@@ -18,7 +17,6 @@ import { styles } from './styles';
 import { AppScreen } from '@/components/ui';
 import { MapFilterModal, MapFilters, DEFAULT_MAP_FILTERS } from './MapFilterModal';
 import { useLocation } from '@/context/location-context';
-import { useGeocoding } from '@/services/geocoding';
 
 const MAP_INITIAL_REGION = {
     latitude: -34.6037,
@@ -53,34 +51,13 @@ export default function MapScreen() {
 
     const { tint, tintText, surface, border, text } = useAppTheme();
     const { coords: globalCoords, refreshLocation, requestPermission } = useLocation();
-    const { reverse: reverseGeocode } = useGeocoding();
 
     const [plans, setPlans] = useState<PlanSummary[]>([]);
     const [places, setPlaces] = useState<TouristPlaceSummary[]>([]);
     const [filters, setFilters] = useState<MapFilters>(DEFAULT_MAP_FILTERS);
     const [showFilters, setShowFilters] = useState(false);
     const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(globalCoords);
-    const [userCity, setUserCity] = useState<string | null>(null);
     const [selectedMapItem, setSelectedMapItem] = useState<SelectedMapItem | null>(null);
-
-    const detectCity = useCallback(async (coords: { latitude: number; longitude: number }) => {
-        try {
-            const localResults = await Location.reverseGeocodeAsync({
-                latitude: coords.latitude,
-                longitude: coords.longitude,
-            });
-            if (localResults && localResults.length > 0 && localResults[0].city) {
-                setUserCity(localResults[0].city);
-            } else {
-                const result = await reverseGeocode(coords);
-                if (result.city) {
-                    setUserCity(result.city);
-                }
-            }
-        } catch (err) {
-            console.warn('[MapScreen] Reverse geocoding failed:', err);
-        }
-    }, [reverseGeocode]);
 
     const acquireUserLocation = useCallback(async (): Promise<{ latitude: number; longitude: number } | null> => {
         const status = await requestPermission();
@@ -88,11 +65,10 @@ export default function MapScreen() {
         const coords = await refreshLocation();
         if (coords) {
             setUserLocation(coords);
-            detectCity(coords);
             return coords;
         }
         return null;
-    }, [requestPermission, refreshLocation, detectCity]);
+    }, [requestPermission, refreshLocation]);
 
     const centerOnUser = async () => {
         try {
@@ -128,7 +104,6 @@ export default function MapScreen() {
     useEffect(() => {
         if (globalCoords) {
             setUserLocation(globalCoords);
-            detectCity(globalCoords);
             mapRef.current?.animateToRegion(
                 { latitude: globalCoords.latitude, longitude: globalCoords.longitude, latitudeDelta: 0.05, longitudeDelta: 0.05 },
                 1000
@@ -136,7 +111,7 @@ export default function MapScreen() {
         } else {
             centerOnUser();
         }
-    }, [globalCoords, detectCity]);
+    }, [globalCoords]);
 
     useFocusEffect(
         useCallback(() => {
@@ -159,14 +134,10 @@ export default function MapScreen() {
                 if (userLocation) {
                     if (haversineKm(userLocation.latitude, userLocation.longitude, plan.latitude, plan.longitude) > filters.radius) return false;
                 }
-            } else if (userCity) {
-                const planCity = plan.city ? plan.city.toLowerCase().trim() : '';
-                const targetCity = userCity.toLowerCase().trim();
-                if (!planCity.includes(targetCity) && !targetCity.includes(planCity)) return false;
             }
             return true;
         });
-    }, [plans, filters, userLocation, userCity]);
+    }, [plans, filters, userLocation]);
 
     const visiblePlaces = useMemo(() => {
         if (filters.activity === 'PLANS') return [];
@@ -177,14 +148,10 @@ export default function MapScreen() {
                 if (userLocation) {
                     if (haversineKm(userLocation.latitude, userLocation.longitude, place.latitude!, place.longitude!) > filters.radius) return false;
                 }
-            } else if (userCity) {
-                const placeCity = place.city ? place.city.toLowerCase().trim() : '';
-                const targetCity = userCity.toLowerCase().trim();
-                if (!placeCity.includes(targetCity) && !targetCity.includes(placeCity)) return false;
             }
             return true;
         });
-    }, [places, filters, userLocation, userCity]);
+    }, [places, filters, userLocation]);
 
     const activeFilterCount = useMemo(() => {
         let count = 0;
