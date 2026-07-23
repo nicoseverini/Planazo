@@ -229,6 +229,7 @@ public class DemoDataInitializer {
         TouristPlace place = new TouristPlace(name, cost, minAge, maxAge, interests,
                 country, state, city, address, lat, lng, images);
         place.setDescription(description);
+        place.setOpeningHours(SeedData.openingHoursFor(name));
         place.setCreator(creator);
         return touristPlaceRepository.save(place);
     }
@@ -244,9 +245,13 @@ public class DemoDataInitializer {
         List<User> allUsers = userRepository.findAll();
         Random rng = new Random(20260625L);
 
+        // Plan dates are relative to the boot date so seeded plans are always
+        // upcoming (start/end strictly after today), regardless of when the app runs.
+        LocalDate today = LocalDate.now();
+
         Plan p1 = plan(seba, "Asado y fútbol en Palermo",
                 "Casual Sunday asado before the Boca match. Bring something to share — we cover the meat and the fire.",
-                dt(2026, 7, 12, 13, 0), dt(2026, 7, 12, 19, 0), PlanVisibility.PUBLIC, 20, 18, null,
+                at(today, 1, 13, 0), at(today, 1, 19, 0), PlanVisibility.PUBLIC, 20, 18, null,
                 List.of(Interest.FOOD, Interest.SPORTS), "Argentina", "CABA", "Buenos Aires", "Parque Tres de Febrero, Palermo",
                 -34.5711, -58.4173, 8000.0, List.of(marcos, bryan, emanuel), 
                 List.of(
@@ -257,7 +262,7 @@ public class DemoDataInitializer {
 
         Plan p2 = plan(marcos, "Trekking a la Laguna de los Tres",
                 "Full-day hike to the base of Mount Fitz Roy. Moderate-to-hard, ~10h round trip. Decent boots required.",
-                dt(2026, 8, 9, 6, 30), dt(2026, 8, 9, 18, 0), PlanVisibility.PUBLIC, 12, 16, null,
+                at(today, 29, 6, 30), at(today, 29, 18, 0), PlanVisibility.PUBLIC, 12, 16, null,
                 List.of(Interest.NATURE, Interest.MOUNTAINS, Interest.ADVENTURE), "Argentina", "Santa Cruz", "El Chaltén", "Sendero Laguna de los Tres",
                 -49.3300, -72.8860, 15000.0, List.of(bryan, emanuel), 
                 List.of(
@@ -268,7 +273,7 @@ public class DemoDataInitializer {
 
         Plan p3 = plan(rocio, "Noche de ópera en el Colón",
                 "We grabbed a block of seats for the season's Traviata. Smart-casual dress, dinner nearby afterwards.",
-                dt(2026, 9, 3, 20, 0), dt(2026, 9, 3, 23, 30), PlanVisibility.PUBLIC, 8, 18, null,
+                at(today, 54, 20, 0), at(today, 54, 23, 30), PlanVisibility.PUBLIC, 8, 18, null,
                 List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "CABA", "Buenos Aires", "Teatro Colón, Cerrito 628",
                 -34.6010, -58.3835, 22000.0, List.of(seba, emanuel), 
                 List.of(
@@ -279,7 +284,7 @@ public class DemoDataInitializer {
 
         Plan p4 = plan(bryan, "Día de ski en Cerro Catedral",
                 "Mid-week ski day to dodge the crowds. Carpooling from Bariloche centre at 8am. All levels welcome.",
-                dt(2026, 7, 22, 8, 0), dt(2026, 7, 22, 17, 0), PlanVisibility.PUBLIC, 16, null, null,
+                at(today, 11, 8, 0), at(today, 11, 17, 0), PlanVisibility.PUBLIC, 16, null, null,
                 List.of(Interest.SPORTS, Interest.MOUNTAINS), "Argentina", "Río Negro", "San Carlos de Bariloche", "Cerro Catedral",
                 -41.1667, -71.4333, 45000.0, List.of(marcos, seba), 
                 List.of(
@@ -290,7 +295,7 @@ public class DemoDataInitializer {
 
         Plan p5 = plan(emanuel, "Tour de bodegas en Mendoza",
                 "Three wineries in Luján de Cuyo with a long lunch in the middle. We split a driver so everyone can taste.",
-                dt(2026, 10, 4, 10, 0), dt(2026, 10, 4, 18, 0), PlanVisibility.PUBLIC, 10, 18, null,
+                at(today, 85, 10, 0), at(today, 85, 18, 0), PlanVisibility.PUBLIC, 10, 18, null,
                 List.of(Interest.FOOD, Interest.CULTURE), "Argentina", "Mendoza", "Mendoza", "Luján de Cuyo",
                 -33.0386, -68.8794, 30000.0, List.of(seba, rocio), 
                 List.of(
@@ -302,7 +307,7 @@ public class DemoDataInitializer {
 
         Plan p6 = plan(seba, "Recorrida foodie en San Telmo",
                 "Sunday market crawl: empanadas, choripán, and the best dulce de leche stalls. Cash helps at the fair.",
-                dt(2026, 7, 19, 11, 0), dt(2026, 7, 19, 16, 0), PlanVisibility.PUBLIC, 15, null, null,
+                at(today, 8, 11, 0), at(today, 8, 16, 0), PlanVisibility.PUBLIC, 15, null, null,
                 List.of(Interest.FOOD, Interest.CULTURE, Interest.SHOPPING), "Argentina", "CABA", "Buenos Aires", "Feria de San Telmo, Defensa 900",
                 -34.6208, -58.3735, 12000.0, List.of(rocio, emanuel, marcos), 
                 List.of(
@@ -312,7 +317,7 @@ public class DemoDataInitializer {
 
         Plan p7 = plan(marcos, "Avistaje y caminata en Iguazú",
                 "Two days at the falls: Argentine side on day one, the boat under the falls on day two. Ponchos provided.",
-                dt(2026, 9, 19, 9, 0), dt(2026, 9, 20, 17, 0), PlanVisibility.PUBLIC, 14, 8, null,
+                at(today, 70, 9, 0), at(today, 71, 17, 0), PlanVisibility.PUBLIC, 14, 8, null,
                 List.of(Interest.NATURE, Interest.ADVENTURE), "Argentina", "Misiones", "Puerto Iguazú", "Parque Nacional Iguazú",
                 -25.6953, -54.4367, 38000.0, List.of(emanuel, bryan), 
                 List.of(
@@ -324,7 +329,7 @@ public class DemoDataInitializer {
 
         Plan p8 = plan(rocio, "Tarde de tango en La Boca",
                 "Caminito stroll, a milonga lesson for total beginners, and coffee with a view of the river.",
-                dt(2026, 8, 16, 15, 0), dt(2026, 8, 16, 20, 0), PlanVisibility.PUBLIC, 18, null, null,
+                at(today, 36, 15, 0), at(today, 36, 20, 0), PlanVisibility.PUBLIC, 18, null, null,
                 List.of(Interest.CULTURE, Interest.HISTORY), "Argentina", "CABA", "Buenos Aires", "Caminito, La Boca",
                 -34.6395, -58.3625, 9000.0, List.of(seba, emanuel), 
                 List.of(
@@ -334,7 +339,7 @@ public class DemoDataInitializer {
 
         Plan p9 = plan(bryan, "Escapada de surf a Mar del Plata",
                 "Weekend of beginner surf lessons and beach volley. Boards and wetsuits rented on site.",
-                dt(2026, 11, 7, 9, 0), dt(2026, 11, 8, 18, 0), PlanVisibility.PUBLIC, 12, 16, 45,
+                at(today, 119, 9, 0), at(today, 120, 18, 0), PlanVisibility.PUBLIC, 12, 16, 45,
                 List.of(Interest.BEACH, Interest.SPORTS, Interest.ADVENTURE), "Argentina", "Buenos Aires", "Mar del Plata", "Playa Grande",
                 -38.0500, -57.5300, 26000.0, List.of(seba, marcos),
                  List.of(
@@ -345,7 +350,7 @@ public class DemoDataInitializer {
 
         Plan p10 = plan(emanuel, "Amanecer en Purmamarca",
                 "Early start to catch the Cerro de los Siete Colores at sunrise, then a slow breakfast in the village.",
-                dt(2026, 10, 25, 6, 0), dt(2026, 10, 25, 11, 0), PlanVisibility.PRIVATE, 8, null, null,
+                at(today, 106, 6, 0), at(today, 106, 11, 0), PlanVisibility.PRIVATE, 8, null, null,
                 List.of(Interest.NATURE, Interest.HISTORY), "Argentina", "Jujuy", "Purmamarca", "Cerro de los Siete Colores",
                 -23.7450, -65.5000, 7000.0, List.of(marcos, rocio), 
                 List.of(
@@ -356,7 +361,7 @@ public class DemoDataInitializer {
         Plan p11 = plan(allUsers.get(rng.nextInt(allUsers.size())), 
         "Recorrida de tiendas en Buenos Aires",
             "A friendly get-together to enjoy Mercado de San Telmo without rushing.",
-            dt(2026, 7, 12, 11, 0), dt(2026, 7, 12, 16, 0),
+            at(today, 1, 11, 0), at(today, 1, 16, 0),
             PlanVisibility.PRIVATE, 30, null, 5000,
             List.of(), "Argentina", "CABA", "Buenos Aires",
             "Mercado de San Telmo",
@@ -367,7 +372,7 @@ public class DemoDataInitializer {
         Plan p12 = plan(allUsers.get(rng.nextInt(allUsers.size())), 
         "Día de museos en Buenos Aires",
                 "Group plan at Usina del Arte; bring good vibes and comfy shoes.",
-                dt(2026, 7, 13, 12, 0), dt(2026, 11, 02, 18, 0),
+                at(today, 2, 12, 0), at(today, 114, 18, 0),
                 PlanVisibility.PUBLIC, 35, null, 7500,
                 List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Usina del Arte",
@@ -382,7 +387,7 @@ public class DemoDataInitializer {
 
         Plan p13 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Caminata y naturaleza en Buenos Aires",
                 "Discovering Reserva Ecológica Costanera Sur together and grabbing a bite nearby afterwards.",
-                dt(2026, 7, 14, 13, 0), dt(2026, 7, 14, 16, 0),
+                at(today, 3, 13, 0), at(today, 3, 16, 0),
                 PlanVisibility.PUBLIC, 10, 18, 10000,
                 List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Reserva Ecológica Costanera Sur",
@@ -395,7 +400,7 @@ public class DemoDataInitializer {
 
         Plan p14 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Recorrido de arte en Buenos Aires",
                 "A friendly get-together to enjoy Centro Cultural Kirchner without rushing.",
-                dt(2026, 7, 15, 14, 0), dt(2026, 7, 15, 18, 0),
+                at(today, 4, 14, 0), at(today, 4, 18, 0),
                 PlanVisibility.PUBLIC, 15, null, 12500,
                 List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Centro Cultural Kirchner",
@@ -408,7 +413,7 @@ public class DemoDataInitializer {
 
         Plan p15 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Paseo por el Estadio Monumental",
                 "Group plan at Estadio Monumental; bring good vibes and comfy shoes.",
-                dt(2026, 7, 16, 15, 0), dt(2026, 7, 16, 20, 0),
+                at(today, 5, 15, 0), at(today, 5, 20, 0),
                 PlanVisibility.PUBLIC, 20, null, 15000,
                 List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Estadio Monumental",
@@ -421,7 +426,7 @@ public class DemoDataInitializer {
 
         Plan p16 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Partido y deporte en Buenos Aires",
                 "Exploring La Bombonera at an easy pace, with plenty of time to chat.",
-                dt(2026, 7, 17, 16, 0), dt(2026, 7, 17, 22, 0),
+                at(today, 6, 16, 0), at(today, 6, 22, 0),
                 PlanVisibility.PRIVATE, 25, null, 17500,
                 List.of(), "Argentina", "CABA", "Buenos Aires",
                 "La Bombonera",
@@ -434,7 +439,7 @@ public class DemoDataInitializer {
 
         Plan p17 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Noche de sabores en Buenos Aires",
                 "Discovering Barrio Chino de Belgrano together and grabbing a bite nearby afterwards.",
-                dt(2026, 7, 18, 9, 0), dt(2026, 7, 18, 12, 0),
+                at(today, 7, 9, 0), at(today, 7, 12, 0),
                 PlanVisibility.PUBLIC, 30, 18, 20000,
                 List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Barrio Chino de Belgrano",
@@ -447,7 +452,7 @@ public class DemoDataInitializer {
 
         Plan p18 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Recorrida de tiendas en Buenos Aires",
                 "Group plan at Galerías Pacífico; bring good vibes and comfy shoes.",
-                dt(2026, 7, 19, 10, 0), dt(2026, 7, 19, 14, 0),
+                at(today, 8, 10, 0), at(today, 8, 14, 0),
                 PlanVisibility.PUBLIC, 35, null, 22500,
                 List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Galerías Pacífico",
@@ -459,7 +464,7 @@ public class DemoDataInitializer {
 
         Plan p19 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Tarde cultural en Buenos Aires",
                 "Exploring Avenida Corrientes at an easy pace, with plenty of time to chat.",
-                dt(2026, 7, 20, 11, 0), dt(2026, 7, 20, 16, 0),
+                at(today, 9, 11, 0), at(today, 9, 16, 0),
                 PlanVisibility.PUBLIC, 10, null, 25000,
                 List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Avenida Corrientes",
@@ -472,7 +477,7 @@ public class DemoDataInitializer {
 
         Plan p20 = plan(allUsers.get(rng.nextInt(allUsers.size())), "Recorrido histórico por Buenos Aires",
                 "Meeting up around Congreso de la Nación for a relaxed few hours together.",
-                dt(2026, 7, 21, 12, 0), dt(2026, 7, 21, 18, 0),
+                at(today, 10, 12, 0), at(today, 10, 18, 0),
                 PlanVisibility.PUBLIC, 15, null, 27500,
                 List.of(), "Argentina", "CABA", "Buenos Aires",
                 "Congreso de la Nación",
@@ -573,8 +578,8 @@ public class DemoDataInitializer {
         reviewRepository.save(new Review(author, rating, comment, ReviewTarget.USER, target.getId()));
     }
 
-    private static LocalDateTime dt(int year, int month, int day, int hour, int minute) {
-        return LocalDateTime.of(year, month, day, hour, minute);
+    private static LocalDateTime at(LocalDate base, int offsetDays, int hour, int minute) {
+        return base.plusDays(offsetDays).atTime(hour, minute);
     }
 
     // ---------------------------------------------------------------------
@@ -626,6 +631,7 @@ public class DemoDataInitializer {
         TouristPlace place = new TouristPlace(s.name(), s.cost(), null, null, s.interests(),
                 s.country(), s.state(), s.city(), s.address(), s.lat(), s.lng(), s.images());
         place.setDescription(s.description());
+        place.setOpeningHours(SeedData.openingHoursFor(s.name()));
         place.setCreator(creator);
         return touristPlaceRepository.save(place);
     }
